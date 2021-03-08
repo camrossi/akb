@@ -20,7 +20,7 @@ EOF
 resource "aci_rest" "floating_svi" {
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"
   depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
-  for_each = {for i, v in var.l3out.anchor_nodes:  i => v}
+  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
   payload = <<EOF
   {
             "l3extVirtualLIfP": {
@@ -70,18 +70,20 @@ locals {
                     pod_id = v[0].pod_id
                     calico_ip = split("/",v[1].ip)[0]
                     calico_as = v[1].local_as
-                    }
+                    index_key = join("-",[v[0].node_id, split("/",v[1].ip)[0]])
+            }
   ]
 
 }
 
 #output "name" {
-#    value = local.peering
+#    value = {for v in local.peering:  v.index_key => v}
 #}
 
 resource "aci_rest" "bgp_peer" {
-  for_each = {for i, v in local.peering:  i => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}].json"
+  for_each = {for v in local.peering:  v.index_key => v}
+
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}].json"
   depends_on = [ aci_rest.floating_svi ]
   payload = <<EOF
 {

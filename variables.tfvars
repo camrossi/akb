@@ -65,5 +65,10 @@ calico_nodes = [
         hostname        = "worker-2"
         ip              = "192.168.1.5/24"
         local_as        = 64505
+        },
+        {
+        hostname        = "worker-3"
+        ip              = "192.168.1.6/24"
+        local_as        = 64506
         }
 ]

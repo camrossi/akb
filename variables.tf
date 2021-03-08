@@ -23,6 +23,7 @@ variable "l3out" {
     secondary_ip      = string
     vlan_id           = number
     def_ext_epg       = string
+    local_as          = number
     anchor_nodes      = list(object({
       node_id         = number
       rtr_id          = string
@@ -32,3 +33,10 @@ variable "l3out" {
   })
 }
 
+variable "calico_nodes" {
+  type = list(object({
+    hostname        = string
+    ip              = string
+    local_as        = number
+     }))
+}

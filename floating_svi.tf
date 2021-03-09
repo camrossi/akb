@@ -6,9 +6,6 @@ resource "aci_rest" "bgp" {
                     {
                         "bgpExtP": {
                             "attributes": {
-                                "annotation": "",
-                                "descr": "",
-                                "nameAlias": "",
                                 "userdom": ":all:common:"
                             }
                         }
@@ -93,23 +90,12 @@ resource "aci_rest" "bgp_peer" {
                     "addrTCtrl": "af-ucast",
                     "adminSt": "enabled",
                     "allowedSelfAsCnt": "3",
-                    "annotation": "",
-                    "ctrl": "",
-                    "descr": "",
-                    "name": "",
-                    "nameAlias": "",
-                    "peerCtrl": "",
-                    "privateASctrl": "",
-                    "ttl": "1",
-                    "userdom": ":all:common:",
-                    "weight": "0"
+                    "userdom": ":all:common:"
                 },
                 "children": [
                     {
                         "bgpRsPeerPfxPol": {
                             "attributes": {
-                                "annotation": "",
-                                "tnBgpPeerPfxPolName": "",
                                 "userdom": "all"
                             }
                         }
@@ -117,12 +103,8 @@ resource "aci_rest" "bgp_peer" {
                     {
                         "bgpLocalAsnP": {
                             "attributes": {
-                                "annotation": "",
                                 "asnPropagate": "none",
-                                "descr": "",
                                 "localAsn": "${var.l3out.local_as}",
-                                "name": "",
-                                "nameAlias": "",
                                 "userdom": ":all:common:"
                             }
                         }
@@ -130,11 +112,7 @@ resource "aci_rest" "bgp_peer" {
                     {
                         "bgpAsP": {
                             "attributes": {
-                                "annotation": "",
                                 "asn": "${each.value.calico_as}",
-                                "descr": "",
-                                "name": "",
-                                "nameAlias": "",
                                 "userdom": ":all:common:"
                             }
                         }

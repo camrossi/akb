@@ -1,0 +1,10 @@
+---
+- hosts: all
+  gather_facts: False
+  roles:
+    - k8s_node
+
+- hosts: masters
+  gather_facts: True
+  roles:
+    - masters

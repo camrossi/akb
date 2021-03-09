@@ -4,14 +4,20 @@ terraform {
      source = "CiscoDevNet/aci"
      version = "0.5.4"
    }
+   vsphere = {
+      source = "hashicorp/vsphere"
+      version = "1.24.3"
+    }
  }
 }
 
 provider "aci" {
   # cisco-aci user name
   username = var.apic_username
+  cert_name = var.cert_name
+  private_key = var.private_key
   # cisco-aci password
-  password = var.apic_password
+  #password = var.apic_password
   # cisco-aci url
   url      = var.apic_url 
   insecure = true
@@ -50,12 +56,21 @@ resource "aci_logical_interface_profile" "calico_interface_profile" {
     name                    = var.l3out.int_prof_name
   }    
 
+data "aci_contract" "default" {
+  tenant_dn  = data.aci_tenant.tenant_l3out.id
+  name       = "default"
+} 
+
 resource "aci_external_network_instance_profile" "default" {
         l3_outside_dn  = aci_l3_outside.calico_l3out.id
         name           = var.l3out.def_ext_epg
+        relation_fv_rs_prov = [ data.aci_contract.default.id] 
+        relation_fv_rs_cons = [data.aci_contract.default.id]
+
     }
 
 resource "aci_l3_ext_subnet" "default" {
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
-  ip                                    = "0.0.0.0/0"
+  ip                                    = var.l3out.calico_node_sub
+  scope                                 = var.l3out.def_ext_epg_scope
 }

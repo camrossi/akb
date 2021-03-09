@@ -1,0 +1,20 @@
+- name: install podman
+  apt:
+    name: podman
+    state: latest
+  tags:
+    - masters
+- name: configure kube-vip
+  command: |
+   podman run --network host --rm {{ kube_vip_image }} manifest pod --interface "{{ ansible_interfaces | difference(['lo']) | first }}"  
+   --vip {{ control_plane_vip }} --arp --leaderElection  --leaseDuration 50  --leaseRenewDuration 30 --leaseRetry 10
+  register: command_output
+  tags:
+    - masters
+
+- name: Create Kube-Vip Manifest
+  copy:
+    dest: /etc/kubernetes/manifests/vip.yaml
+    content: "{{command_output.stdout}}"
+  tags:
+    - masters

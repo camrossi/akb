@@ -2,12 +2,37 @@ variable "apic_username" {
   type = string
 }
 
-variable "apic_password" {
+variable "cert_name" {
+  type = string
+}
+
+variable "private_key" {
   type = string
 }
 
 variable "apic_url" {
   type = string
+}
+
+variable "vsphere_user" {
+  type = string
+}
+
+variable "vsphere_password" {
+  type = string
+
+}
+
+variable "vsphere_server" {
+  type = string 
+}
+
+variable "dns_domain" {
+  type = string
+}
+
+variable "dns_servers" {
+  type = list(string)
 }
 
 variable "l3out" {
@@ -23,6 +48,8 @@ variable "l3out" {
     secondary_ip      = string
     vlan_id           = number
     def_ext_epg       = string
+    def_ext_epg_scope = list(string)
+    calico_node_sub   = string
     local_as          = number
     anchor_nodes      = list(object({
       node_id         = number
@@ -40,3 +67,4 @@ variable "calico_nodes" {
     local_as        = number
      }))
 }
+

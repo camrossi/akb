@@ -2,10 +2,22 @@ ansible_ssh_pass: 123Cisco123
 ansible_user: cisco
 ansible_sudo_pass: 123Cisco123
 kube_version: 1.20.4-00             # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
-kubeadm_token: fqv728.htdmfzf6rt9blhej  # This is the kubeadm token. You should probably change it. 
-ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q bm-01"'
-ansible_python_interpreter: /usr/bin/python3
+#ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q bm-01"'
+#ansible_python_interpreter: /usr/bin/python3
 OS_Version: "xUbuntu_20.04"
 crio_version: "1.20"
 control_plane_vip: "192.168.2.100"
 kube_vip_image: docker.io/plndr/kube-vip:0.3.3
+kubeadm_token: fqv728.htdmfzf6rt9blhej
+pod_subnet: 192.168.3.1/24
+cluster_svc_subnet: 192.168.4.1/24
+haproxy_image: haproxy:2.3.6
+keepalived_image: osixia/keepalived:2.0.20
+vip_port: 8443
+keepalived_router_id: 51
+aci_as: 64500
+anchor_nodes:
+  - id: 201
+    primary_ip: 192.168.2.201
+  - id: 202
+    primary_ip: 192.168.2.202

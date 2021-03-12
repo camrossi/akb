@@ -1,0 +1,10 @@
+{% for leaf in anchor_nodes %}
+---
+apiVersion: projectcalico.org/v3
+kind: BGPPeer
+metadata:
+  name: "{{ leaf.id }}"
+spec:
+  peerIP: "{{ leaf.primary_ip }}"
+  asNumber: {{ aci_as }}
+{% endfor %}

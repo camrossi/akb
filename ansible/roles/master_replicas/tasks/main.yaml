@@ -1,0 +1,237 @@
+---
+
+- name: "Create kubernetes folders"
+  file:
+    path: /etc/kubernetes/pki/etcd
+    state: directory
+    mode: 0640
+    owner: root
+    group: root
+  tags:
+    - master_replicas
+
+- name: "Push Kubernetes Master PKI files to master replicas"
+  copy: 
+    src: /tmp/kubeadm-ha/
+    dest: /etc/kubernetes/
+    owner: root
+    group: root
+    mode: preserve
+  tags:
+    - master_replicas
+
+- name: Generate master join token
+  shell: kubeadm token create --print-join-command
+  register: kubeadm_join_cmd
+  delegate_to: "{{groups['k8s_primary_master'][0]}}"
+  tags:
+    - master_replicas
+
+- name: Join Master replicas to cluster
+  shell: "{{ kubeadm_join_cmd.stdout }} --control-plane"
+  tags:
+    - master_replicas
+
+# I create the static pods after or Kubeadm will complain. 
+
+- name: Ensures haproxy dir exists
+  file: 
+    path: /etc/haproxy/
+    state: directory
+  tags:
+    - master_replicas
+
+- name: configure haproxy
+  copy:
+    dest: /etc/haproxy/haproxy.cfg
+    force: yes
+    content: |
+            #---------------------------------------------------------------------
+            # Global settings
+            #---------------------------------------------------------------------
+            global
+                log /dev/log local0
+                log /dev/log local1 notice
+                daemon
+
+            #---------------------------------------------------------------------
+            # common defaults that all the 'listen' and 'backend' sections will
+            # use if not designated in their block
+            #---------------------------------------------------------------------
+            defaults
+                mode                    http
+                log                     global
+                option                  httplog
+                option                  dontlognull
+                option http-server-close
+                option forwardfor       except 127.0.0.0/8
+                option                  redispatch
+                retries                 1
+                timeout http-request    10s
+                timeout queue           20s
+                timeout connect         5s
+                timeout client          300s
+                timeout server          300s
+                timeout http-keep-alive 10s
+                timeout check           10s
+
+            #---------------------------------------------------------------------
+            # apiserver frontend which proxys to the master_replicas
+            #---------------------------------------------------------------------
+            frontend apiserver
+                bind *:{{ vip_port }}
+                mode tcp
+                option tcplog
+                default_backend apiserver
+
+            #---------------------------------------------------------------------
+            # round robin balancing for apiserver
+            #---------------------------------------------------------------------
+            backend apiserver
+                option httpchk GET /healthz
+                http-check expect status 200
+                mode tcp
+                option ssl-hello-chk
+                balance     roundrobin
+            {% for host in groups ['k8s_masters'] %}
+                server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
+            {% endfor %}
+  tags:
+    - master_replicas
+
+- name: configure haproxy StaticPOD
+  copy:
+    dest: /etc/kubernetes/manifests/haproxy.yaml
+    force: yes
+    content: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: haproxy
+            namespace: kube-system
+          spec:
+            containers:
+            - image: {{ haproxy_image }}
+              name: haproxy
+              livenessProbe:
+                failureThreshold: 8
+                httpGet:
+                  host: localhost
+                  path: /healthz
+                  port: {{ vip_port }}
+                  scheme: HTTPS
+              volumeMounts:
+              - mountPath: /usr/local/etc/haproxy/haproxy.cfg
+                name: haproxyconf
+                readOnly: true
+            hostNetwork: true
+            volumes:
+            - hostPath:
+                path: /etc/haproxy/haproxy.cfg
+                type: FileOrCreate
+              name: haproxyconf
+          status: {}
+  tags:
+    - master_replicas
+
+- name: Ensures keepalived dir exists
+  file: 
+    path: /etc/keepalived
+    state: directory
+  tags:
+    - master_replicas
+
+- name: configure keepalived on Slaves
+  copy:
+    dest: /etc/keepalived/keepalived.conf
+    force: yes
+    content: |
+          global_defs {
+              router_id LVS_DEVEL
+          }
+          vrrp_script check_apiserver {
+            script "/etc/keepalived/check_apiserver.sh"
+            interval 3
+            weight -2
+            fall 10
+            rise 2
+          }
+
+          vrrp_instance VI_1 {
+              state BACKUP
+              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0']) | first }}
+              virtual_router_id {{ keepalived_router_id }}
+              priority 100
+              authentication {
+                  auth_type PASS
+                  auth_pass 42
+              }
+              virtual_ipaddress {
+                  {{ control_plane_vip }}
+              }
+              track_script {
+                  check_apiserver
+              }
+          }
+  tags:
+    - master_replicas
+
+- name: configure keepalived StaticPOD
+  copy:
+    dest: /etc/kubernetes/manifests/keepalived.yaml
+    force: yes
+    content: |
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                creationTimestamp: null
+                name: keepalived
+                namespace: kube-system
+              spec:
+                containers:
+                - image: {{ keepalived_image }}
+                  name: keepalived
+                  resources: {}
+                  securityContext:
+                    capabilities:
+                      add:
+                      - NET_ADMIN
+                      - NET_BROADCAST
+                      - NET_RAW
+                  volumeMounts:
+                  - mountPath: /usr/local/etc/keepalived/keepalived.conf
+                    name: config
+                  - mountPath: /etc/keepalived/check_apiserver.sh
+                    name: check
+                hostNetwork: true
+                volumes:
+                - hostPath:
+                    path: /etc/keepalived/keepalived.conf
+                  name: config
+                - hostPath:
+                    path: /etc/keepalived/check_apiserver.sh
+                  name: check
+              status: {}
+  tags:
+    - master_replicas
+
+
+- name: configure keepalived check_apiserver script
+  copy:
+    dest: /etc/keepalived/check_apiserver.sh
+    mode: u+rwx
+    force: yes
+    content: |
+              #!/bin/sh
+
+              errorExit() {
+                  echo "*** $*" 1>&2
+                  exit 1
+              }
+
+              curl --silent --max-time 2 --insecure https://localhost:{{ vip_port }}/ -o /dev/null || errorExit "Error GET https://localhost:{{ vip_port }}/"
+              if ip addr | grep -q {{ control_plane_vip }}; then
+                  curl --silent --max-time 2 --insecure https://{{ control_plane_vip }}:{{ vip_port }}/ -o /dev/null || errorExit "Error GET https://{{ control_plane_vip }}:{{ vip_port }}/"
+              fi
+  tags:
+    - master_replicas

@@ -1,0 +1,160 @@
+---
+
+- name: Disable swap
+  command: swapoff -a
+
+- name: Remove swapfile from /etc/fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+  tags:
+    - k8s_nodes
+
+- name: Test http internet connectivity get http://www.google.com
+  uri:
+    url: http://www.google.com
+  tags:
+    - k8s_nodes
+   
+- name: Test https internet connectivity get https://www.google.com
+  uri:
+    url: https://www.google.com
+  tags:
+    - k8s_nodes
+  
+- name: add apt-key for Kubeadm
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  tags:
+    - k8s_nodes
+
+- name: add kubernetes repo
+  copy:
+    content: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    force: no
+  tags:
+    - k8s_nodes
+
+- name: add apt-key for cri-o-runc
+  apt_key:
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS_Version }}/Release.key
+  tags:
+    - k8s_nodes
+
+- name: add apt-key for cri-o
+  apt_key:
+    url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:/{{ crio_version }}/{{ OS_Version }}/Release.key
+  tags:
+    - k8s_nodes
+
+- name: add cri-o-runc repo
+  copy:
+    content: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS_Version }}/  /"
+    dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+    force: no
+  tags:
+    - k8s_nodes
+
+- name: add cri-o repo
+  copy:
+    content: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ OS_Version }}/ /"
+    dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}.list
+    force: no
+  tags:
+    - k8s_nodes
+  
+- name: Update repos
+  apt:
+    update_cache: yes
+    upgrade: True
+  tags:
+    - k8s_nodes
+
+- name: load the br_netfilter module
+  modprobe:
+    name: br_netfilter
+    state: present
+  tags:
+    - k8s_nodes
+
+- name: Ensure br_netfilter module is always loaded
+  copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: "br_netfilter"
+  tags:
+    - k8s_nodes
+
+- name: Set bridge-nf-call-ip6tables
+  sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+    state: present
+    sysctl_set: yes
+    reload: yes
+  tags:
+    - k8s_nodes
+
+- name: Set bridge-nf-call-ip4tables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    state: present
+    sysctl_set: yes
+    reload: yes
+  tags:
+    - k8s_nodes
+
+- name: Set ipv4 ip_forward
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    sysctl_set: yes
+    reload: yes
+  tags:
+    - k8s_nodes
+
+- name: install cri-o
+  apt:
+    name: cri-o
+    state: latest
+  tags:
+    - k8s_nodes
+
+- name: install cri-o-runc
+  apt:
+    name: cri-o-runc
+    state: latest
+  tags:
+    - k8s_nodes
+
+- name: install cri-tools
+  apt: 
+    name: cri-tools
+    state: latest
+  tags:
+    - k8s_nodes
+
+- name: enable cri-o
+  service:
+    name: crio
+    enabled: yes
+    daemon_reload: yes
+  tags:
+    - k8s_nodes
+
+- name: start cri-o
+  service:
+    name: crio
+    state: started
+  tags:
+    - k8s_nodes
+
+- name: Install kubeadm, kubelet and kubectl 
+  apt: 
+    name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
+    state: present
+  tags:
+    - k8s_nodes

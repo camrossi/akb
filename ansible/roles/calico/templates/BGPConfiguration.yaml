@@ -1,0 +1,10 @@
+apiVersion: projectcalico.org/v3
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  logSeverityScreen: Info
+  nodeToNodeMeshEnabled: false
+  serviceClusterIPs:
+  - cidr: {{ cluster_svc_subnet | ipaddr('network') }}/{{ cluster_svc_subnet | ipaddr('prefix') }}
+  listenPort: 178

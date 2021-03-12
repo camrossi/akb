@@ -1,10 +1,24 @@
----
-- hosts: all
+- hosts: k8s_nodes
   gather_facts: False
   roles:
-    - k8s_node
+    - k8s_nodes
 
-- hosts: masters
+- hosts: k8s_primary_master
   gather_facts: True
   roles:
-    - masters
+    - primary_master
+
+- hosts: k8s_master_replicas
+  gather_facts: True
+  roles:
+    - master_replicas
+
+- hosts: k8s_workers
+  gather_facts: false
+  roles:
+    - workers
+
+- hosts: k8s_primary_master
+  gather_facts: false
+  roles:
+    - calico

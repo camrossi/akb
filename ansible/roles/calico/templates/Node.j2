@@ -1,0 +1,11 @@
+{% for node in groups ['k8s_nodes'] %}
+---
+apiVersion: projectcalico.org/v3
+kind: Node
+metadata:
+  name: {{ node }}
+spec:
+  bgp:
+    asNumber: {{ hostvars[node].as }}
+    ipv4Address: {{ hostvars[node]['ansible_host'] }}
+{% endfor %}

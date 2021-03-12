@@ -1,0 +1,5 @@
+- hosts: k8s_nodes
+  gather_facts: false
+  roles:
+    - k8s_reset
+

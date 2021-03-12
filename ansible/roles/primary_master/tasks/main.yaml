@@ -1,0 +1,308 @@
+---
+- name: Ensures haproxy dir exists
+  file: 
+    path: /etc/haproxy/
+    state: directory
+  tags:
+    - primary_master
+
+- name: configure haproxy
+  copy:
+    dest: /etc/haproxy/haproxy.cfg
+    force: yes
+    content: |
+            #---------------------------------------------------------------------
+            # Global settings
+            #---------------------------------------------------------------------
+            global
+                log /dev/log local0
+                log /dev/log local1 notice
+                daemon
+
+            #---------------------------------------------------------------------
+            # common defaults that all the 'listen' and 'backend' sections will
+            # use if not designated in their block
+            #---------------------------------------------------------------------
+            defaults
+                mode                    http
+                log                     global
+                option                  httplog
+                option                  dontlognull
+                option http-server-close
+                option forwardfor       except 127.0.0.0/8
+                option                  redispatch
+                retries                 1
+                timeout http-request    10s
+                timeout queue           20s
+                timeout connect         5s
+                timeout client          300s
+                timeout server          300s
+                timeout http-keep-alive 10s
+                timeout check           10s
+
+            #---------------------------------------------------------------------
+            # apiserver frontend which proxys to the masters
+            #---------------------------------------------------------------------
+            frontend apiserver
+                bind *:{{ vip_port }}
+                mode tcp
+                option tcplog
+                default_backend apiserver
+
+            #---------------------------------------------------------------------
+            # round robin balancing for apiserver
+            #---------------------------------------------------------------------
+            backend apiserver
+                option httpchk GET /healthz
+                http-check expect status 200
+                mode tcp
+                option ssl-hello-chk
+                balance     roundrobin
+            {% for host in groups ['k8s_masters'] %}
+                server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check
+            {% endfor %}
+  tags:
+    - primary_master
+
+- name: configure haproxy StaticPOD
+  copy:
+    dest: /etc/kubernetes/manifests/haproxy.yaml
+    force: yes
+    content: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: haproxy
+            namespace: kube-system
+          spec:
+            containers:
+            - image: {{ haproxy_image }}
+              name: haproxy
+              livenessProbe:
+                failureThreshold: 8
+                httpGet:
+                  host: localhost
+                  path: /healthz
+                  port: {{ vip_port }}
+                  scheme: HTTPS
+              volumeMounts:
+              - mountPath: /usr/local/etc/haproxy/haproxy.cfg
+                name: haproxyconf
+                readOnly: true
+            hostNetwork: true
+            volumes:
+            - hostPath:
+                path: /etc/haproxy/haproxy.cfg
+                type: FileOrCreate
+              name: haproxyconf
+          status: {}
+  tags:
+    - primary_master
+
+- name: Ensures keepalived dir exists
+  file: 
+    path: /etc/keepalived
+    state: directory
+  tags:
+    - primary_master
+
+- name: configure keepalived on Master
+  copy:
+    dest: /etc/keepalived/keepalived.conf
+    force: yes
+    content: |
+          global_defs {
+              router_id LVS_DEVEL
+          }
+          vrrp_script check_apiserver {
+            script "/etc/keepalived/check_apiserver.sh"
+            interval 3
+            weight -2
+            fall 10
+            rise 2
+          }
+
+          vrrp_instance VI_1 {
+              state MASTER
+              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0']) | first }}
+              virtual_router_id {{ keepalived_router_id }}
+              priority 101
+              authentication {
+                  auth_type PASS
+                  auth_pass  42
+              }
+              virtual_ipaddress {
+                  {{ control_plane_vip }}
+              }
+              track_script {
+                  check_apiserver
+              }
+          }
+  tags:
+    - primary_master
+
+
+- name: configure keepalived StaticPOD
+  copy:
+    dest: /etc/kubernetes/manifests/keepalived.yaml
+    force: yes
+    content: |
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                creationTimestamp: null
+                name: keepalived
+                namespace: kube-system
+              spec:
+                containers:
+                - image: {{ keepalived_image }}
+                  name: keepalived
+                  resources: {}
+                  securityContext:
+                    capabilities:
+                      add:
+                      - NET_ADMIN
+                      - NET_BROADCAST
+                      - NET_RAW
+                  volumeMounts:
+                  - mountPath: /usr/local/etc/keepalived/keepalived.conf
+                    name: config
+                  - mountPath: /etc/keepalived/check_apiserver.sh
+                    name: check
+                hostNetwork: true
+                volumes:
+                - hostPath:
+                    path: /etc/keepalived/keepalived.conf
+                  name: config
+                - hostPath:
+                    path: /etc/keepalived/check_apiserver.sh
+                  name: check
+              status: {}
+  tags:
+    - primary_master
+
+
+- name: configure keepalived check_apiserver script
+  copy:
+    dest: /etc/keepalived/check_apiserver.sh
+    force: yes
+    mode: u+rwx
+    content: |
+              #!/bin/sh
+
+              errorExit() {
+                  echo "*** $*" 1>&2
+                  exit 1
+              }
+
+              curl --silent --max-time 2 --insecure https://localhost:{{ vip_port }}/ -o /dev/null || errorExit "Error GET https://localhost:{{ vip_port }}/"
+              if ip addr | grep -q {{ control_plane_vip }}; then
+                  curl --silent --max-time 2 --insecure https://{{ control_plane_vip }}:{{ vip_port }}/ -o /dev/null || errorExit "Error GET https://{{ control_plane_vip }}:{{ vip_port }}/"
+              fi
+  tags:
+    - primary_master
+
+- name: Create Kubeadm config 
+  copy:
+    dest: /tmp/kubeadm.yaml
+    force: yes
+    content: |
+      apiVersion: kubeadm.k8s.io/v1beta2
+      kind: InitConfiguration
+      bootstrapTokens:
+      - groups:
+        - system:bootstrappers:kubeadm:default-node-token
+        token: {{ kubeadm_token }}
+      nodeRegistration:
+        criSocket: "unix:///var/run/crio/crio.sock"
+      ---
+      apiServer:
+        timeoutForControlPlane: 4m0s
+      kind: ClusterConfiguration
+      controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
+      networking:
+        podSubnet: {{ pod_subnet }}
+        serviceSubnet: {{ cluster_svc_subnet }}
+      apiVersion: kubeadm.k8s.io/v1beta2
+      ---
+      apiVersion: kubelet.config.k8s.io/v1beta1
+      kind: KubeletConfiguration
+      cgroupDriver: systemd
+  run_once: true
+  tags:
+    - primary_master
+
+- name: Bootstrap first Master
+  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs
+  tags:
+    - primary_master
+
+- name: Create .kube folder
+  file:
+    path: "~{{ ansible_ssh_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_ssh_user }}"
+  tags:
+    - primary_master
+
+- name: Copy admin.conf to .kube folder
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "~{{ ansible_ssh_user }}/.kube/config"
+    owner: "{{ ansible_ssh_user }}"
+    remote_src: yes
+  tags:
+    - primary_master
+
+- name: Create .kube folder for root 
+  file:
+    path: "/root/.kube"
+    state: directory
+    owner: "root"
+  tags:
+    - primary_master
+
+- name: Copy admin.conf to .kube folder for root
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/root/.kube/config"
+    owner: "root"
+    remote_src: yes
+  tags:
+    - primary_master
+
+- name: "Fetching Kubernetes Master PKI files from primary master"
+  fetch:
+    src: /etc/kubernetes/pki/{{item}}
+    dest: /tmp/kubeadm-ha/pki/{{item}}
+    flat: yes
+  with_items:
+    - ca.crt
+    - ca.key
+    - sa.key
+    - sa.pub
+    - front-proxy-ca.crt 
+    - front-proxy-ca.key
+  tags:
+    - primary_master
+
+- name: "Fetching Kubernetes Master ETCD files from primary master"
+  fetch:
+    src: /etc/kubernetes/pki/etcd/{{item}}
+    dest: /tmp/kubeadm-ha/pki/etcd/{{item}}
+    flat: yes
+  with_items:
+    - ca.crt
+    - ca.key
+  tags:
+    - primary_master
+
+- name: "Fetching Kubernetes Master Admin files from primary master"
+  fetch:
+    src: /etc/kubernetes/{{item}}
+    dest: /tmp/kubeadm-ha/{{item}}
+    flat: yes
+  with_items:
+    - admin.conf 
+  tags:
+    - primary_master

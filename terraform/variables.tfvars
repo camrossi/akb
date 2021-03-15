@@ -1,10 +1,19 @@
 apic_username = "ansible"
-apic_url = "http://fab2-apic1.cam.ciscolabs.com"
+apic_url = "https://fab2-apic1.cam.ciscolabs.com"
 cert_name = "ansible.crt"
 private_key = "/home/cisco/Coding/ansible.key"
-vsphere_server = "vc2.cam.ciscolabs.com"
-vsphere_user = "administrator@vsphere.local"
-vsphere_password = "123Cisco123!"
+vc = {
+  url               = "vc2.cam.ciscolabs.com"
+  username          = "administrator@vsphere.local"
+  pass              = "123Cisco123!"
+  dc                = "STLD"
+  datastore         = "BM01"
+  cluster           = "Cluster"
+  dvs               = "ACI"
+  port_group        = "CalicoL3OUT_300"
+  vm_template       = "Ubuntu20-Template"
+  vm_folder         = "Calico2.0"
+}
 dns_domain = "cam.ciscolabs.com"
 dns_servers = ["10.67.185.100"]
 l3out = {
@@ -49,6 +58,9 @@ l3out = {
     ]
 }
 
+# You MUST have 3 masters and N workers. 
+# The 1st node is the primary master. 2nd and 3rd are the master replices and everything else is a worker.
+# If you do not have 3 master the script will break...Need to make it more generic eventually
 calico_nodes = [
         {
         hostname        = "master-1"
@@ -76,3 +88,19 @@ calico_nodes = [
         local_as        = 64505
         }
 ]
+
+k8s_cluster = {
+    kube_version        = "1.20.4-00"
+    crio_version        = "1.20"
+    OS_Version          = "xUbuntu_20.04"
+    control_plane_vip   = "192.168.2.100"
+    vip_port            = 8443
+    haproxy_image       = "haproxy:2.3.6"
+    keepalived_image    = "osixia/keepalived:2.0.20"
+    keepalived_router_id= "51"
+    kubeadm_token       = "fqv728.htdmfzf6rt9blhej"
+    pod_subnet          = "192.168.3.1/24"
+    cluster_svc_subnet  = "192.168.4.1/24"
+    ntp_server          = "72.163.32.44"
+    time_zone           = "Australia/Sydney"
+  }

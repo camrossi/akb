@@ -1,18 +1,3 @@
-# Enabled BPG
-resource "aci_rest" "bgp" {
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}.json"
-  depends_on = [ aci_l3_outside.calico_l3out ]
-  payload = <<EOF
-                    {
-                        "bgpExtP": {
-                            "attributes": {
-                                "userdom": ":all:common:"
-                            }
-                        }
-                    }
-EOF
-}
-
 # Configure Floating SVI for every Anchor Node
 resource "aci_rest" "floating_svi" {
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"

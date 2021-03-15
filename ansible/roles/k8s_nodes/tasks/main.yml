@@ -64,11 +64,42 @@
     force: no
   tags:
     - k8s_nodes
-  
-- name: Update repos
+
+- name: Install the NTP daemon
+  apt: name=ntp
+  tags:
+    - k8s_nodes
+
+- name: Copy over the NTP configuration
+  template: src=./templates/ntp.conf dest=/etc/ntp.conf
+  tags:
+    - k8s_nodes
+
+- name: restart ntpd
+  service: name=ntp state=restarted
+  tags:
+    - k8s_nodes
+
+- name: Make sure ntp is started, and is enabled on restart.
+  service: name=ntp state=started enabled=yes
+  tags:
+    - k8s_nodes
+
+- name: set timezone
+  shell: timedatectl set-timezone {{ time_zone }}
+  tags:
+    - k8s_nodes
+    
+- name: apt update
   apt:
     update_cache: yes
-    upgrade: True
+    cache_valid_time: 0
+  tags:
+    - k8s_nodes
+
+- name: apt upgrade
+  apt:
+    upgrade: yes
   tags:
     - k8s_nodes
 
@@ -89,7 +120,7 @@
 - name: Set bridge-nf-call-ip6tables
   sysctl:
     name: net.bridge.bridge-nf-call-ip6tables
-    value: 1
+    value: "1"
     state: present
     sysctl_set: yes
     reload: yes
@@ -99,7 +130,7 @@
 - name: Set bridge-nf-call-ip4tables
   sysctl:
     name: net.bridge.bridge-nf-call-iptables
-    value: 1
+    value: "1"
     state: present
     sysctl_set: yes
     reload: yes
@@ -109,7 +140,7 @@
 - name: Set ipv4 ip_forward
   sysctl:
     name: net.ipv4.ip_forward
-    value: 1
+    value: "1"
     state: present
     sysctl_set: yes
     reload: yes

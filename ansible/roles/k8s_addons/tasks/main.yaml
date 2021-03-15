@@ -1,0 +1,34 @@
+---
+
+- name: Copy guestbook manifest
+  template:
+    src: guestbook-all-in-one.yaml
+    dest: /tmp/guestbook-all-in-one.yaml
+    force: yes
+  tags:
+    - k8s_addons
+
+- name: Create guestbook ns
+  shell: kubectl create ns gb
+  ignore_errors: yes
+  tags:
+    - k8s_addons
+
+- name: Create guestbook NS Deployment
+  shell: kubectl -n gb apply -f /tmp/guestbook-all-in-one.yaml
+  tags:
+    - k8s_addons
+
+
+- name: Copy kubernetes-dashboard.yaml manifests
+  template:
+    src: k8s_dashboard_220.yaml
+    dest: /tmp/k8s_dashboard_220.yaml
+    force: yes
+  tags:
+    - k8s_addons
+
+- name: Create kubernetes-dashboard Deployment
+  shell: kubectl apply -f /tmp/k8s_dashboard_220.yaml
+  tags:
+    - k8s_addons

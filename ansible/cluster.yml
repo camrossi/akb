@@ -22,3 +22,8 @@
   gather_facts: false
   roles:
     - calico
+
+- hosts: k8s_primary_master
+  gather_facts: false
+  roles:
+    - k8s_addons

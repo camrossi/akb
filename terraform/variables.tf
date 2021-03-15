@@ -14,18 +14,21 @@ variable "apic_url" {
   type = string
 }
 
-variable "vsphere_user" {
-  type = string
+variable "vc" {
+  type = object({
+  url               = string
+  username          = string
+  pass              = string
+  dc                = string
+  datastore         = string
+  cluster           = string
+  dvs               = string
+  port_group        = string
+  vm_template       = string
+  vm_folder         = string
+  })
 }
 
-variable "vsphere_password" {
-  type = string
-
-}
-
-variable "vsphere_server" {
-  type = string 
-}
 
 variable "dns_domain" {
   type = string
@@ -70,3 +73,20 @@ variable "calico_nodes" {
      }))
 }
 
+variable "k8s_cluster" {
+  type = object({
+    kube_version        = string
+    crio_version        = string
+    OS_Version          = string
+    control_plane_vip   = string
+    vip_port            = number
+    haproxy_image       = string
+    keepalived_image    = string
+    keepalived_router_id= string
+    kubeadm_token       = string
+    pod_subnet          = string
+    cluster_svc_subnet  = string
+    ntp_server          = string
+    time_zone           = string
+     })
+}

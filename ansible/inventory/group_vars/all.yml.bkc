@@ -7,11 +7,12 @@ kube_version: 1.20.4-00             # This is the versioning number as per Ubunt
 OS_Version: "xUbuntu_20.04"
 crio_version: "1.20"
 control_plane_vip: "192.168.2.100"
-kube_vip_image: docker.io/plndr/kube-vip:0.3.3
 kubeadm_token: fqv728.htdmfzf6rt9blhej
 pod_subnet: 192.168.3.1/24
 cluster_svc_subnet: 192.168.4.1/24
 haproxy_image: haproxy:2.3.6
+ntp_server: 72.163.32.44
+time_zone: "Australia/Sydney"
 keepalived_image: osixia/keepalived:2.0.20
 vip_port: 8443
 keepalived_router_id: 51

@@ -1,0 +1,31 @@
+### TO DO: This should be fixed with SSH KEY Autnentication
+ansible_ssh_pass: 123Cisco123
+ansible_user: cisco
+ansible_sudo_pass: 123Cisco123
+
+#K8S an Crio Version
+kube_version: ${k8s_cluster.kube_version}            # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
+OS_Version: "${k8s_cluster.OS_Version}"
+crio_version: "${k8s_cluster.crio_version}"
+
+#HA-Proxy and Keepalied Config 
+haproxy_image: ${k8s_cluster.haproxy_image}
+control_plane_vip: ${k8s_cluster.control_plane_vip}
+vip_port: ${k8s_cluster.vip_port}
+keepalived_image: ${k8s_cluster.keepalived_image}
+keepalived_router_id: ${k8s_cluster.keepalived_router_id}
+
+#Cluster Networking
+pod_subnet: ${k8s_cluster.pod_subnet}
+cluster_svc_subnet: ${k8s_cluster.cluster_svc_subnet}
+ntp_server: ${k8s_cluster.ntp_server}
+time_zone: "${k8s_cluster.time_zone}"
+
+kubeadm_token: ${k8s_cluster.kubeadm_token}
+
+aci_as: ${as}
+anchor_nodes:
+%{ for node in anchor_nodes ~}
+  - id: ${node.node_id}
+    primary_ip: ${split("/",node.primary_ip)[0]}
+%{ endfor ~}

@@ -1,8 +1,7 @@
 provider "vsphere" {
-  user           = var.vsphere_user
-  password       = var.vsphere_password
-  vsphere_server = var.vsphere_server
-
+  user           = var.vc.username
+  password       = var.vc.pass
+  vsphere_server = var.vc.url
   # If you have a self-signed cert
   allow_unverified_ssl = true
 }
@@ -12,27 +11,27 @@ data "vsphere_datacenter" "dc" {
 }
 
 data "vsphere_datastore" "datastore" {
-  name          = "BM01"
+  name          = var.vc.datastore
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
 data "vsphere_compute_cluster" "cluster" {
-  name          = "Cluster"
+  name          = var.vc.cluster
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
 data "vsphere_virtual_machine" "template" {
-  name          = "Ubuntu20-Template"
+  name          = var.vc.vm_template
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
 data "vsphere_distributed_virtual_switch" "dvs" {
-  name          = "ACI"
+  name          = var.vc.dvs
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
 data "vsphere_network" "network" {
-  name          = "CalicoL3OUT_300"
+  name          = var.vc.port_group
   datacenter_id = data.vsphere_datacenter.dc.id
   distributed_virtual_switch_uuid = data.vsphere_distributed_virtual_switch.dvs.id
 }
@@ -45,9 +44,8 @@ resource "vsphere_virtual_machine" "vm" {
   num_cpus = 2
   memory   = 8192
   guest_id = data.vsphere_virtual_machine.template.guest_id
-
   scsi_type = data.vsphere_virtual_machine.template.scsi_type
-
+  folder = var.vc.vm_folder
   network_interface {
     network_id   = data.vsphere_network.network.id
     adapter_type = data.vsphere_virtual_machine.template.network_interface_types[0]
@@ -73,9 +71,8 @@ resource "vsphere_virtual_machine" "vm" {
       network_interface {
         ipv4_address = split("/",each.value.ip)[0]
         ipv4_netmask = split("/",each.value.ip)[1]
-        dns_server_list = var.dns_servers
       }
-
+      dns_server_list = var.dns_servers
       ipv4_gateway = split("/",var.l3out.secondary_ip)[0]
     }
   }

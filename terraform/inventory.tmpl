@@ -1,0 +1,20 @@
+[k8s_primary_master]
+${k8s_primary_master.hostname} ansible_host=${split("/",k8s_primary_master.ip)[0]} as=${k8s_primary_master.local_as}
+
+[k8s_master_replicas]
+%{ for replica in k8s_master_replicas ~}
+${replica.hostname} ansible_host=${split("/",replica.ip)[0]} as=${replica.local_as}
+%{ endfor ~}
+
+[k8s_workers]
+%{ for worker in k8s_workers ~}
+${worker.hostname} ansible_host=${split("/",worker.ip)[0]} as=${worker.local_as}
+%{ endfor ~}
+
+[k8s_masters:children]
+k8s_primary_master
+k8s_master_replicas
+
+[k8s_nodes:children]
+k8s_masters
+k8s_workers

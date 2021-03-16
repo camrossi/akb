@@ -27,6 +27,52 @@
   shell: kubectl apply -f /tmp/calico.yaml
   tags:
     - calico
+  
+- name: Reboot all nodes to ensure CRI-O picks up calico. 
+  shell: "reboot"
+  delegate_to: "{{item}}"
+  delegate_facts: True
+  loop: "{{groups['k8s_nodes']}}"
+  async: 10
+  poll: 0
+  tags:
+    - calico
+
+- name: Pause for 30 seconds for the reboot
+  pause:
+    seconds: 30
+  tags:
+    - calico
+
+- name: Wait for the master to be reachable
+  wait_for_connection:
+    connect_timeout: 10
+    sleep: 5
+    delay: 5
+    timeout: 500
+  tags:
+    - calico
+
+- name: Ensure Kubernetes is up
+  shell: "kubectl get node"
+  register: kubectl
+  retries: 100
+  until: kubectl is success
+  tags:
+    - calico
+
+- name: Copy Calico manifests
+  template:
+    src: "{{ item }}"
+    dest: /tmp/{{ item }}
+    force: yes
+  with_items:
+    - IPPool.yaml
+    - BGPConfiguration.yaml
+    - BGPPeer.j2
+    - Node.j2
+  tags:
+    - calico
 
 - name: Apply Calico Configs
   shell: calicoctl apply -f /tmp/{{ item }}

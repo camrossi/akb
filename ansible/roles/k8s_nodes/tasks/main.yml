@@ -5,7 +5,7 @@
     connect_timeout: 10
     sleep: 5
     delay: 5
-    timeout: 300
+    timeout: 500
 
 - name: Disable swap
   command: swapoff -a
@@ -113,7 +113,7 @@
 
 - name: apt upgrade
   apt:
-    upgrade: 
+    upgrade: yes
   register: apt_res
   retries: 100
   until: apt_res is success

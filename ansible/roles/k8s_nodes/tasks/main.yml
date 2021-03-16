@@ -67,8 +67,12 @@
 
 - name: Install the NTP daemon
   apt: name=ntp
+  register: apt_res
+  retries: 5
+  until: apt_res is success
   tags:
     - k8s_nodes
+
 
 - name: Copy over the NTP configuration
   template: src=./templates/ntp.conf dest=/etc/ntp.conf
@@ -94,12 +98,18 @@
   apt:
     update_cache: yes
     cache_valid_time: 0
+  register: apt_res
+  retries: 5
+  until: apt_res is success
   tags:
     - k8s_nodes
 
 - name: apt upgrade
   apt:
     upgrade: yes
+  register: apt_res
+  retries: 5
+  until: apt_res is success
   tags:
     - k8s_nodes
 
@@ -151,6 +161,9 @@
   apt:
     name: cri-o
     state: latest
+  register: apt_res
+  retries: 5
+  until: apt_res is success
   tags:
     - k8s_nodes
 
@@ -158,6 +171,9 @@
   apt:
     name: cri-o-runc
     state: latest
+  register: apt_res
+  retries: 5
+  until: apt_res is success
   tags:
     - k8s_nodes
 
@@ -165,6 +181,9 @@
   apt: 
     name: cri-tools
     state: latest
+  register: apt_res
+  retries: 5
+  until: apt_res is success
   tags:
     - k8s_nodes
 
@@ -187,5 +206,8 @@
   apt: 
     name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
     state: present
+  register: apt_res
+  retries: 5
+  until: apt_res is success
   tags:
     - k8s_nodes

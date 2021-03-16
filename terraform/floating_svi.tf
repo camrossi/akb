@@ -1,44 +1,37 @@
 # Configure Floating SVI for every Anchor Node
 resource "aci_rest" "floating_svi" {
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"
-  depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
-  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
-  payload = <<EOF
-  {
-            "l3extVirtualLIfP": {
-                "attributes": {
-                    "addr": "${each.value.primary_ip}",
-                    "encap": "vlan-${var.l3out.vlan_id}",
-                    "encapScope": "local",
-                    "ifInstT": "ext-svi",
-                    "nodeDn": "topology/pod-${each.value.pod_id}/node-${each.value.node_id}",
-                },
-                "children": [
-                    {
-                        "l3extRsDynPathAtt": {
-                            "attributes": {
-                                "annotation": "",
-                                "floatingAddr": "${var.l3out.floating_ip}",
-                                "forgedTransmit": "Disabled",
-                                "macChange": "Disabled",
-                                "promMode": "Disabled",
-                                "tDn": "uni/phys-${var.l3out.physical_dom}",
-                                "userdom": ":all:common:"
-                            }
-                        }
-                    },
-                    {
-                        "l3extIp": {
-                            "attributes": {
-                                "addr": "${var.l3out.secondary_ip}",
-                                "userdom": ":all:common:"
-                            }
-                        }
-                    }
-                ]
-            }
-        }
-  EOF
+    depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
+    path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"
+    for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+    class_name = "l3extVirtualLIfP"
+      content = {
+        "addr" = each.value.primary_ip
+        "encap" = "vlan-${var.l3out.vlan_id}"
+        "encapScope" = "local"
+        "ifInstT" = "ext-svi"
+        "nodeDn" = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
+  }
+}
+
+resource "aci_rest" "floating_svi_path" {
+    depends_on = [ aci_rest.floating_svi ]
+    path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/rsdynPathAtt-[uni/phys-${var.l3out.physical_dom}].json"
+    for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+    class_name = "l3extRsDynPathAtt"
+      content = {
+        "floatingAddr" = var.l3out.floating_ip
+        "tDn" = "uni/phys-${var.l3out.physical_dom}"
+  }
+}
+
+resource "aci_rest" "floating_svi_sec_ip" {
+    depends_on = [ aci_rest.floating_svi ]
+    path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/addr-[${var.l3out.secondary_ip}].json"
+    for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+    class_name = "l3extIp"
+      content = {
+        "addr" = var.l3out.secondary_ip
+  }
 }
 
 #Add eBPG Peers
@@ -63,48 +56,125 @@ locals {
 #}
 
 resource "aci_rest" "bgp_peer" {
-  for_each = {for v in local.peering:  v.index_key => v}
-
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}].json"
   depends_on = [ aci_rest.floating_svi ]
-  payload = <<EOF
-{
-            "bgpPeerP": {
-                "attributes": {
-                    "addr": "${each.value.calico_ip}",
-                    "dn": "uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]",
-                    "addrTCtrl": "af-ucast",
-                    "adminSt": "enabled",
-                    "allowedSelfAsCnt": "3",
-                    "userdom": ":all:common:"
-                },
-                "children": [
-                    {
-                        "bgpRsPeerPfxPol": {
-                            "attributes": {
-                                "userdom": "all"
-                            }
-                        }
-                    },
-                    {
-                        "bgpLocalAsnP": {
-                            "attributes": {
-                                "asnPropagate": "none",
-                                "localAsn": "${var.l3out.local_as}",
-                                "userdom": ":all:common:"
-                            }
-                        }
-                    },
-                    {
-                        "bgpAsP": {
-                            "attributes": {
-                                "asn": "${each.value.calico_as}",
-                                "userdom": ":all:common:"
-                            }
-                        }
-                    }
-                ]
-            }
-        }
-        EOF
+  for_each = {for v in local.peering:  v.index_key => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}].json"
+  class_name = "bgpPeerP"
+      content = {
+        "addr" = each.value.calico_ip
+
+  }
 }
+
+resource "aci_rest" "bgp_peer_as" {
+  depends_on = [ aci_rest.bgp_peer ]
+  for_each = {for v in local.peering:  v.index_key => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/localasn.json"
+  class_name = "bgpLocalAsnP"
+      content = {
+        "localAsn" = var.l3out.local_as
+
+  }
+}
+
+resource "aci_rest" "bgp_peer_remote_as" {
+  depends_on = [ aci_rest.bgp_peer ]
+  for_each = {for v in local.peering:  v.index_key => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/as.json"
+  class_name = "bgpAsP"
+      content = {
+        "asn" = each.value.calico_as
+
+  }
+}
+
+# Due to https://github.com/CiscoDevNet/terraform-provider-aci/issues/204 I can't use payload so need to create more objects 
+
+#resource "aci_rest" "floating_svi" {
+#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/#lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"
+#  depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
+#  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+#  payload = <<EOF
+#  {
+#            "l3extVirtualLIfP": {
+#                "attributes": {
+#                    "addr": "${each.value.primary_ip}",
+#                    "encap": "vlan-${var.l3out.vlan_id}",
+#                    "encapScope": "local",
+#                    "ifInstT": "ext-svi",
+#                    "nodeDn": "topology/pod-${each.value.pod_id}/node-${each.value.node_id}",
+#                },
+#                "children": [
+#                    {
+#                        "l3extRsDynPathAtt": {
+#                            "attributes": {
+#                                "annotation": "",
+#                                "floatingAddr": "${var.l3out.floating_ip}",
+#                                "forgedTransmit": "Disabled",
+#                                "macChange": "Disabled",
+#                                "promMode": "Disabled",
+#                                "tDn": "uni/phys-${var.l3out.physical_dom}",
+#                                "userdom": ":all:common:"
+#                            }
+#                        }
+#                    },
+#                    {
+#                        "l3extIp": {
+#                            "attributes": {
+#                                "addr": "${var.l3out.secondary_ip}",
+#                                "userdom": ":all:common:"
+#                            }
+#                        }
+#                    }
+#                ]
+#            }
+#        }
+#  EOF
+#}
+
+#resource "aci_rest" "bgp_peer" {
+#  for_each = {for v in local.peering:  v.index_key => v}
+#
+#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.#node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.#node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}].json"
+#  depends_on = [ aci_rest.floating_svi ]
+#  payload = <<EOF
+#{
+#            "bgpPeerP": {
+#                "attributes": {
+#                    "addr": "${each.value.calico_ip}",
+#                    "dn": "uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.#node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/#node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]",
+#                    "addrTCtrl": "af-ucast",
+#                    "adminSt": "enabled",
+#                    "allowedSelfAsCnt": "3",
+#                    "userdom": ":all:common:"
+#                },
+#                "children": [
+#                    {
+#                        "bgpRsPeerPfxPol": {
+#                            "attributes": {
+#                                "userdom": "all"
+#                            }
+#                        }
+#                    },
+#                    {
+#                        "bgpLocalAsnP": {
+#                            "attributes": {
+#                                "asnPropagate": "none",
+#                                "localAsn": "${var.l3out.local_as}",
+#                                "userdom": ":all:common:"
+#                            }
+#                        }
+#                    },
+#                    {
+#                        "bgpAsP": {
+#                            "attributes": {
+#                                "asn": "${each.value.calico_as}",
+#                                "userdom": ":all:common:"
+#                            }
+#                        }
+#                    }
+#                ]
+#            }
+#        }
+#        EOF
+#}

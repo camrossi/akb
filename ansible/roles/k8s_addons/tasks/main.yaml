@@ -22,7 +22,7 @@
 
 - name: Copy kubernetes-dashboard.yaml manifests
   template:
-    src: k8s_dashboard_220.yaml
+    src: k8s_dashboard_220.yaml∏π
     dest: /tmp/k8s_dashboard_220.yaml
     force: yes
   tags:
@@ -30,5 +30,21 @@
 
 - name: Create kubernetes-dashboard Deployment
   shell: kubectl apply -f /tmp/k8s_dashboard_220.yaml
+  tags:
+    - k8s_addons
+
+- name: add kubectl bash completion for root
+  lineinfile:
+    path: ~/.bashrc
+    line: source <(kubectl completion bash)
+    state: present
+  tags:
+    - k8s_addons
+
+- name: add kubectl bash completion for user
+  lineinfile:
+    path: ~{{ ansible_ssh_user }}/.bashrc
+    line: source <(kubectl completion bash)
+    state: present
   tags:
     - k8s_addons

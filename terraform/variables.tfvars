@@ -30,8 +30,8 @@ l3out = {
     def_ext_epg         = "catch_all"
     def_ext_epg_scope   = ["import-security", "shared-security", "shared-rtctrl", ]
     calico_node_sub  = "192.168.2.0/24"
-    calico_pod_sub  = "192.168.3.0/24"
-    calico_svc_sub  = "192.168.4.0/24"
+    calico_pod_sub  = "192.168.4.0/22"
+    calico_svc_sub  = "192.168.8.0/22"
     # The Physcal domain: All ports mapped to this PhysDom will get programmed with VLAN_ID
     physical_dom        = "Fab2"
     # secondary_ip is the default GW for the calico nodes
@@ -86,6 +86,16 @@ calico_nodes = [
         hostname        = "worker-2"
         ip              = "192.168.2.5/24"
         local_as        = 64505
+        },
+        {
+        hostname        = "worker-3"
+        ip              = "192.168.2.6/24"
+        local_as        = 64506
+        },
+        {
+        hostname        = "worker-4"
+        ip              = "192.168.2.7/24"
+        local_as        = 64507
         }
 ]
 

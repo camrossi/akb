@@ -36,10 +36,6 @@ spec:
       containers:
       - name: master
         image: k8s.gcr.io/redis:e2e  # or just image: redis
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
         ports:
         - containerPort: 6379
 ---
@@ -80,10 +76,6 @@ spec:
       containers:
       - name: slave
         image: gcr.io/google_samples/gb-redisslave:v1
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
         env:
         - name: GET_HOSTS_FROM
           value: dns
@@ -133,10 +125,6 @@ spec:
       containers:
       - name: php-redis
         image: gcr.io/google-samples/gb-frontend:v4
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
         env:
         - name: GET_HOSTS_FROM
           value: dns

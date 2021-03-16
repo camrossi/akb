@@ -78,15 +78,10 @@ resource "vsphere_virtual_machine" "vm" {
   }
 }
 
-resource "null_resource" "build_inventory" {
-  for_each = {for v in var.calico_nodes:  v.hostname => v}
-  triggers = {
-    always_run = timestamp()
-  }
-
+resource "null_resource" "start_ansible" {
+    depends_on = [ local_file.AnsibleInventory, local_file.AnsibleConfig, ]
     provisioner "local-exec" {
-        command = <<EOF
-        echo "[${each.value.hostname}]\n "${split("/",each.value.ip)[0]}" " | tee -a nodes.ini;
-        EOF
+        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/cluster.yml"
     }
+    
 }

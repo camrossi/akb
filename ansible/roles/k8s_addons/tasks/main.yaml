@@ -22,7 +22,7 @@
 
 - name: Copy kubernetes-dashboard.yaml manifests
   template:
-    src: k8s_dashboard_220.yaml∏π
+    src: k8s_dashboard_220.yaml
     dest: /tmp/k8s_dashboard_220.yaml
     force: yes
   tags:

@@ -23,7 +23,7 @@ l3out = {
     l3out_tenant        = "common"
     # VRF can be in common or in the same tenant as the l3out_tenant
     vrf_tenant          = "common"
-    vrf_name            = "calico"
+    vrf_name            = "calico2"
     node_profile_name   = "NodePfl"
     int_prof_name       = "FloatingSVI"
     #For now I just use a catch all EPG with 0.0.0.0/0
@@ -44,14 +44,12 @@ l3out = {
         node_id         = 201
         pod_id          = 1
         rtr_id          = "1.1.4.201"
-        rtr_id_loop_back = false
         primary_ip      = "192.168.12.201/24"
         },
         {
         node_id         = 202
         pod_id          = 1
         rtr_id          = "1.1.4.202"
-        rtr_id_loop_back = false
         primary_ip      = "192.168.12.202/24"
         }
     ]

@@ -56,7 +56,6 @@ variable "l3out" {
     anchor_nodes      = list(object({
       node_id         = number
       rtr_id          = string
-      rtr_id_loop_back= bool
       pod_id          = number
       primary_ip      = string
     }))

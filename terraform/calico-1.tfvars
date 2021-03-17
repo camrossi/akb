@@ -44,14 +44,12 @@ l3out = {
         node_id         = 201
         pod_id          = 1
         rtr_id          = "1.1.4.201"
-        rtr_id_loop_back = true
         primary_ip      = "192.168.2.201/24"
         },
         {
         node_id         = 202
         pod_id          = 1
         rtr_id          = "1.1.4.202"
-        rtr_id_loop_back = true
         primary_ip      = "192.168.2.202/24"
         }
     ]

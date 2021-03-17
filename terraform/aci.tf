@@ -33,6 +33,7 @@ data "aci_vrf" "l3out_vrf" {
   name       = var.l3out.vrf_name
 }
 
+
 resource "aci_l3_outside" "calico_l3out" {
   tenant_dn      = data.aci_tenant.tenant_l3out.id
   name           = var.l3out.name
@@ -50,7 +51,6 @@ resource "aci_logical_node_to_fabric_node" "nodes" {
   for_each = {for i, v in var.l3out.anchor_nodes:  i => v}
     tdn = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
     rtr_id = each.value.rtr_id
-    rtr_id_loop_back = each.value.rtr_id_loop_back
 }
 
 resource "aci_logical_interface_profile" "calico_interface_profile" {

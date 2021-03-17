@@ -81,5 +81,8 @@
     - BGPConfiguration.yaml
     - BGPPeer.j2
     - Node.j2
+  register: calicoctl_apply
+  retries: 100
+  until: calicoctl_apply is success
   tags:
     - calico

@@ -53,6 +53,7 @@ variable "l3out" {
     def_ext_epg       = string
     def_ext_epg_scope = list(string)
     local_as          = number
+    contract          = string
     anchor_nodes      = list(object({
       node_id         = number
       rtr_id          = string

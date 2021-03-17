@@ -38,6 +38,7 @@ l3out = {
     # SVI VLAN ID
     vlan_id             = 301
     local_as            = 64500
+    contract            = "default1"
     # Anchor node list and configuration.
     anchor_nodes = [
         {

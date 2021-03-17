@@ -60,7 +60,7 @@ resource "aci_logical_interface_profile" "calico_interface_profile" {
 
 data "aci_contract" "default" {
   tenant_dn  = data.aci_tenant.tenant_l3out.id
-  name       = "default"
+  name       = var.l3out.contract
 } 
 
 resource "aci_external_network_instance_profile" "default" {

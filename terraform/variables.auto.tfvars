@@ -113,4 +113,5 @@ k8s_cluster = {
     cluster_svc_subnet  = "192.168.4.1/24"
     ntp_server          = "72.163.32.44"
     time_zone           = "Australia/Sydney"
+    docker_mirror       = "10.67.185.120:5000"
   }

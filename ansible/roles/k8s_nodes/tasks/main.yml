@@ -119,6 +119,7 @@
   until: apt_res is success
   tags:
     - k8s_nodes
+    - apt_upgrade
 
 - name: load the br_netfilter module
   modprobe:
@@ -193,6 +194,20 @@
   until: apt_res is success
   tags:
     - k8s_nodes
+
+- name: Copy registries.conf to optionally enable registry mirror 
+  template: 
+    src=./templates/registries.conf
+    dest=/etc/containers/registries.conf
+  tags:
+    - k8s_nodes
+
+#This is needed or CRI-O will pick up the default bridge plugin and start coredns in the wrong subnet. 
+# Like this the nodes will be not-ready till Calico is configuerd and no issue!
+- name: Delete default CNI plugins
+  file:
+    state: absent
+    path: "/etc/cni/net.d/"
 
 - name: enable cri-o
   service:

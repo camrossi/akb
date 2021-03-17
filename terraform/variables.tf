@@ -88,5 +88,6 @@ variable "k8s_cluster" {
     cluster_svc_subnet  = string
     ntp_server          = string
     time_zone           = string
+    docker_mirror       = string
      })
 }

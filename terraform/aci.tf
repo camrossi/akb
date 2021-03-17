@@ -50,6 +50,7 @@ resource "aci_logical_node_to_fabric_node" "nodes" {
   for_each = {for i, v in var.l3out.anchor_nodes:  i => v}
     tdn = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
     rtr_id = each.value.rtr_id
+    rtr_id_loop_back = each.value.rtr_id_loop_back
 }
 
 resource "aci_logical_interface_profile" "calico_interface_profile" {
@@ -72,20 +73,20 @@ resource "aci_external_network_instance_profile" "default" {
 
 resource "aci_l3_ext_subnet" "node" {
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
-  ip                                    = var.l3out.calico_node_sub
+  ip                                    = var.k8s_cluster.node_sub
   scope                                 = var.l3out.def_ext_epg_scope
 }
 
 resource "aci_l3_ext_subnet" "pod" {
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
-  ip                                    = var.l3out.calico_pod_sub
+  ip                                    = var.k8s_cluster.pod_subnet
   scope                                 = var.l3out.def_ext_epg_scope
   aggregate                             = "shared-rtctrl"
 }
 
 resource "aci_l3_ext_subnet" "cluster_svc" {
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
-  ip                                    = var.l3out.calico_svc_sub
+  ip                                    = var.k8s_cluster.cluster_svc_subnet
   scope                                 = var.l3out.def_ext_epg_scope
   aggregate                             = "shared-rtctrl"
 }

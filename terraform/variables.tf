@@ -52,13 +52,11 @@ variable "l3out" {
     vlan_id           = number
     def_ext_epg       = string
     def_ext_epg_scope = list(string)
-    calico_node_sub   = string
-    calico_svc_sub   = string
-    calico_pod_sub   = string
     local_as          = number
     anchor_nodes      = list(object({
       node_id         = number
       rtr_id          = string
+      rtr_id_loop_back= bool
       pod_id          = number
       primary_ip      = string
     }))
@@ -84,6 +82,7 @@ variable "k8s_cluster" {
     keepalived_image    = string
     keepalived_router_id= string
     kubeadm_token       = string
+    node_sub            = string
     pod_subnet          = string
     cluster_svc_subnet  = string
     ntp_server          = string

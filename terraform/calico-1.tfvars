@@ -10,15 +10,15 @@ vc = {
   datastore         = "BM01"
   cluster           = "Cluster"
   dvs               = "ACI"
-  port_group        = "CalicoL3OUT_301"
+  port_group        = "CalicoL3OUT_300"
   vm_template       = "Ubuntu20-Template"
-  vm_folder         = "Calico2.1"
+  vm_folder         = "Calico2.0"
 }
 dns_domain = "cam.ciscolabs.com"
 dns_servers = ["10.67.185.100"]
 l3out = {
     # Name of the L3OUT
-    name                = "calico_l3out2" 
+    name                = "calico_l3out" 
     # L3OUT could be in any tenant
     l3out_tenant        = "common"
     # VRF can be in common or in the same tenant as the l3out_tenant
@@ -32,11 +32,11 @@ l3out = {
     # The Physcal domain: All ports mapped to this PhysDom will get programmed with VLAN_ID
     physical_dom        = "Fab2"
     # secondary_ip is the default GW for the calico nodes
-    secondary_ip        = "192.168.12.254/24"
+    secondary_ip        = "192.168.2.254/24"
     # Used internally for leaf to leaf communicaiton. 
-    floating_ip         = "192.168.12.253/24"
+    floating_ip         = "192.168.2.253/24"
     # SVI VLAN ID
-    vlan_id             = 301
+    vlan_id             = 300
     local_as            = 64500
     # Anchor node list and configuration.
     anchor_nodes = [
@@ -44,15 +44,15 @@ l3out = {
         node_id         = 201
         pod_id          = 1
         rtr_id          = "1.1.4.201"
-        rtr_id_loop_back = false
-        primary_ip      = "192.168.12.201/24"
+        rtr_id_loop_back = true
+        primary_ip      = "192.168.2.201/24"
         },
         {
         node_id         = 202
         pod_id          = 1
         rtr_id          = "1.1.4.202"
-        rtr_id_loop_back = false
-        primary_ip      = "192.168.12.202/24"
+        rtr_id_loop_back = true
+        primary_ip      = "192.168.2.202/24"
         }
     ]
 }
@@ -63,37 +63,37 @@ l3out = {
 calico_nodes = [
         {
         hostname        = "master-1"
-        ip              = "192.168.12.1/24"
+        ip              = "192.168.2.1/24"
         local_as        = 64501
         },
         {
         hostname        = "master-2"
-        ip              = "192.168.12.2/24"
+        ip              = "192.168.2.2/24"
         local_as        = 64502
         },
         {
         hostname        = "master-3"
-        ip              = "192.168.12.3/24"
+        ip              = "192.168.2.3/24"
         local_as        = 64503
         },
         {
         hostname        = "worker-1"
-        ip              = "192.168.12.4/24"
+        ip              = "192.168.2.4/24"
         local_as        = 64504
         },
         {
         hostname        = "worker-2"
-        ip              = "192.168.12.5/24"
+        ip              = "192.168.2.5/24"
         local_as        = 64505
         },
         {
         hostname        = "worker-3"
-        ip              = "192.168.12.6/24"
+        ip              = "192.168.2.6/24"
         local_as        = 64506
         },
         {
         hostname        = "worker-4"
-        ip              = "192.168.12.7/24"
+        ip              = "192.168.2.7/24"
         local_as        = 64507
         }
 ]
@@ -102,15 +102,15 @@ k8s_cluster = {
     kube_version        = "1.20.4-00"
     crio_version        = "1.20"
     OS_Version          = "xUbuntu_20.04"
-    control_plane_vip   = "192.168.12.100"
+    control_plane_vip   = "192.168.2.100"
     vip_port            = 8443
     haproxy_image       = "haproxy:2.3.6"
     keepalived_image    = "osixia/keepalived:2.0.20"
     keepalived_router_id= "51"
     kubeadm_token       = "fqv728.htdmfzf6rt9blhej"
-    node_sub            = "192.168.12.0/24"
-    pod_subnet          = "192.168.16.0/22"
-    cluster_svc_subnet  = "192.168.20.0/22"
+    node_sub            = "192.168.2.0/24"
+    pod_subnet          = "192.168.4.0/22"
+    cluster_svc_subnet  = "192.168.8.0/22"
     ntp_server          = "72.163.32.44"
     time_zone           = "Australia/Sydney"
     docker_mirror       = "10.67.185.120:5000"

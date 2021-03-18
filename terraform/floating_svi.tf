@@ -66,17 +66,6 @@ resource "aci_rest" "bgp_peer" {
   }
 }
 
-resource "aci_rest" "bgp_peer_as" {
-  depends_on = [ aci_rest.bgp_peer ]
-  for_each = {for v in local.peering:  v.index_key => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/localasn.json"
-  class_name = "bgpLocalAsnP"
-      content = {
-        "localAsn" = var.l3out.local_as
-
-  }
-}
-
 resource "aci_rest" "bgp_peer_remote_as" {
   depends_on = [ aci_rest.bgp_peer ]
   for_each = {for v in local.peering:  v.index_key => v}

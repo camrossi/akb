@@ -37,8 +37,10 @@ l3out = {
     floating_ip         = "192.168.2.253/24"
     # SVI VLAN ID
     vlan_id             = 300
-    local_as            = 64500
+    local_as            = 65002
     contract            = "default"
+    mtu                 = 9000
+    bgp_pass            = "123Cisco123"
     # Anchor node list and configuration.
     anchor_nodes = [
         {
@@ -113,4 +115,6 @@ k8s_cluster = {
     ntp_server          = "72.163.32.44"
     time_zone           = "Australia/Sydney"
     docker_mirror       = "10.67.185.120:5000"
+    ingress_ip          = "192.168.3.1"
+    external_svc_subnet = "192.168.3.0/24"
   }

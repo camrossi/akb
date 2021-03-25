@@ -9,6 +9,7 @@ resource "aci_rest" "floating_svi" {
         "encap" = "vlan-${var.l3out.vlan_id}"
         "encapScope" = "local"
         "ifInstT" = "ext-svi"
+        "mtu"     = var.l3out.mtu
         "nodeDn" = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
   }
 }
@@ -62,6 +63,7 @@ resource "aci_rest" "bgp_peer" {
   class_name = "bgpPeerP"
       content = {
         "addr" = each.value.calico_ip
+        "password" = var.l3out.bgp_pass
 
   }
 }

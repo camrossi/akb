@@ -7,6 +7,7 @@
     force: yes
   with_items:
     - calico.yaml
+    - BGPPassSecret.yaml
     - IPPool.yaml
     - BGPConfiguration.yaml
     - BGPPeer.j2
@@ -25,6 +26,11 @@
 
 - name: Apply Calico CNI
   shell: kubectl apply -f /tmp/calico.yaml
+  tags:
+    - calico
+
+- name: Create BGP Pass Secret
+  shell: kubectl apply -f /tmp/BGPPassSecret.yaml
   tags:
     - calico
 

@@ -16,6 +16,7 @@ resource "local_file" "AnsibleConfig" {
  {
      k8s_cluster = var.k8s_cluster
      as = var.l3out.local_as
+     bgp_pass = var.l3out.bgp_pass
      anchor_nodes = var.l3out.anchor_nodes
  }
  )

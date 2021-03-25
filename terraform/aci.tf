@@ -90,3 +90,10 @@ resource "aci_l3_ext_subnet" "cluster_svc" {
   scope                                 = var.l3out.def_ext_epg_scope
   aggregate                             = "shared-rtctrl"
 }
+
+resource "aci_l3_ext_subnet" "external_svc_subnet" {
+  external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
+  ip                                    = var.k8s_cluster.external_svc_subnet
+  scope                                 = var.l3out.def_ext_epg_scope
+  aggregate                             = "shared-rtctrl"
+}

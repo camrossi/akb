@@ -56,6 +56,8 @@ resource "aci_rest" "bgp_pol_relax_as_restriction" {
 }
 
 ## Map Timers to BGP Protocol Profile 
+## There is a bug on ACI that will have the destroy fail you can do this 
+## terraform state rm  aci_rest.bgp_pol_timers
 resource "aci_rest" "bgp_pol_timers" {
   depends_on = [ aci_rest.bgp_prot_pfl ]
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/protp/rsbgpNodeCtxPol.json"
@@ -64,8 +66,6 @@ resource "aci_rest" "bgp_pol_timers" {
       "tnBgpCtxPolName" = "${var.l3out.name}-Timers"
   }
 }
-
-
 
 # Configure default-export policy to advertise the POD subnets back to the nodes
 
@@ -82,6 +82,7 @@ resource "aci_rest" "match_rule" {
 ## Create Match Rule Subnet
 
 resource "aci_rest" "match_rule_subnet" {
+  depends_on = [ aci_rest.match_rule ]
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-Match.json"
   class_name = "rtctrlMatchRtDest"
     content = {

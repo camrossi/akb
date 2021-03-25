@@ -250,6 +250,7 @@
     src: /etc/kubernetes/admin.conf
     dest: "~{{ ansible_ssh_user }}/.kube/config"
     owner: "{{ ansible_ssh_user }}"
+    mode: '0600'
     remote_src: yes
   tags:
     - primary_master
@@ -267,6 +268,7 @@
     src: /etc/kubernetes/admin.conf
     dest: "/root/.kube/config"
     owner: "root"
+    mode: '0600'
     remote_src: yes
   tags:
     - primary_master

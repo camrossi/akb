@@ -1,10 +1,14 @@
 ---
 
-- name: Copy guestbook manifest
+- name: Copy addons manifests
   template:
-    src: guestbook-all-in-one.yaml
-    dest: /tmp/guestbook-all-in-one.yaml
+    src: "{{ item }}"
+    dest: /tmp/{{ item }}
     force: yes
+  with_items:
+    - guestbook-all-in-one.yaml
+    - k8s_dashboard_220.yaml
+    - ingress.yaml
   tags:
     - k8s_addons
 
@@ -14,17 +18,13 @@
   tags:
     - k8s_addons
 
-- name: Create guestbook NS Deployment
+- name: Deply guestbook NS Deployment
   shell: kubectl -n gb apply -f /tmp/guestbook-all-in-one.yaml
   tags:
     - k8s_addons
 
-
-- name: Copy kubernetes-dashboard.yaml manifests
-  template:
-    src: k8s_dashboard_220.yaml
-    dest: /tmp/k8s_dashboard_220.yaml
-    force: yes
+- name: Create guestbook ingress
+  shell: kubectl apply -f /tmp/ingress.yaml
   tags:
     - k8s_addons
 

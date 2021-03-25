@@ -1,0 +1,23 @@
+---
+- name: Add ingress-nginx helm Repo
+  shell: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+  tags:
+    - ingress-nginx
+
+- name: helm repo update
+  shell: helm repo update
+  tags:
+    - ingress-nginx
+
+- name: Copy ingress-nginx  variables
+  template:
+    src: ingress-nginx-values.yaml
+    dest: /tmp/ingress-nginx-values.yaml
+    force: yes
+  tags:
+    - ingress-nginx
+
+- name: helm install ingress-nginx 
+  shell: helm install -n kube-system ingress-nginx ingress-nginx/ingress-nginx -f /tmp/ingress-nginx-values.yaml
+  tags:
+    - ingress-nginx

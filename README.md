@@ -35,3 +35,15 @@ The design choices for the floating L3OUT are as following:
 ## Terraform Configuration Variables for ACI
 
 TBD
+
+## Open Issues
+
+* Due to CSCvx73502 the bgp policy timers mapping into the BGP policy can't be deleted by the destroy command resulting in a failure. You can run this ```terraform state rm  aci_rest.bgp_pol_timers``` before invoking destroy as a work around.
+
+## To Do
+
+* [ ] Set MTU to 9000
+* [ ] Allow you to select all possible versions
+  * [ ] Haproxy
+  * [ ] Helm
+  * [ ] keepaliveD

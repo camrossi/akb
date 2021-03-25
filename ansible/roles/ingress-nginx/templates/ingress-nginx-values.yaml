@@ -1,0 +1,10 @@
+controller:
+  kind: Deployment
+  replicaCount: 3
+  service:
+    enabled: true
+    externalIPs:
+    - {{ ingress_ip }}
+    type: LoadBalancer
+    # This tells calico to advertise the /32 Ingress IP
+    externalTrafficPolicy: Local

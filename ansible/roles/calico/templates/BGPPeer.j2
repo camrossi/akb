@@ -7,4 +7,8 @@ metadata:
 spec:
   peerIP: "{{ leaf.primary_ip }}"
   asNumber: {{ aci_as }}
+  password:
+    secretKeyRef:
+      name: bgp-secrets
+      key: rr-password
 {% endfor %}

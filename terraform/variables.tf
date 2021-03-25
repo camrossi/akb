@@ -53,6 +53,8 @@ variable "l3out" {
     def_ext_epg       = string
     def_ext_epg_scope = list(string)
     local_as          = number
+    mtu               = number
+    bgp_pass          = string
     contract          = string
     anchor_nodes      = list(object({
       node_id         = number
@@ -85,6 +87,8 @@ variable "k8s_cluster" {
     node_sub            = string
     pod_subnet          = string
     cluster_svc_subnet  = string
+    external_svc_subnet = string
+    ingress_ip          = string
     ntp_server          = string
     time_zone           = string
     docker_mirror       = string

@@ -1,0 +1,9 @@
+---
+- name: Copy Helm
+  copy:
+    src: helm
+    dest: /usr/local/bin/helm
+    force: yes
+    mode: '0755'
+  tags:
+    - helm

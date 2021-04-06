@@ -9,5 +9,8 @@
 
 - name: Join Workers  to cluster
   shell: "{{ kubeadm_join_cmd.stdout }}"
+  register: join_workers
+  retries: 100
+  until: join_workers is success
   tags:
     - workers

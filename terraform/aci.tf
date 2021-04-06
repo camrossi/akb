@@ -14,13 +14,13 @@ terraform {
 
 provider "aci" {
   # cisco-aci user name
-  username = var.apic_username
-  cert_name = var.cert_name
-  private_key = var.private_key
+  username = var.apic.username
+  cert_name = var.apic.cert_name
+  private_key = var.apic.private_key
   # cisco-aci password
   #password = var.apic_password
   # cisco-aci url
-  url      = var.apic_url 
+  url      = var.apic.url 
   insecure = true
 }
 
@@ -38,6 +38,8 @@ resource "aci_l3_outside" "calico_l3out" {
   tenant_dn      = data.aci_tenant.tenant_l3out.id
   name           = var.l3out.name
   relation_l3ext_rs_ectx = data.aci_vrf.l3out_vrf.id
+  # Bug: need to do a rest call for now
+  #enforce_rtctrl = "export,import"
 }
 
 resource "aci_logical_node_profile" "calico_node_profile" {

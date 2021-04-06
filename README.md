@@ -32,9 +32,26 @@ The design choices for the floating L3OUT are as following:
 * Two Anchor Ndoes: A single border leaf can handle up to 400 dynamic routing adjagencies. This allow use to deploy up to 400 Calico Nodes per pair of Anchor Nodes. If more than 400 nodes are required we will instantiate a new set of Anchor nodes to spread the load.
 * Non-Anchor nodes: This depends only on the rack layout and VM/BM spread.
 
+### eBGP desing
+
+The eBGP desing follow the approach to configure every Calico Node with a dedicated AS number and to peer with the two ACI Anchor nodes.
+The following optimizations are already implementd:
+
+* BGP Timers set to 1s/3s to match the Calico Config
+* Graceful Restart Helper
+* Configure AS relax policy to allow installing ECMP path more than one node
+* Increase Max eBGP ECMP Path to 64 (from 16). 64 is the current maximum on ACI
+* Configure default-export policy to advertise the POD subnets back to the nodes
+* BGP Control plan protection:
+  * BGP Password authentication
+  * Ability to set a limit on the number of received prefixes from the nodes
+  * Subnet import filtering: Only the expected subnets (POD, Node and Services) are accepted by ACI
+
 ## Terraform Configuration Variables for ACI
 
-TBD
+All the configurations requires to spin up a cluster are done in the terraform configuraiton file. Some of the parameters are then used to generate the ansible inventory file and ansible variables.
+
+Refer to for a detailed explanation. 
 
 ## Open Issues
 
@@ -42,7 +59,7 @@ TBD
 
 ## To Do
 
-* [ ] Set MTU to 9000
+* [ ] Scale to more than 400 nodes. This requires handling multiple sets of Anchor Nodes
 * [ ] Allow you to select all possible versions
   * [ ] Haproxy
   * [ ] Helm

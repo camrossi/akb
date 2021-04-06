@@ -65,23 +65,23 @@ resource "vsphere_virtual_machine" "vm" {
     customize {
       linux_options {
         host_name = each.value.hostname
-        domain    = var.dns_domain
+        domain    = var.l3out.dns_domain
       }
 
       network_interface {
         ipv4_address = split("/",each.value.ip)[0]
         ipv4_netmask = split("/",each.value.ip)[1]
       }
-      dns_server_list = var.dns_servers
+      dns_server_list = var.l3out.dns_servers
       ipv4_gateway = split("/",var.l3out.secondary_ip)[0]
     }
   }
 }
 
-resource "null_resource" "start_ansible" {
-    depends_on = [ local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm  ]
-    provisioner "local-exec" {
-        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/cluster.yml"
-    }
-    
-}
+#resource "null_resource" "start_ansible" {
+#    depends_on = [ local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm  ]
+#    provisioner "local-exec" {
+#        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/cluster.yml"
+#    }
+#    
+#}

@@ -1,9 +1,40 @@
+# Terraform Variables
+
+The terraform variables are arranged in "objects" for ease of grouping and configuration simplicty. 
+Below you can see an example configuration file with some detailed explanation where required. 
+Each configuration object is explained as stand alone. 
+
+## APIC Parameters
+
+In this section you simply specify the username, certificate, private key and URL of your APIC.
+
+```terraform
 apic = {
   username = "ansible"
-  url = "https://fab2-apic1.cam.ciscolabs.com"
   cert_name = "ansible.crt"
   private_key = "/home/cisco/Coding/ansible.key"
+  url = "https://fab2-apic1.cam.ciscolabs.com"
+
 }
+```
+
+## Virtual Center
+
+This section, simlar to the above one is used to specify the following parameters:
+
+* The credentilas to access your Virtual Center server
+* You then also need to specify the following parameters:
+  * dc: The name of your datacenter
+  * datastore: The shared datastore where to deploy the VMs
+  * cluster: the ESXi cluster where to deploy the VMs
+  * dvs: Name of the Distributed Virtual Switch to use
+  * port_group: Name of the Port Group to use, this must be created manually prior to running the terrafrm plan. 
+  * vm_template: The anme of the VM template to clone from. I use linked clones so your templage must also have a snapshot. The latest snapshot is automatically used. 
+  * vm_folder: A pre-existing folder where all the VMs are placed.
+
+Since we are using a phisical domain with floating L3OUT any other hypervisor (or bare metal hosts) can be used, for now I only support VMWare, feel free to open an Issue or do a Pull Request if you add support for something else!
+
+```terraform
 vc = {
   url               = "vc2.cam.ciscolabs.com"
   username          = "administrator@vsphere.local"
@@ -16,7 +47,9 @@ vc = {
   vm_template       = "Ubuntu20-Template"
   vm_folder         = "Calico2.0"
 }
+```
 
+```
 l3out = {
     # Name of the L3OUT
     name                = "calico_l3out" 
@@ -42,9 +75,6 @@ l3out = {
     contract            = "default1"
     mtu                 = 9000
     bgp_pass            = "123Cisco123"
-    #Limit the number of prefixes that any calico node can advertise to 500.
-    #If you go above the additional prefixes will be Rejected. 
-    max_node_prefixes   = 500
     dns_domain = "cam.ciscolabs.com"
     dns_servers = ["10.67.185.100"]
     # Anchor node list and configuration.
@@ -63,6 +93,7 @@ l3out = {
         }
     ]
 }
+
 
 # You MUST have 3 masters and N workers. 
 # The 1st node is the primary master. 2nd and 3rd are the master replices and everything else is a worker.
@@ -404,3 +435,4 @@ k8s_cluster = {
     ingress_ip          = "192.168.3.1"
     external_svc_subnet = "192.168.3.0/24"
   }
+  ```

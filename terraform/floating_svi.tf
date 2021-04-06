@@ -55,7 +55,7 @@ locals {
 #output "name" {
 #    value = {for v in local.peering:  v.index_key => v}
 #}
-
+# Create the BGP Peer
 resource "aci_rest" "bgp_peer" {
   depends_on = [ aci_rest.floating_svi ]
   for_each = {for v in local.peering:  v.index_key => v}
@@ -67,7 +67,7 @@ resource "aci_rest" "bgp_peer" {
 
   }
 }
-
+# Set the Peer AS
 resource "aci_rest" "bgp_peer_remote_as" {
   depends_on = [ aci_rest.bgp_peer ]
   for_each = {for v in local.peering:  v.index_key => v}
@@ -75,6 +75,28 @@ resource "aci_rest" "bgp_peer_remote_as" {
   class_name = "bgpAsP"
       content = {
         "asn" = each.value.calico_as
+
+  }
+}
+
+## Create BGP Prefix Policy to limit the maximum number of routes ACI accepts from a single node
+resource "aci_rest" "bgp_prefix_policy" {
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/bgpPfxP-${var.l3out.name}.json"
+  class_name = "bgpPeerPfxPol"
+    content = {
+      "name" = var.l3out.name
+      "maxPfx" = var.l3out.max_node_prefixes
+  }
+}
+
+# Set the Peer BGP Prefix Policy on all the nodes
+resource "aci_rest" "bgp_peer_prefix_policy" {
+  depends_on = [ aci_rest.bgp_peer, aci_rest.bgp_prefix_policy ]
+  for_each = {for v in local.peering:  v.index_key => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/rspeerPfxPol.json"
+  class_name = "bgpRsPeerPfxPol"
+      content = {
+        "tnBgpPeerPfxPolName" = var.l3out.name
 
   }
 }

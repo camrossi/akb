@@ -1,17 +1,10 @@
-variable "apic_username" {
-  type = string
-}
-
-variable "cert_name" {
-  type = string
-}
-
-variable "private_key" {
-  type = string
-}
-
-variable "apic_url" {
-  type = string
+variable "apic" {
+  type = object({
+  username          = string
+  cert_name         = string
+  private_key       = string
+  url          = string
+  })
 }
 
 variable "vc" {
@@ -27,15 +20,6 @@ variable "vc" {
   vm_template       = string
   vm_folder         = string
   })
-}
-
-
-variable "dns_domain" {
-  type = string
-}
-
-variable "dns_servers" {
-  type = list(string)
 }
 
 variable "l3out" {
@@ -55,7 +39,10 @@ variable "l3out" {
     local_as          = number
     mtu               = number
     bgp_pass          = string
+    max_node_prefixes = number
     contract          = string
+    dns_servers       = list(string)
+    dns_domain        = string
     anchor_nodes      = list(object({
       node_id         = number
       rtr_id          = string

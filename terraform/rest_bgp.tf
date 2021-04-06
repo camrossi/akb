@@ -47,6 +47,17 @@ resource "aci_rest" "bgp_pol_timers" {
   }
 }
 
+## Set BGP Route Control Enforcement to Import/Export 
+
+resource "aci_rest" "bgp_route_control" {
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}.json"
+  class_name = "l3extOut"
+    content = {
+      "enforceRtctrl" = "export,import"
+  }
+}
+
+
 ## Create BGP Best Path Policy
 
 resource "aci_rest" "relax_as_policy" {
@@ -93,19 +104,19 @@ resource "aci_rest" "bgp_addr_family_context_to_vrf" {
 
 ## Create Match Rule
 
-resource "aci_rest" "match_rule" {
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-Match.json"
+resource "aci_rest" "export_match_rule" {
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-export-match.json"
   class_name = "rtctrlSubjP"
     content = {
-      "name" = "${var.l3out.name}-Match"
+      "name" = "${var.l3out.name}-export-match"
   }
 }
 
 ## Create Match Rule Subnet
 
-resource "aci_rest" "match_rule_subnet" {
-  depends_on = [ aci_rest.match_rule ]
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-Match.json"
+resource "aci_rest" "export_pod_match_rule_subnet" {
+  depends_on = [ aci_rest.export_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-export-match.json"
   class_name = "rtctrlMatchRtDest"
     content = {
       "ip" = var.k8s_cluster.pod_subnet
@@ -138,11 +149,99 @@ resource "aci_rest" "default_export" {
 }
 
 ## Add Match Rule to Permit Rule
-resource "aci_rest" "default_export_match_rule1" {
+resource "aci_rest" "default_export_match_rule" {
   depends_on = [ aci_rest.default_export ]
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/prof-default-export/ctx-export_pod_subnet.json"
   class_name = "rtctrlRsCtxPToSubjP"
     content = {
-      "tnRtctrlSubjPName" = "${var.l3out.name}-Match"
+      "tnRtctrlSubjPName" = "${var.l3out.name}-export-match"
+  }
+}
+
+# Configure default-import policy to accept the POD, Node and SVCs subnets from the nodes
+
+## Create Match Rule
+
+resource "aci_rest" "import_match_rule" {
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlSubjP"
+    content = {
+      "name" = "${var.l3out.name}-import-match"
+  }
+}
+
+## Create Match Rule Subnets
+
+resource "aci_rest" "import_pod_match_rule_subnet" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.pod_subnet
+      "aggregate" = "yes"
+  }
+}
+
+resource "aci_rest" "import_node_match_rule_subnet" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.node_sub
+      "aggregate" = "yes"
+  }
+}
+
+resource "aci_rest" "import_svc_match_rule_subnet" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.cluster_svc_subnet
+      "aggregate" = "yes"
+  }
+}
+
+resource "aci_rest" "import_ext_svc_match_rule_subnet" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.external_svc_subnet
+      "aggregate" = "yes"
+  }
+}
+
+## Attach Rule to default-export policy
+
+resource "aci_rest" "default_import" {
+  depends_on = [ aci_l3_outside.calico_l3out ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/prof-default-import.json"
+  class_name = "rtctrlProfile"
+    content = {
+      "name" = "default-import"
+  }
+}
+
+## Create permit rule
+
+resource "aci_rest" "import_cluster_subnets" {
+  depends_on = [ aci_rest.default_import ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/prof-default-import.json"
+  class_name = "rtctrlCtxP"
+    content = {
+      "action" = "permit"
+      "name"   = "import_cluster_subnets"
+      "order"  = "0"
+  }
+}
+
+## Add Match Rule to Permit Rule
+resource "aci_rest" "default_import_match_rule" {
+  depends_on = [ aci_rest.import_cluster_subnets ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/prof-default-import/ctx-import_cluster_subnets.json"
+  class_name = "rtctrlRsCtxPToSubjP"
+    content = {
+      "tnRtctrlSubjPName" = "${var.l3out.name}-import-match"
   }
 }

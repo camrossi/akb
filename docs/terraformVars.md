@@ -156,15 +156,15 @@ Use this section to specify your Kubernetes Cluster Configuration parameters.
   * haproxy_image: Haproxy image on docker hub
   * keepalived_image: keepalived image on docker hub
   * keepalived_router_id: The router ID number used by keepaliveD must be unique between clusters in the same subnet/vlan. You should not install 2 cluster in the same subnet/blan in the first place.
-  * kubeadm_token: To simplify the installation workflow is easier to pass a pre-generated kubeadm token. This is only used during install. 
-  * node_sub: The subnet for the nodes. This subnet is the same as the one used for the IP addresses that are allocated to the Floaring SVI and the Ancor Nodes
-  * pod_subnet: The subnet for the PODs. Keep in mind every Calico Nodes gets a /26 by default. Do your math before! if you want to have for example 64 nodes you need a /20 subnet as minimum or you won't have enough /26 to allocate!!
-  * cluster_svc_subnet: The Cluster-IP Service subnet
-  * external_svc_subnet: The External Service subnet used for Services of type LoadBalancer
-  * ntp_server: IP address or name of the DNS server, NTP is good... use NTP
-  * time_zone: The time zone in the standard unix format. Use `timedatectl list-timezones` to get a list of valid Time Zones
-  * docker_mirror: (Optional, set to "" to disable) in the format of IP:PORT configure CRIO to pull images from a dockerhub mirror. Very useful now that docker limits the pull you can do. This DOES not install a mirror for you. You need to install one on your own. If you get stuck [This](docker_mirror.dm) is how I did it.
-  * ingress_ip: The cluster comes with a few add-ons, one is an Nginx Ingress controller. This parameter set its IP address. This must be a free address from the external_svc_subnet
+* kubeadm_token: To simplify the installation workflow is easier to pass a pre-generated kubeadm token. This is only used during install. 
+* node_sub: The subnet for the nodes. This subnet is the same as the one used for the IP addresses that are allocated to the Floaring SVI and the Ancor Nodes
+* pod_subnet: The subnet for the PODs. Keep in mind every Calico Nodes gets a /26 by default. Do your math before! if you want to have for example 64 nodes you need a /20 subnetas minimum or you won't have enough /26 to allocate!!
+* cluster_svc_subnet: The Cluster-IP Service subnet
+* external_svc_subnet: The External Service subnet used for Services of type LoadBalancer
+* ntp_server: IP address or name of the DNS server, NTP is good... use NTP
+* time_zone: The time zone in the standard unix format. Use `timedatectl list-timezones` to get a list of valid Time Zones
+* docker_mirror: (Optional, set to "" to disable) in the format of IP:PORT configure CRIO to pull images from a dockerhub mirror. Very useful now that docker limits the pull youcan do. This DOES not install a mirror for you. You need to install one on your own. If you get stuck [This](docker_mirror.dm) is how I did it.
+* ingress_ip: The cluster comes with a few add-ons, one is an Nginx Ingress controller. This parameter set its IP address. This must be a free address from the external_svc_subnet
 
 ```terraform
 k8s_cluster = {

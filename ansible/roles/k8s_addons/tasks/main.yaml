@@ -9,8 +9,9 @@
     - guestbook-all-in-one.yaml
     - k8s_dashboard_220.yaml
     - ingress.yaml
+    - metric_server.yaml
   tags:
-    - k8s_addons
+    - k8s_addons1
 
 - name: Create guestbook ns
   shell: kubectl create ns gb
@@ -32,6 +33,11 @@
   shell: kubectl apply -f /tmp/k8s_dashboard_220.yaml
   tags:
     - k8s_addons
+
+- name: Install Metric Server
+  shell: kubectl apply -f /tmp/metric_server.yaml
+  tags:
+    - k8s_addons1
 
 - name: add kubectl bash completion for root
   lineinfile:

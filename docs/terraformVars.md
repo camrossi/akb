@@ -8,19 +8,20 @@ Each configuration object is explained as stand alone.
 
 In this section you simply specify the username, certificate, private key and URL of your APIC.
 
+Example:
+
 ```terraform
 apic = {
-  username = "ansible"
-  cert_name = "ansible.crt"
-  private_key = "/home/cisco/Coding/ansible.key"
-  url = "https://fab2-apic1.cam.ciscolabs.com"
-
+  username = "username"
+  cert_name = "username.crt"
+  private_key = "path_to_private_key"
+  url = "https://APIC_URL"
 }
 ```
 
 ## Virtual Center
 
-This section, simlar to the above one is used to specify the following parameters:
+Use this section to specoify your VMware environment parameters:
 
 * The credentilas to access your Virtual Center server
 * You then also need to specify the following parameters:
@@ -34,22 +35,64 @@ This section, simlar to the above one is used to specify the following parameter
 
 Since we are using a phisical domain with floating L3OUT any other hypervisor (or bare metal hosts) can be used, for now I only support VMWare, feel free to open an Issue or do a Pull Request if you add support for something else!
 
+Example:
+
 ```terraform
 vc = {
-  url               = "vc2.cam.ciscolabs.com"
-  username          = "administrator@vsphere.local"
-  pass              = "123Cisco123!"
-  dc                = "STLD"
-  datastore         = "BM01"
-  cluster           = "Cluster"
-  dvs               = "ACI"
-  port_group        = "CalicoL3OUT_300"
-  vm_template       = "Ubuntu20-Template"
-  vm_folder         = "Calico2.0"
+  url               = "VC_URL"
+  username          = "username"
+  pass              = "pass"
+  dc                = "DataCetner_name"
+  datastore         = "DataStore_name"
+  cluster           = "Cluster_Name"
+  dvs               = "DVS_Name"
+  port_group        = "Port_Group_Name"
+  vm_template       = "VM_Template_Name"
+  vm_folder         = "VM_Folder_Name"
 }
 ```
 
-```
+## ACI L3OUT Configuration Parameters
+
+Currently a dedicated L3OUT is created for the cluster.
+The VRF and Tenant can be dedicated or shared with other Clusters/Workloads however the VRF and Tenant must be created manually.
+This is done for safety as Terraform will delete all the objects that it creates.
+Connectivity from the cluster outside of ACI is done via Transit Routing on a shared L3OUT. The Shared L3OUT can be in the same tenant/vrf as the cluster or in the common tenant.
+
+Use this section to specify your L3OUT parameters.
+
+* name: The L3OUT name, this should be unique for each cluster.
+* l3out_tenant: The name of the tenant where the L3OUT resides
+* vrf_tenant: The name of the tenant where the VRF resides. This is done to allow you to place the l3out in Tenant X and the VRF in Common tenant.
+* vrf_name: Name of the VRF for the cluster
+* node_profile_name: Name of the Node Profile under the L3OUT
+* int_prof_name: Name of the interface profile under the node_profile
+* def_ext_epg: Currently a single extEPG is created for the cluster. This EPG has Longest-Prefix-Matches for all the subent used in the cluster (Node,Pod,Cluster Service and External Service)
+* def_ext_epg_scope: Set the scope of the subnets under the def_ext_epg. This is a list of strings see the [l3_ext_subnet](https://registry.terraform.io/providers/CiscoDevNet/aci/latest/docs/resources/l3_ext_subnet#scope) documentation and the [ACI L3OUT](https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/guide-c07-743150.html#L3Outsubnetscopeoptions) documentation for details
+* bgp_pass: The BGP Password to secure the peering
+* contract: This contract should already exists and it is consumed and provided by the def_ext_epg. It should then be Consumed/Provided by the shared L3OUT to provide connectivity to the Nodes. This contract should be pre-existing and is not created nor deleted by terraform.
+* max_node_prefixes: Set the maximum number of routes ACI will accept from each of the Calico Nodes. If usure set it to 20000, the default value for ACI.
+* dns_domain: The domain name
+* dns_servers: List of DNS Servers to be configued in the Calico Nodes
+* Floating SVI Specific parameters
+  * physical_dom: This is required for the Floating SVI configuration. All the ports that are part of this physical domain will get programmed with the Floating SVI Vlan ID. Ideally you should create a dedicated Phisical Domain if possible to avoid programing the vlan toward hosts that are not part of the cluster.
+  * secondary_ip: This is the anycast Gateway IP that is programmed on all the leaves part of the physical_dom. The Calico Nodes are configured to use this IP as default GW.
+    * This IP MUST be in the same subnet as the Nodes.
+  * floating_ip: Used internally for leaf to leaf communicaiton. Just pick a free IP. WARNING: DO NOT USE IT FOR ANYTHING ELSE
+    * This IP MUST be in the same subnet as the Nodes.
+  * vlan_id: The VLAN ID
+  * local_as: ACI Local AS. Get it from APIC --> System --> System Setting --> BGP Route Reflector --> Austonomous System Number
+  * mtu: The MTU of the floating SVI
+* anchor_nodes: This is must contains the 2 ACI leaves that will act as anchor nodes. Refer to [Floating L3 OUT Introduction](../README.md) for a refresher. Currently onle 2 are supported. 
+  * node_id: The numeric node ID
+  * pod_id: The number of the POD where the node is configured in
+  * rtr_id: The router ID, must be uniq in the VRF
+  * primary_ip: The IP address of the node
+    * This IP MUST be in the same subnet as the Nodes.
+
+Example:
+
+```terraform
 l3out = {
     # Name of the L3OUT
     name                = "calico_l3out" 
@@ -62,7 +105,12 @@ l3out = {
     int_prof_name       = "FloatingSVI"
     #For now I just use a catch all EPG with 0.0.0.0/0
     def_ext_epg         = "catch_all"
-    def_ext_epg_scope   = ["import-security", "shared-security", "shared-rtctrl", ]
+    def_ext_epg_scope   = ["import-security", "shared-security", "shared-rtctrl" ]
+    bgp_pass            = "123Cisco123"
+    max_node_prefixes   = 500
+    contract            = "default1"
+    dns_domain = "cam.ciscolabs.com"
+    dns_servers = ["10.67.185.100"]
     # The Physcal domain: All ports mapped to this PhysDom will get programmed with VLAN_ID
     physical_dom        = "Fab2"
     # secondary_ip is the default GW for the calico nodes
@@ -72,11 +120,9 @@ l3out = {
     # SVI VLAN ID
     vlan_id             = 300
     local_as            = 65002
-    contract            = "default1"
     mtu                 = 9000
-    bgp_pass            = "123Cisco123"
-    dns_domain = "cam.ciscolabs.com"
-    dns_servers = ["10.67.185.100"]
+    #Limit the number of prefixes that any calico node can advertise to 500.
+    #If you go above the additional prefixes will be Rejected. 
     # Anchor node list and configuration.
     anchor_nodes = [
         {
@@ -93,329 +139,34 @@ l3out = {
         }
     ]
 }
+```
 
+## Kubernetes Cluster Configuration Parameters
 
-# You MUST have 3 masters and N workers. 
-# The 1st node is the primary master. 2nd and 3rd are the master replices and everything else is a worker.
-# If you do not have 3 master the script will break...Need to make it more generic eventually
-calico_nodes = [
-{
-   "hostname"        = "master-1"
-   "ip"              = "192.168.2.1/24"
-   "local_as"        = "64501"
-},
-{
-   "hostname"        = "master-2"
-   "ip"              = "192.168.2.2/24"
-   "local_as"        = "64502"
-},
-{
-   "hostname"        = "master-3"
-   "ip"              = "192.168.2.3/24"
-   "local_as"        = "64503"
-},
-{
-   "hostname"        = "worker-1"
-   "ip"              = "192.168.2.4/24"
-   "local_as"        = "64504"
-},
-{
-   "hostname"        = "worker-2"
-   "ip"              = "192.168.2.5/24"
-   "local_as"        = "64505"
-},
-{
-   "hostname"        = "worker-3"
-   "ip"              = "192.168.2.6/24"
-   "local_as"        = "64506"
-},
-{
-   "hostname"        = "worker-4"
-   "ip"              = "192.168.2.7/24"
-   "local_as"        = "64507"
-},
-{
-   "hostname"        = "worker-5"
-   "ip"              = "192.168.2.8/24"
-   "local_as"        = "64508"
-},
-{
-   "hostname"        = "worker-6"
-   "ip"              = "192.168.2.9/24"
-   "local_as"        = "64509"
-},
-{
-   "hostname"        = "worker-7"
-   "ip"              = "192.168.2.10/24"
-   "local_as"        = "64510"
-},
-{
-   "hostname"        = "worker-8"
-   "ip"              = "192.168.2.11/24"
-   "local_as"        = "64511"
-},
-{
-   "hostname"        = "worker-9"
-   "ip"              = "192.168.2.12/24"
-   "local_as"        = "64512"
-},
-{
-   "hostname"        = "worker-10"
-   "ip"              = "192.168.2.13/24"
-   "local_as"        = "64513"
-},
-{
-   "hostname"        = "worker-11"
-   "ip"              = "192.168.2.14/24"
-   "local_as"        = "64514"
-},
-{
-   "hostname"        = "worker-12"
-   "ip"              = "192.168.2.15/24"
-   "local_as"        = "64515"
-},
-{
-   "hostname"        = "worker-13"
-   "ip"              = "192.168.2.16/24"
-   "local_as"        = "64516"
-},
-{
-   "hostname"        = "worker-14"
-   "ip"              = "192.168.2.17/24"
-   "local_as"        = "64517"
-},
-{
-   "hostname"        = "worker-15"
-   "ip"              = "192.168.2.18/24"
-   "local_as"        = "64518"
-},
-{
-   "hostname"        = "worker-16"
-   "ip"              = "192.168.2.19/24"
-   "local_as"        = "64519"
-},
-{
-   "hostname"        = "worker-17"
-   "ip"              = "192.168.2.20/24"
-   "local_as"        = "64520"
-},
-{
-   "hostname"        = "worker-18"
-   "ip"              = "192.168.2.21/24"
-   "local_as"        = "64521"
-},
-{
-   "hostname"        = "worker-19"
-   "ip"              = "192.168.2.22/24"
-   "local_as"        = "64522"
-},
-{
-   "hostname"        = "worker-20"
-   "ip"              = "192.168.2.23/24"
-   "local_as"        = "64523"
-},
-{
-   "hostname"        = "worker-21"
-   "ip"              = "192.168.2.24/24"
-   "local_as"        = "64524"
-},
-{
-   "hostname"        = "worker-22"
-   "ip"              = "192.168.2.25/24"
-   "local_as"        = "64525"
-},
-{
-   "hostname"        = "worker-23"
-   "ip"              = "192.168.2.26/24"
-   "local_as"        = "64526"
-},
-{
-   "hostname"        = "worker-24"
-   "ip"              = "192.168.2.27/24"
-   "local_as"        = "64527"
-},
-{
-   "hostname"        = "worker-25"
-   "ip"              = "192.168.2.28/24"
-   "local_as"        = "64528"
-},
-{
-   "hostname"        = "worker-26"
-   "ip"              = "192.168.2.29/24"
-   "local_as"        = "64529"
-},
-{
-   "hostname"        = "worker-27"
-   "ip"              = "192.168.2.30/24"
-   "local_as"        = "64530"
-},
-{
-   "hostname"        = "worker-28"
-   "ip"              = "192.168.2.31/24"
-   "local_as"        = "64531"
-},
-{
-   "hostname"        = "worker-29"
-   "ip"              = "192.168.2.32/24"
-   "local_as"        = "64532"
-},
-{
-   "hostname"        = "worker-30"
-   "ip"              = "192.168.2.33/24"
-   "local_as"        = "64533"
-},
-{
-   "hostname"        = "worker-31"
-   "ip"              = "192.168.2.34/24"
-   "local_as"        = "64534"
-},
-{
-   "hostname"        = "worker-32"
-   "ip"              = "192.168.2.35/24"
-   "local_as"        = "64535"
-},
-{
-   "hostname"        = "worker-33"
-   "ip"              = "192.168.2.36/24"
-   "local_as"        = "64536"
-},
-{
-   "hostname"        = "worker-34"
-   "ip"              = "192.168.2.37/24"
-   "local_as"        = "64537"
-},
-{
-   "hostname"        = "worker-35"
-   "ip"              = "192.168.2.38/24"
-   "local_as"        = "64538"
-},
-{
-   "hostname"        = "worker-36"
-   "ip"              = "192.168.2.39/24"
-   "local_as"        = "64539"
-},
-{
-   "hostname"        = "worker-37"
-   "ip"              = "192.168.2.40/24"
-   "local_as"        = "64540"
-},
-{
-   "hostname"        = "worker-38"
-   "ip"              = "192.168.2.41/24"
-   "local_as"        = "64541"
-},
-{
-   "hostname"        = "worker-39"
-   "ip"              = "192.168.2.42/24"
-   "local_as"        = "64542"
-},
-{
-   "hostname"        = "worker-40"
-   "ip"              = "192.168.2.43/24"
-   "local_as"        = "64543"
-},
-{
-   "hostname"        = "worker-41"
-   "ip"              = "192.168.2.44/24"
-   "local_as"        = "64544"
-},
-{
-   "hostname"        = "worker-42"
-   "ip"              = "192.168.2.45/24"
-   "local_as"        = "64545"
-},
-{
-   "hostname"        = "worker-43"
-   "ip"              = "192.168.2.46/24"
-   "local_as"        = "64546"
-},
-{
-   "hostname"        = "worker-44"
-   "ip"              = "192.168.2.47/24"
-   "local_as"        = "64547"
-},
-{
-   "hostname"        = "worker-45"
-   "ip"              = "192.168.2.48/24"
-   "local_as"        = "64548"
-},
-{
-   "hostname"        = "worker-46"
-   "ip"              = "192.168.2.49/24"
-   "local_as"        = "64549"
-},
-{
-   "hostname"        = "worker-47"
-   "ip"              = "192.168.2.50/24"
-   "local_as"        = "64550"
-},
-{
-   "hostname"        = "worker-48"
-   "ip"              = "192.168.2.51/24"
-   "local_as"        = "64551"
-},
-{
-   "hostname"        = "worker-49"
-   "ip"              = "192.168.2.52/24"
-   "local_as"        = "64552"
-},
-{
-   "hostname"        = "worker-50"
-   "ip"              = "192.168.2.53/24"
-   "local_as"        = "64553"
-},
-{
-   "hostname"        = "worker-51"
-   "ip"              = "192.168.2.54/24"
-   "local_as"        = "64554"
-},
-{
-   "hostname"        = "worker-52"
-   "ip"              = "192.168.2.55/24"
-   "local_as"        = "64555"
-},
-{
-   "hostname"        = "worker-53"
-   "ip"              = "192.168.2.56/24"
-   "local_as"        = "64556"
-},
-{
-   "hostname"        = "worker-54"
-   "ip"              = "192.168.2.57/24"
-   "local_as"        = "64557"
-},
-{
-   "hostname"        = "worker-55"
-   "ip"              = "192.168.2.58/24"
-   "local_as"        = "64558"
-},
-{
-   "hostname"        = "worker-56"
-   "ip"              = "192.168.2.59/24"
-   "local_as"        = "64559"
-},
-{
-   "hostname"        = "worker-57"
-   "ip"              = "192.168.2.60/24"
-   "local_as"        = "64560"
-},
-{
-   "hostname"        = "worker-58"
-   "ip"              = "192.168.2.61/24"
-   "local_as"        = "64561"
-},
-{
-   "hostname"        = "worker-59"
-   "ip"              = "192.168.2.62/24"
-   "local_as"        = "64562"
-},
-{
-   "hostname"        = "worker-60"
-   "ip"              = "192.168.2.63/24"
-   "local_as"        = "64563"
-}
-]
+Use this section to specify your Kubernetes Cluster Configuration parameters.
 
+* kube_version: The version to use for the kubelet, kubectl and kubeadm package. On Ubuntu you can use `apt-cache show kubeadm | grep Version` to get the list of all the avaialble versions.  
+* Crio Specific Parameters: Refer to the [CRIO Install Guide](https://github.com/cri-o/cri-o/blob/master/install.md) for installatio details
+  * crio_version: The versioni to use for the crio package
+  * OS_Version: The version of the operative system
+
+* Control Plan redundancy: The cluster contains 3 master nodes. KueepaliveD and HapRoxy are used to load balance the load between the 3 masters.
+  * control_plane_vip: The Virtual IP for the master nodes.
+  * vip_port: The port for the VIP to listen to. Reccomend to use 8443 as is a standard value
+  * haproxy_image: Haproxy image on docker hub
+  * keepalived_image: keepalived image on docker hub
+  * keepalived_router_id: The router ID number used by keepaliveD must be unique between clusters in the same subnet/vlan. You should not install 2 cluster in the same subnet/blan in the first place.
+  * kubeadm_token: To simplify the installation workflow is easier to pass a pre-generated kubeadm token. This is only used during install. 
+  * node_sub: The subnet for the nodes. This subnet is the same as the one used for the IP addresses that are allocated to the Floaring SVI and the Ancor Nodes
+  * pod_subnet: The subnet for the PODs. Keep in mind every Calico Nodes gets a /26 by default. Do your math before! if you want to have for example 64 nodes you need a /20 subnet as minimum or you won't have enough /26 to allocate!!
+  * cluster_svc_subnet: The Cluster-IP Service subnet
+  * external_svc_subnet: The External Service subnet used for Services of type LoadBalancer
+  * ntp_server: IP address or name of the DNS server, NTP is good... use NTP
+  * time_zone: The time zone in the standard unix format. Use `timedatectl list-timezones` to get a list of valid Time Zones
+  * docker_mirror: (Optional, set to "" to disable) in the format of IP:PORT configure CRIO to pull images from a dockerhub mirror. Very useful now that docker limits the pull you can do. This DOES not install a mirror for you. You need to install one on your own. If you get stuck [This](docker_mirror.dm) is how I did it.
+  * ingress_ip: The cluster comes with a few add-ons, one is an Nginx Ingress controller. This parameter set its IP address. This must be a free address from the external_svc_subnet
+
+```terraform
 k8s_cluster = {
     kube_version        = "1.20.4-00"
     crio_version        = "1.20"
@@ -436,3 +187,52 @@ k8s_cluster = {
     external_svc_subnet = "192.168.3.0/24"
   }
   ```
+
+## Calico Nodes List
+
+You MUST have 3 masters and N workers. The 1st node is the primary master, the 2nd and 3rd are the master replices and everything else are a workers.
+If you do not have 3 master the script will break...
+
+* calico_nodes: This is a list of nodes
+  * hostname: The host name of the node
+  * ip: The IP address of the node (IP/Sub format). The IP address MUST be insude the node_sub and MUST not overlap with any of the IPs used for the floating SVI.
+  * local_as: eBGP AS Number. Every node must have a uniq AS Number.
+
+Creating the node list manually can be a bit tedious, use the [generate_nodes.py]()../terraform/generate_nodes.py) script to create the node list automatically.
+
+Example:
+
+```terraform
+calico_nodes = [
+   {
+      "hostname"        = "master-1"
+      "ip"              = "192.168.2.1/24"
+      "local_as"        = "64501"
+   },
+   {
+      "hostname"        = "master-2"
+      "ip"              = "192.168.2.2/24"
+      "local_as"        = "64502"
+   },
+   {
+      "hostname"        = "master-3"
+      "ip"              = "192.168.2.3/24"
+      "local_as"        = "64503"
+   },
+   {
+      "hostname"        = "worker-1"
+      "ip"              = "192.168.2.4/24"
+      "local_as"        = "64504"
+   },
+   {
+      "hostname"        = "worker-2"
+      "ip"              = "192.168.2.5/24"
+      "local_as"        = "64505"
+   },
+   {
+      "hostname"        = "worker-3"
+      "ip"              = "192.168.2.6/24"
+      "local_as"        = "64506"
+   }
+]
+```

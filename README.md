@@ -47,20 +47,25 @@ The following optimizations are already implementd:
   * Ability to set a limit on the number of received prefixes from the nodes
   * Subnet import filtering: Only the expected subnets (POD, Node and Services) are accepted by ACI
 
+## The Kubernetes Cluster
+
+The cluster is composed by 3 masters and N workers.
+The control plane redundancy is ensured by deploying HaProxy and KeepaliveD. 
+
+A few add-ons are also installed on the cluster:
+
+* Helm
+* Nginx Ingress
+* kubectl bash completion
+* kubernetes dashboard
+* metric server: the default config is modified to add the `--kubelet-insecure-tls` since all the certificates are self signed
+* Guestbook demo application exposed via ingress. Access via: http://ingress_ip/ this is not idea, is just for demo purposes
+
 ## Terraform Configuration Variables for ACI
 
 All the configurations requires to spin up a cluster are done in the terraform configuraiton file. Some of the parameters are then used to generate the ansible inventory file and ansible variables.
-
-Refer to for a detailed explanation. 
+[Variables Documentation](docs/terraformVars.md)
 
 ## Open Issues
 
 * Due to CSCvx73502 the bgp policy timers mapping into the BGP policy can't be deleted by the destroy command resulting in a failure. You can run this ```terraform state rm  aci_rest.bgp_pol_timers``` before invoking destroy as a work around.
-
-## To Do
-
-* [ ] Scale to more than 400 nodes. This requires handling multiple sets of Anchor Nodes
-* [ ] Allow you to select all possible versions
-  * [ ] Haproxy
-  * [ ] Helm
-  * [ ] keepaliveD

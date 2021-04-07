@@ -1,5 +1,7 @@
 import ipaddress
 
+# Just a loop that add 1 to the IP and the AS number to automatically generate the list of nodes. 
+
 subnet = ipaddress.ip_network("192.168.2.0/24")
 as_number = 64501
 nodes = 64

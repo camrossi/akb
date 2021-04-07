@@ -198,7 +198,7 @@ If you do not have 3 master the script will break...
   * ip: The IP address of the node (IP/Sub format). The IP address MUST be insude the node_sub and MUST not overlap with any of the IPs used for the floating SVI.
   * local_as: eBGP AS Number. Every node must have a uniq AS Number.
 
-Creating the node list manually can be a bit tedious, use the [generate_nodes.py]()../terraform/generate_nodes.py) script to create the node list automatically.
+Creating the node list manually can be a bit tedious, use the [generate_nodes.py](../terraform/generate_nodes.py) script to create the node list automatically.
 
 Example:
 

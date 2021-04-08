@@ -59,7 +59,7 @@ A few add-ons are also installed on the cluster:
 * kubectl bash completion
 * kubernetes dashboard
 * metric server: the default config is modified to add the `--kubelet-insecure-tls` since all the certificates are self signed
-* Guestbook demo application exposed via ingress. Access via: http://ingress_ip/ this is not idea, is just for demo purposes
+* Guestbook demo application exposed via ingress. Access via: http://ingress_ip/ this is not ideal, is just for demo purposes
 
 ## Terraform Configuration Variables for ACI
 
@@ -69,4 +69,4 @@ All the configurations requires to spin up a cluster are done in the terraform c
 ## Open Issues
 
 * L3OUT ECMP is used to load balance traffic to the services running in the cluster: Every node that has a POD for an exposed service will advertise a /32 host route for the service IP. Currently ACI does not support Resilient hashing for L3out ECMP. This means that if the number of ECMP paths are changed (scaling up/down a deploument could result in that as well as node failure) the flows can potentially be re-hashed to a different nodes resulting in connections resets. There is currently a feature request opened to support Resilient hashing for L3out ECMP: US9273
-* Due to CSCvx73502 the bgp policy timers mapping into the BGP policy can't be deleted by the destroy command resulting in a failure. You can run this ```terraform state rm  aci_rest.bgp_pol_timers``` before invoking destroy as a work around.
+* Due to CSCvx73502 the `bgp policy timers` mapping into the `BGP policy` can't be deleted by the `terraform destroy` command resulting in terraform failing to complete the destroy operation. You can workaround this by executing the `terraform state rm aci_rest.bgp_pol_timers` command before invoking `terraform destroy` as a work around.

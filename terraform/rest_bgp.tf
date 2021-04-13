@@ -79,13 +79,14 @@ resource "aci_rest" "bgp_pol_relax_as_restriction" {
 }
 
 ## Create BGP Address Family Context Policy
-## Use to increase the Max eBGP ECMP from 16 to 64 (current Maximum of ACI)
+## Use to increase the Max eBGP and iBGP ECMP from 16 to 64 (current Maximum of ACI) the iBGP is used for the internal MP-BGP redistributed routes. 
 
 resource "aci_rest" "bgp_addr_family_context" {
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/bgpCtxAfP-${var.l3out.name}.json"
   class_name = "bgpCtxAfPol"
     content = {
       "maxEcmp" = "64"
+      "maxEcmpIbgp" = "64"
   }
 }
 

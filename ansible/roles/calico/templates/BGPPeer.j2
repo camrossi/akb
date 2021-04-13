@@ -7,6 +7,7 @@ metadata:
 spec:
   peerIP: "{{ leaf.primary_ip }}"
   asNumber: {{ aci_as }}
+  nodeSelector: rack_id == "{{ leaf.rack_id }}"
   password:
     secretKeyRef:
       name: bgp-secrets

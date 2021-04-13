@@ -45,6 +45,7 @@ The following optimizations are already implementd:
 * BGP Control plan protection:
   * BGP Password authentication
   * Ability to set a limit on the number of received prefixes from the nodes
+  * Set the Maximum of AS limit to 1, no Calico Node should send more than 1 AS in its path.
   * Subnet import filtering: Only the expected subnets (POD, Node and Services) are accepted by ACI
 
 ## The Kubernetes Cluster

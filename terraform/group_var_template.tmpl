@@ -30,6 +30,7 @@ anchor_nodes:
 %{ for node in anchor_nodes ~}
   - id: ${node.node_id}
     primary_ip: ${split("/",node.primary_ip)[0]}
+    rack_id: "${node.rack_id}"
 %{ endfor ~}
 
 docker_mirror: ${k8s_cluster.docker_mirror}

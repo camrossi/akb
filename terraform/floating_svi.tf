@@ -37,23 +37,24 @@ resource "aci_rest" "floating_svi_sec_ip" {
 
 #Add eBPG Peers
 
-# Generate a  list of all the anchor-nodes and calico nodes for BPG peering 
+# Generate a  list of all the anchor-nodes and calico nodes for BPG peering only for the nodes in the same rack (see the if)
 # I basically create the cartesian product (setproduct) of all the anchor_nodes and calico_nodes
 # and then I build a  list of all the items to be user after by for_each
 locals {
-  peering = [for k, v in setproduct(var.l3out.anchor_nodes, var.calico_nodes): {
+  peering = [for k, v in setproduct(var.l3out.anchor_nodes, var.calico_nodes): 
+            {
                     node_id = v[0].node_id
                     pod_id = v[0].pod_id
                     calico_ip = split("/",v[1].ip)[0]
                     calico_as = v[1].local_as
                     index_key = join("_",[v[0].node_id, split("/",v[1].ip)[0]])
-            }
+            } if v[0].rack_id == v[1].rack_id 
   ]
 
 }
 
 #output "name" {
-#    value = {for v in local.peering:  v.index_key => v}
+#    value = local.peering
 #}
 # Create the BGP Peer
 resource "aci_rest" "bgp_peer" {
@@ -80,42 +81,42 @@ resource "aci_rest" "bgp_peer_remote_as" {
 }
 
 ## Create BGP Prefix Policy to limit the maximum number of routes ACI accepts from a single node
-resource "aci_rest" "bgp_prefix_policy" {
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/bgpPfxP-${var.l3out.name}.json"
-  class_name = "bgpPeerPfxPol"
-    content = {
-      "name" = var.l3out.name
-      "maxPfx" = var.l3out.max_node_prefixes
-  }
-}
-
-# Set the Peer BGP Prefix Policy on all the nodes
-resource "aci_rest" "bgp_peer_prefix_policy" {
-  depends_on = [ aci_rest.bgp_peer, aci_rest.bgp_prefix_policy ]
-  for_each = {for v in local.peering:  v.index_key => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/rspeerPfxPol.json"
-  class_name = "bgpRsPeerPfxPol"
-      content = {
-        "tnBgpPeerPfxPolName" = var.l3out.name
-
-  }
-}
-
-# Due to https://github.com/CiscoDevNet/terraform-provider-aci/issues/204 I can't use payload so need to create more objects 
-
-#resource "aci_rest" "floating_svi" {
-#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/#lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"
-#  depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
-#  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
-#  payload = <<EOF
-#  {
-#            "l3extVirtualLIfP": {
-#                "attributes": {
-#                    "addr": "${each.value.primary_ip}",
-#                    "encap": "vlan-${var.l3out.vlan_id}",
-#                    "encapScope": "local",
-#                    "ifInstT": "ext-svi",
-#                    "nodeDn": "topology/pod-${each.value.pod_id}/node-${each.value.node_id}",
+#resource "aci_rest" "bgp_prefix_policy" {
+#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/bgpPfxP-${var.l3out.name}.json"
+#  class_name = "bgpPeerPfxPol"
+#    content = {
+#      "name" = var.l3out.name
+#      "maxPfx" = var.l3out.max_node_prefixes
+#  }
+#}
+#
+## Set the Peer BGP Prefix Policy on all the nodes
+#resource "aci_rest" "bgp_peer_prefix_policy" {
+#  depends_on = [ aci_rest.bgp_peer, aci_rest.bgp_prefix_policy ]
+#  for_each = {for v in local.peering:  v.index_key => v}
+#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/rspeerPfxPol.json"
+#  class_name = "bgpRsPeerPfxPol"
+#      content = {
+#        "tnBgpPeerPfxPolName" = var.l3out.name
+#
+#  }
+#}
+#
+## Due to https://github.com/CiscoDevNet/terraform-provider-aci/issues/204 I can't use payload so need to create more objects 
+#
+##resource "aci_rest" "floating_svi" {
+##  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/#lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"
+##  depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
+##  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+##  payload = <<EOF
+##  {
+##            "l3extVirtualLIfP": {
+##                "attributes": {
+##                    "addr": "${each.value.primary_ip}",
+##                    "encap": "vlan-${var.l3out.vlan_id}",
+##                    "encapScope": "local",
+##                    "ifInstT": "ext-svi",
+##                    "nodeDn": "topology/pod-${each.value.pod_id}/node-${each.value.node_id}",
 #                },
 #                "children": [
 #                    {

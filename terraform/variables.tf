@@ -48,6 +48,7 @@ variable "l3out" {
       rtr_id          = string
       pod_id          = number
       primary_ip      = string
+      rack_id         = string
     }))
   })
 }
@@ -57,6 +58,7 @@ variable "calico_nodes" {
     hostname        = string
     ip              = string
     local_as        = number
+    rack_id         = string
      }))
 }
 

@@ -28,7 +28,7 @@ resource "aci_rest" "bgp_timers" {
       content = {
           "holdIntvl"  = "3"
           "kaIntvl"    =  "1"
-          "maxAsLimit" = "2"
+          "maxAsLimit" = "1"
           "name"       = "${var.l3out.name}-Timers"
           "staleIntvl" = "6"
           "grCtrl"     = "helper"

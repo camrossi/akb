@@ -54,12 +54,28 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.201"
         primary_ip      = "192.168.2.201/24"
+        rack_id         = "1"
         },
         {
         node_id         = 202
         pod_id          = 1
         rtr_id          = "1.1.4.202"
         primary_ip      = "192.168.2.202/24"
+        rack_id         = "1"
+        },
+        {
+        node_id         = 203
+        pod_id          = 1
+        rtr_id          = "1.1.4.203"
+        primary_ip      = "192.168.2.203/24"
+        rack_id         = "2"
+        },
+        {
+        node_id         = 204
+        pod_id          = 1
+        rtr_id          = "1.1.4.204"
+        primary_ip      = "192.168.2.204/24"
+        rack_id         = "2"
         }
     ]
 }
@@ -69,319 +85,64 @@ l3out = {
 # If you do not have 3 master the script will break...Need to make it more generic eventually
 calico_nodes = [
 {
-   "hostname"        = "master-1"
-   "ip"              = "192.168.2.1/24"
-   "local_as"        = "64501"
+    hostname        = "master-1"
+    ip              = "192.168.2.1/24"
+    local_as        = "64501"
+    rack_id        = "2"
 },
 {
-   "hostname"        = "master-2"
-   "ip"              = "192.168.2.2/24"
-   "local_as"        = "64502"
+    hostname        = "master-2"
+    ip              = "192.168.2.2/24"
+    local_as        = "64502"
+    rack_id        = "1"
 },
 {
-   "hostname"        = "master-3"
-   "ip"              = "192.168.2.3/24"
-   "local_as"        = "64503"
+    hostname        = "master-3"
+    ip              = "192.168.2.3/24"
+    local_as        = "64503"
+    rack_id        = "2"
 },
 {
-   "hostname"        = "worker-1"
-   "ip"              = "192.168.2.4/24"
-   "local_as"        = "64504"
+    hostname        = "worker-1"
+    ip              = "192.168.2.4/24"
+    local_as        = "64504"
+    rack_id        = "1"
 },
 {
-   "hostname"        = "worker-2"
-   "ip"              = "192.168.2.5/24"
-   "local_as"        = "64505"
+    hostname        = "worker-2"
+    ip              = "192.168.2.5/24"
+    local_as        = "64505"
+    rack_id        = "2"
 },
 {
-   "hostname"        = "worker-3"
-   "ip"              = "192.168.2.6/24"
-   "local_as"        = "64506"
+    hostname        = "worker-3"
+    ip              = "192.168.2.6/24"
+    local_as        = "64506"
+    rack_id        = "1"
 },
 {
-   "hostname"        = "worker-4"
-   "ip"              = "192.168.2.7/24"
-   "local_as"        = "64507"
+    hostname        = "worker-4"
+    ip              = "192.168.2.7/24"
+    local_as        = "64507"
+    rack_id        = "2"
 },
 {
-   "hostname"        = "worker-5"
-   "ip"              = "192.168.2.8/24"
-   "local_as"        = "64508"
+    hostname        = "worker-5"
+    ip              = "192.168.2.8/24"
+    local_as        = "64508"
+    rack_id        = "1"
 },
 {
-   "hostname"        = "worker-6"
-   "ip"              = "192.168.2.9/24"
-   "local_as"        = "64509"
+    hostname        = "worker-6"
+    ip              = "192.168.2.9/24"
+    local_as        = "64509"
+    rack_id        = "2"
 },
 {
-   "hostname"        = "worker-7"
-   "ip"              = "192.168.2.10/24"
-   "local_as"        = "64510"
-},
-{
-   "hostname"        = "worker-8"
-   "ip"              = "192.168.2.11/24"
-   "local_as"        = "64511"
-},
-{
-   "hostname"        = "worker-9"
-   "ip"              = "192.168.2.12/24"
-   "local_as"        = "64512"
-},
-{
-   "hostname"        = "worker-10"
-   "ip"              = "192.168.2.13/24"
-   "local_as"        = "64513"
-},
-{
-   "hostname"        = "worker-11"
-   "ip"              = "192.168.2.14/24"
-   "local_as"        = "64514"
-},
-{
-   "hostname"        = "worker-12"
-   "ip"              = "192.168.2.15/24"
-   "local_as"        = "64515"
-},
-{
-   "hostname"        = "worker-13"
-   "ip"              = "192.168.2.16/24"
-   "local_as"        = "64516"
-},
-{
-   "hostname"        = "worker-14"
-   "ip"              = "192.168.2.17/24"
-   "local_as"        = "64517"
-},
-{
-   "hostname"        = "worker-15"
-   "ip"              = "192.168.2.18/24"
-   "local_as"        = "64518"
-},
-{
-   "hostname"        = "worker-16"
-   "ip"              = "192.168.2.19/24"
-   "local_as"        = "64519"
-},
-{
-   "hostname"        = "worker-17"
-   "ip"              = "192.168.2.20/24"
-   "local_as"        = "64520"
-},
-{
-   "hostname"        = "worker-18"
-   "ip"              = "192.168.2.21/24"
-   "local_as"        = "64521"
-},
-{
-   "hostname"        = "worker-19"
-   "ip"              = "192.168.2.22/24"
-   "local_as"        = "64522"
-},
-{
-   "hostname"        = "worker-20"
-   "ip"              = "192.168.2.23/24"
-   "local_as"        = "64523"
-},
-{
-   "hostname"        = "worker-21"
-   "ip"              = "192.168.2.24/24"
-   "local_as"        = "64524"
-},
-{
-   "hostname"        = "worker-22"
-   "ip"              = "192.168.2.25/24"
-   "local_as"        = "64525"
-},
-{
-   "hostname"        = "worker-23"
-   "ip"              = "192.168.2.26/24"
-   "local_as"        = "64526"
-},
-{
-   "hostname"        = "worker-24"
-   "ip"              = "192.168.2.27/24"
-   "local_as"        = "64527"
-},
-{
-   "hostname"        = "worker-25"
-   "ip"              = "192.168.2.28/24"
-   "local_as"        = "64528"
-},
-{
-   "hostname"        = "worker-26"
-   "ip"              = "192.168.2.29/24"
-   "local_as"        = "64529"
-},
-{
-   "hostname"        = "worker-27"
-   "ip"              = "192.168.2.30/24"
-   "local_as"        = "64530"
-},
-{
-   "hostname"        = "worker-28"
-   "ip"              = "192.168.2.31/24"
-   "local_as"        = "64531"
-},
-{
-   "hostname"        = "worker-29"
-   "ip"              = "192.168.2.32/24"
-   "local_as"        = "64532"
-},
-{
-   "hostname"        = "worker-30"
-   "ip"              = "192.168.2.33/24"
-   "local_as"        = "64533"
-},
-{
-   "hostname"        = "worker-31"
-   "ip"              = "192.168.2.34/24"
-   "local_as"        = "64534"
-},
-{
-   "hostname"        = "worker-32"
-   "ip"              = "192.168.2.35/24"
-   "local_as"        = "64535"
-},
-{
-   "hostname"        = "worker-33"
-   "ip"              = "192.168.2.36/24"
-   "local_as"        = "64536"
-},
-{
-   "hostname"        = "worker-34"
-   "ip"              = "192.168.2.37/24"
-   "local_as"        = "64537"
-},
-{
-   "hostname"        = "worker-35"
-   "ip"              = "192.168.2.38/24"
-   "local_as"        = "64538"
-},
-{
-   "hostname"        = "worker-36"
-   "ip"              = "192.168.2.39/24"
-   "local_as"        = "64539"
-},
-{
-   "hostname"        = "worker-37"
-   "ip"              = "192.168.2.40/24"
-   "local_as"        = "64540"
-},
-{
-   "hostname"        = "worker-38"
-   "ip"              = "192.168.2.41/24"
-   "local_as"        = "64541"
-},
-{
-   "hostname"        = "worker-39"
-   "ip"              = "192.168.2.42/24"
-   "local_as"        = "64542"
-},
-{
-   "hostname"        = "worker-40"
-   "ip"              = "192.168.2.43/24"
-   "local_as"        = "64543"
-},
-{
-   "hostname"        = "worker-41"
-   "ip"              = "192.168.2.44/24"
-   "local_as"        = "64544"
-},
-{
-   "hostname"        = "worker-42"
-   "ip"              = "192.168.2.45/24"
-   "local_as"        = "64545"
-},
-{
-   "hostname"        = "worker-43"
-   "ip"              = "192.168.2.46/24"
-   "local_as"        = "64546"
-},
-{
-   "hostname"        = "worker-44"
-   "ip"              = "192.168.2.47/24"
-   "local_as"        = "64547"
-},
-{
-   "hostname"        = "worker-45"
-   "ip"              = "192.168.2.48/24"
-   "local_as"        = "64548"
-},
-{
-   "hostname"        = "worker-46"
-   "ip"              = "192.168.2.49/24"
-   "local_as"        = "64549"
-},
-{
-   "hostname"        = "worker-47"
-   "ip"              = "192.168.2.50/24"
-   "local_as"        = "64550"
-},
-{
-   "hostname"        = "worker-48"
-   "ip"              = "192.168.2.51/24"
-   "local_as"        = "64551"
-},
-{
-   "hostname"        = "worker-49"
-   "ip"              = "192.168.2.52/24"
-   "local_as"        = "64552"
-},
-{
-   "hostname"        = "worker-50"
-   "ip"              = "192.168.2.53/24"
-   "local_as"        = "64553"
-},
-{
-   "hostname"        = "worker-51"
-   "ip"              = "192.168.2.54/24"
-   "local_as"        = "64554"
-},
-{
-   "hostname"        = "worker-52"
-   "ip"              = "192.168.2.55/24"
-   "local_as"        = "64555"
-},
-{
-   "hostname"        = "worker-53"
-   "ip"              = "192.168.2.56/24"
-   "local_as"        = "64556"
-},
-{
-   "hostname"        = "worker-54"
-   "ip"              = "192.168.2.57/24"
-   "local_as"        = "64557"
-},
-{
-   "hostname"        = "worker-55"
-   "ip"              = "192.168.2.58/24"
-   "local_as"        = "64558"
-},
-{
-   "hostname"        = "worker-56"
-   "ip"              = "192.168.2.59/24"
-   "local_as"        = "64559"
-},
-{
-   "hostname"        = "worker-57"
-   "ip"              = "192.168.2.60/24"
-   "local_as"        = "64560"
-},
-{
-   "hostname"        = "worker-58"
-   "ip"              = "192.168.2.61/24"
-   "local_as"        = "64561"
-},
-{
-   "hostname"        = "worker-59"
-   "ip"              = "192.168.2.62/24"
-   "local_as"        = "64562"
-},
-{
-   "hostname"        = "worker-60"
-   "ip"              = "192.168.2.63/24"
-   "local_as"        = "64563"
+    hostname        = "worker-7"
+    ip              = "192.168.2.10/24"
+    local_as        = "64510"
+    rack_id        = "1"
 }
 ]
 

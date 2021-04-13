@@ -24,6 +24,14 @@
   tags:
     - calico
 
+#Labels the node with the rack_id
+- name: Labels Nodes with rack_id
+  shell: |
+    kubectl label node {{ item }} rack_id="{{ hostvars[item]['rack_id'] }}" --overwrite
+  loop: "{{groups['k8s_nodes']}}"
+  tags:
+    - calico
+
 - name: Apply Calico CNI
   shell: kubectl apply -f /tmp/calico.yaml
   tags:

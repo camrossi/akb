@@ -26,6 +26,8 @@ Terminology refresher:
 
 ### Floating L3 OUT Design
 
+**WARNING: This needs to be updated pedning the 2 Anchoer node vs all Anchor node desing due to the tromboning and scaling issue.**
+
 The design choices for the floating L3OUT are as following:
 
 * Physical Domain: The Floating L3 OUT VLAN will be deployed on all the ports that are associated with the Physical Domain. Be carful if you choose to re-use a physical domain as you might end up with the Floating L3 OUT VLAN deplouyed on ports that are not connected to your Calico Nodes.

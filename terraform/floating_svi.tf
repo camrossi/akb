@@ -1,21 +1,20 @@
 # Configure Floating SVI for every Anchor Node
-resource "aci_rest" "floating_svi" {
-    depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
-    path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}.json"
-    for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
-    class_name = "l3extVirtualLIfP"
-      content = {
-        "addr" = each.value.primary_ip
-        "encap" = "vlan-${var.l3out.vlan_id}"
-        "encapScope" = "local"
-        "ifInstT" = "ext-svi"
-        "mtu"     = var.l3out.mtu
-        "nodeDn" = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
-  }
+
+resource "aci_l3out_floating_svi" "floating_svi" {
+  depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
+  logical_interface_profile_dn = aci_logical_interface_profile.calico_interface_profile.id
+  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+  node_dn                      = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
+  encap                        = "vlan-${var.l3out.vlan_id}"
+  addr                         = each.value.primary_ip
+  autostate                    = "enabled"
+  encap_scope                  = "local"
+  if_inst_t                    = "ext-svi"
+  mtu                          = var.l3out.mtu
 }
 
 resource "aci_rest" "floating_svi_path" {
-    depends_on = [ aci_rest.floating_svi ]
+    depends_on = [ aci_l3out_floating_svi.floating_svi ]
     path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/rsdynPathAtt-[uni/phys-${var.l3out.physical_dom}].json"
     for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
     class_name = "l3extRsDynPathAtt"
@@ -26,7 +25,7 @@ resource "aci_rest" "floating_svi_path" {
 }
 
 resource "aci_rest" "floating_svi_sec_ip" {
-    depends_on = [ aci_rest.floating_svi ]
+    depends_on = [ aci_l3out_floating_svi.floating_svi ]
     path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/addr-[${var.l3out.secondary_ip}].json"
     for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
     class_name = "l3extIp"
@@ -58,7 +57,7 @@ locals {
 #}
 # Create the BGP Peer
 resource "aci_rest" "bgp_peer" {
-  depends_on = [ aci_rest.floating_svi ]
+  depends_on = [ aci_l3out_floating_svi.floating_svi ]
   for_each = {for v in local.peering:  v.index_key => v}
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}].json"
   class_name = "bgpPeerP"
@@ -68,7 +67,7 @@ resource "aci_rest" "bgp_peer" {
 
   }
 }
-# Set the Peer AS
+
 resource "aci_rest" "bgp_peer_remote_as" {
   depends_on = [ aci_rest.bgp_peer ]
   for_each = {for v in local.peering:  v.index_key => v}
@@ -79,4 +78,16 @@ resource "aci_rest" "bgp_peer_remote_as" {
 
   }
 }
+
+#resource "aci_bgp_peer_connectivity_profile" "bgp_peer" {
+#  depends_on = [ aci_l3out_floating_svi.floating_svi ]
+#  for_each = {for v in local.peering:  v.index_key => v}
+#  logical_node_profile_dn = aci_logical_node_profile.calico_node_profile.id
+#  addr                    = each.value.calico_ip
+#  password                = var.l3out.bgp_pass
+#  as_number               = each.value.calico_as
+#  local_asn               = ""
+#
+#}
+
 

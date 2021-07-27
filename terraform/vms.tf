@@ -7,7 +7,7 @@ provider "vsphere" {
 }
 
 data "vsphere_datacenter" "dc" {
-  name = "STLD"
+  name = var.vc.dc
 }
 
 data "vsphere_datastore" "datastore" {

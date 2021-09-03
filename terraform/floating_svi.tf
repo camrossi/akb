@@ -79,15 +79,14 @@ resource "aci_rest" "bgp_peer_remote_as" {
   }
 }
 
-#resource "aci_bgp_peer_connectivity_profile" "bgp_peer" {
-#  depends_on = [ aci_l3out_floating_svi.floating_svi ]
-#  for_each = {for v in local.peering:  v.index_key => v}
-#  logical_node_profile_dn = aci_logical_node_profile.calico_node_profile.id
-#  addr                    = each.value.calico_ip
-#  password                = var.l3out.bgp_pass
-#  as_number               = each.value.calico_as
-#  local_asn               = ""
-#
-#}
+resource "aci_rest" "bgp_peer_propagate" {
+  depends_on = [ aci_rest.bgp_peer ]
+  for_each = {for v in local.peering:  v.index_key => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/rspeerToProfile-[uni/tn-${var.l3out.l3out_tenant}/prof-PropagateTest]-import.json"
+  class_name = "bgpRsPeerToProfile"
+      content = {
+        "direction" = "import"
 
+  }
+}
 

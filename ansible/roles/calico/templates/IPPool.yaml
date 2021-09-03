@@ -9,3 +9,15 @@ spec:
   vxlanMode: Never
   disabled: false
   nodeSelector: all()
+---
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: default-ipv6-ippool
+spec:
+  cidr: {{ pod_subnet_v6 | ansible.netcommon.ipaddr('subnet') }}
+  ipipMode: Never
+  natOutgoing: false
+  vxlanMode: Never
+  disabled: false
+  nodeSelector: all()

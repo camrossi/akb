@@ -221,8 +221,8 @@
       kind: ClusterConfiguration
       controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
       networking:
-        podSubnet: {{ pod_subnet }}
-        serviceSubnet: {{ cluster_svc_subnet }}
+        podSubnet: {{ pod_subnet }},{{ pod_subnet_v6 }}
+        serviceSubnet: {{ cluster_svc_subnet }},{{ cluster_svc_subnet_v6 }}
       apiVersion: kubeadm.k8s.io/v1beta2
       ---
       apiVersion: kubelet.config.k8s.io/v1beta1

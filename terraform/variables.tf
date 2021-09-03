@@ -30,7 +30,10 @@ variable "l3out" {
     vrf_name          = string
     node_profile_name = string
     int_prof_name     = string
+    int_prof_name_v6     = string
     physical_dom      = string
+    floating_ipv6       = string
+    secondary_ipv6      = string
     floating_ip       = string
     secondary_ip      = string
     vlan_id           = number
@@ -48,6 +51,7 @@ variable "l3out" {
       rtr_id          = string
       pod_id          = number
       primary_ip      = string
+      primary_ipv6    = string
       rack_id         = string
     }))
   })
@@ -57,6 +61,7 @@ variable "calico_nodes" {
   type = list(object({
     hostname        = string
     ip              = string
+    ipv6            = string
     local_as        = number
     rack_id         = string
      }))
@@ -74,9 +79,13 @@ variable "k8s_cluster" {
     keepalived_router_id= string
     kubeadm_token       = string
     node_sub            = string
+    node_sub_v6         = string
     pod_subnet          = string
+    pod_subnet_v6       = string
     cluster_svc_subnet  = string
+    cluster_svc_subnet_v6  = string
     external_svc_subnet = string
+    external_svc_subnet_v6 = string
     ingress_ip          = string
     ntp_server          = string
     time_zone           = string

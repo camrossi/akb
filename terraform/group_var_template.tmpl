@@ -19,6 +19,9 @@ keepalived_router_id: ${k8s_cluster.keepalived_router_id}
 pod_subnet: ${k8s_cluster.pod_subnet}
 cluster_svc_subnet: ${k8s_cluster.cluster_svc_subnet}
 external_svc_subnet: ${k8s_cluster.external_svc_subnet}
+pod_subnet_v6: ${k8s_cluster.pod_subnet_v6}
+cluster_svc_subnet_v6: ${k8s_cluster.cluster_svc_subnet_v6}
+external_svc_subnet_v6: ${k8s_cluster.external_svc_subnet_v6}
 ingress_ip: ${k8s_cluster.ingress_ip}
 ntp_server: ${k8s_cluster.ntp_server}
 time_zone: "${k8s_cluster.time_zone}"
@@ -30,6 +33,7 @@ anchor_nodes:
 %{ for node in anchor_nodes ~}
   - id: ${node.node_id}
     primary_ip: ${split("/",node.primary_ip)[0]}
+    primary_ipv6: ${split("/",node.primary_ipv6)[0]}
     rack_id: "${node.rack_id}"
 %{ endfor ~}
 

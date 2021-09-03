@@ -12,4 +12,17 @@ spec:
     secretKeyRef:
       name: bgp-secrets
       key: rr-password
+---
+apiVersion: projectcalico.org/v3
+kind: BGPPeer
+metadata:
+  name: "{{ leaf.id }}v6"
+spec:
+  peerIP: "{{ leaf.primary_ipv6 }}"
+  asNumber: {{ aci_as }}
+  nodeSelector: rack_id == "{{ leaf.rack_id }}"
+  password:
+    secretKeyRef:
+      name: bgp-secrets
+      key: rr-password
 {% endfor %}

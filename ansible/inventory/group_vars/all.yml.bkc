@@ -1,15 +1,15 @@
 ansible_ssh_pass: 123Cisco123
 ansible_user: cisco
 ansible_sudo_pass: 123Cisco123
-kube_version: 1.20.4-00             # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
+kube_version: 1.22.1-00             # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
 #ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q bm-01"'
 #ansible_python_interpreter: /usr/bin/python3
 OS_Version: "xUbuntu_20.04"
-crio_version: "1.20"
+crio_version: "1.21"
 control_plane_vip: "192.168.2.100"
 kubeadm_token: fqv728.htdmfzf6rt9blhej
-pod_subnet: 192.168.3.1/24
-cluster_svc_subnet: 192.168.4.1/24
+pod_subnet: 192.168.3.1/24,2001:db8:42:0::/56
+cluster_svc_subnet: 192.168.4.1/24,2001:db8:42:1::/112
 haproxy_image: haproxy:2.3.6
 ntp_server: 72.163.32.44
 time_zone: "Australia/Sydney"

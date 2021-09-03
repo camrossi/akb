@@ -7,7 +7,10 @@ spec:
   nodeToNodeMeshEnabled: false
   serviceClusterIPs:
   - cidr: {{ cluster_svc_subnet | ipaddr('network') }}/{{ cluster_svc_subnet | ipaddr('prefix') }}
+  - cidr: {{ cluster_svc_subnet_v6 | ipaddr('network') }}/{{ cluster_svc_subnet_v6 | ipaddr('prefix') }}
+
   serviceExternalIPs:
   - cidr: {{ external_svc_subnet | ipaddr('network') }}/{{ external_svc_subnet | ipaddr('prefix') }}
+  - cidr: {{ external_svc_subnet_v6 | ipaddr('network') }}/{{ external_svc_subnet_v6 | ipaddr('prefix') }}
 
   listenPort: 178

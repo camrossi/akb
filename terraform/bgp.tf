@@ -118,6 +118,16 @@ resource "aci_rest" "export_pod_match_rule_subnet" {
   }
 }
 
+resource "aci_rest" "export_pod_match_rule_subnet_v6" {
+  depends_on = [ aci_rest.export_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-export-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.pod_subnet_v6
+      "aggregate" = "yes"
+  }
+}
+
 ## Attach Rule to default-export policy
 
 resource "aci_bgp_route_control_profile" "export_pod_subnet" {
@@ -173,12 +183,32 @@ resource "aci_rest" "import_pod_match_rule_subnet" {
   }
 }
 
+resource "aci_rest" "import_pod_match_rule_subnet_v6" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.pod_subnet_v6
+      "aggregate" = "yes"
+  }
+}
+
 resource "aci_rest" "import_node_match_rule_subnet" {
   depends_on = [ aci_rest.import_match_rule ]
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
   class_name = "rtctrlMatchRtDest"
     content = {
       "ip" = var.k8s_cluster.node_sub
+      "aggregate" = "yes"
+  }
+}
+
+resource "aci_rest" "import_node_match_rule_subnet_v6" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.node_sub_v6
       "aggregate" = "yes"
   }
 }
@@ -193,12 +223,32 @@ resource "aci_rest" "import_svc_match_rule_subnet" {
   }
 }
 
+resource "aci_rest" "import_svc_match_rule_subnet_v6" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.cluster_svc_subnet_v6
+      "aggregate" = "yes"
+  }
+}
+
 resource "aci_rest" "import_ext_svc_match_rule_subnet" {
   depends_on = [ aci_rest.import_match_rule ]
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
   class_name = "rtctrlMatchRtDest"
     content = {
       "ip" = var.k8s_cluster.external_svc_subnet
+      "aggregate" = "yes"
+  }
+}
+
+resource "aci_rest" "import_ext_svc_match_rule_subnet_v6" {
+  depends_on = [ aci_rest.import_match_rule ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/subj-${var.l3out.name}-import-match.json"
+  class_name = "rtctrlMatchRtDest"
+    content = {
+      "ip" = var.k8s_cluster.external_svc_subnet_v6
       "aggregate" = "yes"
   }
 }

@@ -71,9 +71,13 @@ resource "vsphere_virtual_machine" "vm" {
       network_interface {
         ipv4_address = split("/",each.value.ip)[0]
         ipv4_netmask = split("/",each.value.ip)[1]
+        ipv6_address = split("/",each.value.ipv6)[0]
+        ipv6_netmask = split("/",each.value.ipv6)[1]
       }
       dns_server_list = var.l3out.dns_servers
       ipv4_gateway = split("/",var.l3out.secondary_ip)[0]
+      ipv6_gateway = split("/",var.l3out.secondary_ipv6)[0]
+
     }
   }
 }

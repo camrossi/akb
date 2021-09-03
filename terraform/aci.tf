@@ -60,6 +60,11 @@ resource "aci_logical_interface_profile" "calico_interface_profile" {
     name                    = var.l3out.int_prof_name
   }    
 
+resource "aci_logical_interface_profile" "calico_interface_profile_v6" {
+    logical_node_profile_dn = aci_logical_node_profile.calico_node_profile.id
+    name                    = var.l3out.int_prof_name_v6
+  } 
+
 data "aci_contract" "default" {
   tenant_dn  = data.aci_tenant.tenant_l3out.id
   name       = var.l3out.contract
@@ -96,6 +101,33 @@ resource "aci_l3_ext_subnet" "cluster_svc" {
 resource "aci_l3_ext_subnet" "external_svc_subnet" {
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
   ip                                    = var.k8s_cluster.external_svc_subnet
+  scope                                 = var.l3out.def_ext_epg_scope
+  aggregate                             = "shared-rtctrl"
+}
+
+resource "aci_l3_ext_subnet" "node_v6" {
+  external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
+  ip                                    = var.k8s_cluster.node_sub_v6
+  scope                                 = var.l3out.def_ext_epg_scope
+}
+
+resource "aci_l3_ext_subnet" "pod_v6" {
+  external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
+  ip                                    = var.k8s_cluster.pod_subnet_v6
+  scope                                 = var.l3out.def_ext_epg_scope
+  aggregate                             = "shared-rtctrl"
+}
+
+resource "aci_l3_ext_subnet" "cluster_svc_v6" {
+  external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
+  ip                                    = var.k8s_cluster.cluster_svc_subnet_v6
+  scope                                 = var.l3out.def_ext_epg_scope
+  aggregate                             = "shared-rtctrl"
+}
+
+resource "aci_l3_ext_subnet" "external_svc_subnet_v6" {
+  external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
+  ip                                    = var.k8s_cluster.external_svc_subnet_v6
   scope                                 = var.l3out.def_ext_epg_scope
   aggregate                             = "shared-rtctrl"
 }

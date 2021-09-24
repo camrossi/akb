@@ -9,7 +9,7 @@ You pass the POD name and you get infos on:
 
 ## Installation
 
-- apply the `list-permission.yaml` this will allow the ServiceAccount default to list pod.
+- apply the `list-permission.yaml` this will allow the `ServiceAccount` `default` to list pod.
 - apply the `vkaci.yaml` this spin up the container that will run our tasks
 
 ## How to use

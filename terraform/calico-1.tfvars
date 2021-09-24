@@ -57,7 +57,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.201"
         primary_ip      = "192.168.2.201/24"
-        primary_ipv6    = "2001:db8:42:00::201/56"
+        primary_ipv6    = "2001:db8:42::201/56"
         rack_id         = "1"
         },
         {
@@ -65,7 +65,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.202"
         primary_ip      = "192.168.2.202/24"
-        primary_ipv6    = "2001:db8:42:00::202/56"
+        primary_ipv6    = "2001:db8:42::202/56"
         rack_id         = "1"
         },
         {
@@ -73,7 +73,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.203"
         primary_ip      = "192.168.2.203/24"
-        primary_ipv6    = "2001:db8:42:00::203/56"
+        primary_ipv6    = "2001:db8:42::203/56"
         rack_id         = "2"
         },
         {
@@ -81,7 +81,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.204"
         primary_ip      = "192.168.2.204/24"
-        primary_ipv6    = "2001:db8:42:00::204/56"
+        primary_ipv6    = "2001:db8:42::204/56"
         rack_id         = "2"
         }
     ]
@@ -173,9 +173,9 @@ k8s_cluster = {
     keepalived_router_id= "51"
     kubeadm_token       = "fqv728.htdmfzf6rt9blhej"
     node_sub            = "192.168.2.0/24"
-    node_sub_v6         = "2001:db8:42:0::/56"
+    node_sub_v6         = "2001:db8:42::/56"
     pod_subnet          = "10.1.0.0/16"
-    pod_subnet_v6       = "2001:db8:43:0::/56"
+    pod_subnet_v6       = "2001:db8:43::/56"
     cluster_svc_subnet  = "192.168.8.0/22"
     cluster_svc_subnet_v6  = "2001:db8:44:1::/112"
     ntp_server          = "72.163.32.44"

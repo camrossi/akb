@@ -2,7 +2,6 @@
 import sys
 import os
 from kubernetes import client, config
-from collections import defaultdict
 from pyaci import Node
 from pyaci import options
 from pyaci import filters

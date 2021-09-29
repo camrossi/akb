@@ -79,13 +79,14 @@ resource "aci_rest" "bgp_peer_remote_as" {
   }
 }
 
-resource "aci_rest" "bgp_peer_propagate" {
+
+resource "aci_rest" "bgp_peer_prefix" {
   depends_on = [ aci_rest.bgp_peer ]
   for_each = {for v in local.peering:  v.index_key => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/rspeerToProfile-[uni/tn-${var.l3out.l3out_tenant}/prof-PropagateTest]-import.json"
-  class_name = "bgpRsPeerToProfile"
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/rspeerPfxPol.json"
+  class_name = "bgpRsPeerPfxPol"
       content = {
-        "direction" = "import"
+        "tnBgpPeerPfxPolName" = aci_bgp_peer_prefix.bgp_peer_prefix.name
 
   }
 }

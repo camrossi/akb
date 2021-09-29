@@ -27,7 +27,7 @@ l3out = {
     vrf_name            = "calico"
     node_profile_name   = "NodePfl"
     int_prof_name       = "FloatingSVI"
-    int_prof_name_v6       = "FloatingSVI_V6"
+    int_prof_name_v6    = "FloatingSVI_V6"
     #For now I just use a catch all EPG with 0.0.0.0/0
     def_ext_epg         = "catch_all"
     def_ext_epg_scope   = ["import-security", "shared-security", "shared-rtctrl", ]

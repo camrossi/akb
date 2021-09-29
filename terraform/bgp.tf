@@ -282,3 +282,10 @@ resource "aci_rest" "default_import_match_rule" {
       "tnRtctrlSubjPName" = "${var.l3out.name}-import-match"
   }
 }
+
+resource "aci_bgp_peer_prefix" "bgp_peer_prefix" {
+  tenant_dn    = data.aci_tenant.tenant_l3out.id
+  name         = var.l3out.name
+  action       = "reject"
+  max_pfx      = "500"
+}

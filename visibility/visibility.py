@@ -38,7 +38,7 @@ apic.useX509CertAuth(os.environ.get("CERT_USER"),os.environ.get("CERT_NAME"),'/u
 #bgpPeers = apic.methods.ResolveClass('bgpPeer').GET(**options.filter(filters.Wcard('bgpPeer.dn', '.*/dom-common:calico/.*')))
 
 try: 
-    print("Looking for pod {} with IP {} on node {}".format(pod_name, pod[pod_name]['ip'], pod[pod_name]['node_ip'] ))
+    print("Looking for pod {} with IP {} on node {}/{}".format(pod_name, pod[pod_name]['ip'], pod[pod_name]['node_ip'], pod[pod_name]['node_name'] ))
 except:
     print("Pod does noex exist")
     exit()

@@ -83,7 +83,7 @@ resource "aci_bgp_address_family_context" "bgp_addr_family_context" {
   max_ecmp_ibgp = "64"
 }
 
-# Map BGP Address Family Context Policy to Calico VRF
+# Map BGP Address Family Context Policy to Calico VRF for V4
 resource "aci_rest" "bgp_addr_family_context_to_vrf" {
   depends_on = [ aci_bgp_address_family_context.bgp_addr_family_context ]
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/ctx-${var.l3out.vrf_name}/rsctxToBgpCtxAfPol-[${var.l3out.name}]-ipv4-ucast.json"
@@ -94,6 +94,16 @@ resource "aci_rest" "bgp_addr_family_context_to_vrf" {
   }
 }
 
+# Map BGP Address Family Context Policy to Calico VRF for V6
+resource "aci_rest" "bgp_addr_family_context_to_vrf_v6" {
+  depends_on = [ aci_bgp_address_family_context.bgp_addr_family_context ]
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/ctx-${var.l3out.vrf_name}/rsctxToBgpCtxAfPol-[${var.l3out.name}]-ipv6-ucast.json"
+  class_name = "fvRsCtxToBgpCtxAfPol"
+    content = {
+      "tnBgpCtxAfPolName" = var.l3out.name
+      "af" = "ipv6-ucast"
+  }
+}
 # Configure default-export policy to advertise the POD subnets back to the nodes
 
 ## Create Match Rule

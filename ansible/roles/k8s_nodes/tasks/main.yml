@@ -11,6 +11,7 @@
   command: swapoff -a
   tags:
     - k8s_nodes
+
 - name: Remove swapfile from /etc/fstab
   replace:
     path: /etc/fstab
@@ -24,6 +25,35 @@
   tags:
     - k8s_nodes
 
+- name: Copy over the proxy configuration
+  template: src=./templates/proxy.conf dest=/etc/apt/apt.conf.d/proxy.conf
+  tags:
+    - k8s_nodes\
+  when: http_proxy_status == "enabled"    
+    
+- name: populate /etc/environment 1
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    line: HTTP_PROXY="http://{{ http_proxy }}"
+  when: http_proxy_status == "enabled"  
+
+- name: populate /etc/environment 2
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    line: HTTPS_PROXY="http://{{ http_proxy }}"
+  when: http_proxy_status == "enabled"  
+
+- name: populate /etc/environment 3
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    line: NO_PROXY=".{{ dns_domain }},localhost,172.30.0.1,.svc,.cluster.local,apiserver.kube-service-catalog.svc,{% for host in groups ['k8s_nodes'] %}{{ hostvars[host]['real_ip'] }},{{ hostvars[host]['ipv6'] }},{{ host }}.{{ dns_domain }},{{ host }},{% endfor %},{{ pod_subnet }},{{ cluster_svc_subnet }},{{ external_svc_subnet }},{{ pod_subnet_v6 }},{{ cluster_svc_subnet_v6 }},::1,{{ control_plane_vip }}"
+  when: http_proxy_status == "enabled"
+
+#
+
 - name: Test http internet connectivity get http://www.google.com
   uri:
     url: http://www.google.com
@@ -35,7 +65,7 @@
     url: https://www.google.com
   tags:
     - k8s_nodes
-  
+
 - name: add apt-key for Kubeadm
   apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
@@ -86,7 +116,6 @@
   tags:
     - k8s_nodes
 
-
 - name: Copy over the NTP configuration
   template: src=./templates/ntp.conf dest=/etc/ntp.conf
   tags:
@@ -106,6 +135,13 @@
   shell: timedatectl set-timezone {{ time_zone }}
   tags:
     - k8s_nodes
+
+- name: Install the ca-certificates 
+  apt: 
+    name: ca-certificates
+    state: latest
+  tags:
+    - k8s_nodes    
     
 - name: apt update
   apt:
@@ -211,6 +247,29 @@
   tags:
     - k8s_nodes
 
+- name: Create cri-o network dir if it does not exist
+  ansible.builtin.file:
+    path: /etc/systemd/system/crio.service.d
+    state: directory
+    mode: '0755'
+
+- name: Copy over the proxy configuration
+  template: src=./templates/crioproxy.conf dest=/etc/systemd/system/crio.service.d/http-proxy.conf
+  tags:
+    - k8s_nodes\
+  when: http_proxy_status == "enabled"    
+
+- name: Just force systemd to reread configs (2.4 and above)
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  when: http_proxy_status == "enabled"        
+    
+- name: Reload service crio, in all cases
+  ansible.builtin.systemd:
+    name: crio.service
+    state: reloaded
+  when: http_proxy_status == "enabled"    
+
 - name: Copy registries.conf to optionally enable registry mirror 
   template: 
     src=./templates/registries.conf
@@ -236,7 +295,7 @@
 - name: start cri-o
   service:
     name: crio
-    state: started
+    state: restarted
   tags:
     - k8s_nodes
 

@@ -5,6 +5,7 @@ resource "local_file" "AnsibleInventory" {
   k8s_primary_master = var.calico_nodes[0]
   k8s_master_replicas = slice(var.calico_nodes, 1, 3)
   k8s_workers = slice(var.calico_nodes, 3, length(var.calico_nodes))
+  http_proxy_status = var.k8s_cluster.http_proxy_status
  }
  )
  filename = "../ansible/inventory/nodes.ini"
@@ -18,6 +19,7 @@ resource "local_file" "AnsibleConfig" {
      as = var.l3out.local_as
      bgp_pass = var.l3out.bgp_pass
      anchor_nodes = var.l3out.anchor_nodes
+     dns_domain = var.l3out.dns_domain
  }
  )
  filename = "../ansible/inventory/group_vars/all.yml"

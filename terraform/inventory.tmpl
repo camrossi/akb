@@ -1,14 +1,14 @@
 [k8s_primary_master]
-${k8s_primary_master.hostname} ansible_host=${split("/",k8s_primary_master.ip)[0]} as=${k8s_primary_master.local_as} rack_id=${k8s_primary_master.rack_id}
+${k8s_primary_master.hostname} %{ if   http_proxy_status == "enabled" ~} ansible_host=${split("/",k8s_primary_master.natip)[0]} %{ else ~} ansible_host=${split("/",k8s_primary_master.ip)[0]} %{ endif ~} as=${k8s_primary_master.local_as} rack_id=${k8s_primary_master.rack_id} real_ip=${split("/",k8s_primary_master.ip)[0]} ipv6=${split("/",k8s_primary_master.ipv6)[0]}
 
 [k8s_master_replicas]
 %{ for replica in k8s_master_replicas ~}
-${replica.hostname} ansible_host=${split("/",replica.ip)[0]} as=${replica.local_as} rack_id=${replica.rack_id}
+${replica.hostname} %{ if   http_proxy_status == "enabled" ~} ansible_host=${split("/",replica.natip)[0]} %{ else ~} ansible_host=${split("/",replica.ip)[0]} %{ endif ~} as=${replica.local_as} rack_id=${replica.rack_id} real_ip=${split("/",replica.ip)[0]} ipv6=${split("/",k8s_primary_master.ipv6)[0]}
 %{ endfor ~}
 
 [k8s_workers]
 %{ for worker in k8s_workers ~}
-${worker.hostname} ansible_host=${split("/",worker.ip)[0]} as=${worker.local_as} rack_id=${worker.rack_id}
+${worker.hostname} %{ if   http_proxy_status == "enabled" ~} ansible_host=${split("/",worker.natip)[0]} %{ else ~} ansible_host=${split("/",worker.ip)[0]} %{ endif ~} as=${worker.local_as} rack_id=${worker.rack_id} real_ip=${split("/",worker.ip)[0]} ipv6=${split("/",k8s_primary_master.ipv6)[0]}
 %{ endfor ~}
 
 [k8s_masters:children]

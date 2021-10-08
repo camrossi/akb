@@ -82,10 +82,10 @@ resource "vsphere_virtual_machine" "vm" {
   }
 }
 
-#resource "null_resource" "start_ansible" {
-#    depends_on = [ local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm  ]
-#    provisioner "local-exec" {
-#        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/cluster.yml"
-#    }
-#    
-#}
+resource "null_resource" "start_ansible" {
+    depends_on = [ local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm  ]
+    provisioner "local-exec" {
+        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/cluster.yml"
+    }
+    
+}

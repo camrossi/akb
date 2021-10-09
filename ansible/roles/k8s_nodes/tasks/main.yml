@@ -49,7 +49,7 @@
   lineinfile:
     dest: "/etc/environment"
     state: present
-    line: NO_PROXY=".{{ dns_domain }},localhost,172.30.0.1,.svc,.cluster.local,apiserver.kube-service-catalog.svc,{% for host in groups ['k8s_nodes'] %}{{ hostvars[host]['real_ip'] }},{{ hostvars[host]['ipv6'] }},{{ host }}.{{ dns_domain }},{{ host }},{% endfor %}{{ pod_subnet }},{{ cluster_svc_subnet }},{{ external_svc_subnet }},{{ pod_subnet_v6 }},{{ cluster_svc_subnet_v6 }},::1,{{ control_plane_vip }}"
+    line: NO_PROXY=".{{ dns_domain }},localhost,172.30.0.1,.svc,.cluster.local,apiserver.kube-service-catalog.svc{% for host in groups ['k8s_nodes'] %},{{ hostvars[host]['real_ip'] }},{{ hostvars[host]['ipv6'] }},{{ host }}.{{ dns_domain }},{{ host }}{% endfor %},{{ pod_subnet }},{{ cluster_svc_subnet }},{{ external_svc_subnet }},{{ pod_subnet_v6 }},{{ cluster_svc_subnet_v6 }},::1,{{ control_plane_vip }}"
   when: http_proxy_status == "enabled"
 
 #

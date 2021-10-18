@@ -1,0 +1,21 @@
+* {
+   box-sizing: border-box;
+}
+
+body {
+   margin: 0;
+}
+
+.c549 {
+   height: 100%;
+   float: right;
+}
+
+.btn.btn--wide.btn--secondary {
+   float: right;
+   position: relative;
+}
+
+.c8041 {
+   padding: 2px;
+}

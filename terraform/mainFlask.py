@@ -30,18 +30,24 @@ dictConfig({
 app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
 
+apic =  {"username":"admin","cert_name":"admin.crt","private_key":"../admin.key","url":"https://10.48.170.201"}
+
 def terraformAction(action, l3out_tenant, name, vrf_name, vrf_tenant, physical_dom, floating_ipv6, secondary_ipv6, floating_ip, secondary_ip, vlan_id, dns_servers, dns_domain):
+    l3out =  {"name":name,"l3out_tenant":l3out_tenant,"vrf_tenant":vrf_tenant,"vrf_name":vrf_name,"node_profile_name":"node_profile_FL3out","int_prof_name":"int_profile_FL3out","int_prof_name_v6":"int_profile_v6_FL3out","physical_dom":physical_dom,"floating_ipv6":floating_ipv6,"secondary_ipv6":secondary_ipv6,"floating_ip":floating_ip,"secondary_ip":secondary_ip,"vlan_id":vlan_id,"def_ext_epg":"catch_all","def_ext_epg_scope":['import-security','shared-security','shared-rtctrl'],"local_as":"65534","mtu":"9000","bgp_pass":"123Cisco123","max_node_prefixes":"500",'contract':"k8s","dns_servers":['10.48.170.50','144.254.71.184'],"dns_domain":dns_domain,"anchor_nodes":[{"node_id":"101","pod_id":"1","rtr_id":"1.1.4.201","primary_ip":"192.168.2.101/24","primary_ipv6":"2001:db8:42::201/56","rack_id":"1"},{"node_id":"102","pod_id":"1","rtr_id":"1.1.4.202","primary_ip":"192.168.2.102/24","rack_id":"1","primary_ipv6":"2001:db8:42::202/56"}]}
     approve = {"auto-approve": True}
+    app.logger.info(l3out['name'])
     tf = Terraform(working_dir='./', variables={
-                   'l3out_tenant': l3out_tenant, 'name': name, 'vrf_name': vrf_name, 'vrf_tenant': vrf_tenant, 'physical_dom': physical_dom, 'floating_ipv6': floating_ipv6, 'secondary_ipv6': secondary_ipv6, 'floating_ip': floating_ip, 'secondary_ip': secondary_ip, 'vlan_id': vlan_id, 'dns_servers': dns_servers, 'dns_domain': dns_domain, })
+            "l3out" : l3out })
     if action != 'destroy':
         app.logger.info("-- executing tf.plan and apply")
-        plan = tf.plan(no_color=IsFlagged, refresh=False,
+        app.logger.info(l3out['anchor_nodes'][0]['node_id'])
+        plan = tf.plan(no_color=IsFlagged, refresh=True,
                        capture_output=True, out="plan.out")
         output = tf.apply(skip_plan=True, **approve, capture_output=True)
     else:
         app.logger.info("-- executing tf.destroy")
-        output = tf.destroy(variables={'l3out_tenant': l3out_tenant, 'name': name, 'vrf_name': vrf_name, 'vrf_tenant': vrf_tenant, 'physical_dom': physical_dom, 'floating_ipv6': floating_ipv6, 'secondary_ipv6': secondary_ipv6, 'floating_ip': floating_ip, 'secondary_ip': secondary_ip, 'vlan_id': vlan_id, 'dns_servers': dns_servers, 'dns_domain': dns_domain, }, force=IsNotFlagged, **approve)
+        output = tf.destroy(varibles={
+            'l3out.l3out_tenant': l3out_tenant, 'l3out.name': name, 'l3out.vrf_name': vrf_name, 'l3out.vrf_tenant': vrf_tenant, 'l3out.physical_dom': physical_dom, 'l3out.floating_ipv6': floating_ipv6, 'l3out.secondary_ipv6': secondary_ipv6, 'l3out.floating_ip': floating_ip, 'l3out.secondary_ip': secondary_ip, 'l3out.vlan_id': vlan_id, 'l3out.dns_servers': dns_servers, 'l3out.dns_domain': dns_domain }, force=IsNotFlagged, **approve)
         app.logger.info(output)
     return output
 
@@ -81,7 +87,7 @@ def terraform():
             return render_template('terraform.html', plan=planOutput)
         elif button == "Destroy":
             app.logger.info("-- destroying")
-            planOutput = terraformAction("destroy", '','','')
+            planOutput = terraformAction("destroy",req.get("l3out_tenant"),req.get("name"),req.get("vrf_name"),req.get("vrf_tenant"),req.get("physical_dom"),req.get("floating_ipv6"),req.get("secondary_ipv6"),req.get("floating_ip"),req.get("secondary_ip"),req.get("vlan_id"),req.get("dns_servers"),req.get("dns_domain"))
             return render_template('terraform.html', plan=planOutput)
         elif True: 
             return request.form

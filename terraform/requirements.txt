@@ -4,3 +4,5 @@ pyOpenSSL==20.0.1
 python-terraform==0.10.1
 requests==2.25.1
 urllib3==1.26.3
+gevent
+netaddr

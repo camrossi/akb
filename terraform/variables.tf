@@ -41,6 +41,38 @@ variable "vc" {
 }
 
 variable "l3out" {
+  type = object({
+    name              = string
+    l3out_tenant      = string
+    vrf_tenant        = string
+    vrf_name          = string
+    node_profile_name = string
+    int_prof_name     = string
+    int_prof_name_v6     = string
+    physical_dom      = string
+    floating_ipv6       = string
+    secondary_ipv6      = string
+    floating_ip       = string
+    secondary_ip      = string
+    vlan_id           = number
+    def_ext_epg       = string
+    def_ext_epg_scope = list(string)
+    local_as          = number
+    mtu               = number
+    bgp_pass          = string
+    max_node_prefixes = number
+    contract          = string
+    dns_servers       = list(string)
+    dns_domain        = string
+    anchor_nodes      = list(object({
+      node_id         = number
+      rtr_id          = string
+      pod_id          = number
+      primary_ip      = string
+      primary_ipv6    = string
+      rack_id         = string
+    }))
+  })
   default = {
   name              = "FL3out"
   l3out_tenant      = "common"
@@ -86,8 +118,16 @@ variable "l3out" {
 }
 
 variable "calico_nodes" {
-    default = [
-   {
+  type = list(object({
+    hostname        = string
+    ip              = string
+    ipv6            = string
+    natip           = string
+    local_as        = number
+    rack_id         = string
+     }))
+  default = [
+  {
       "hostname"        = "master-1"
       "ip"              = "192.168.2.1/24"
       "natip"           = "10.48.170.112"
@@ -139,6 +179,32 @@ variable "calico_nodes" {
 }
 
 variable "k8s_cluster" {
+  type = object({
+    kube_version        = string
+    crio_version        = string
+    OS_Version          = string
+    control_plane_vip   = string
+    vip_port            = number
+    haproxy_image       = string
+    keepalived_image    = string
+    keepalived_router_id= string
+    kubeadm_token       = string
+    node_sub            = string
+    node_sub_v6         = string
+    pod_subnet          = string
+    pod_subnet_v6       = string
+    cluster_svc_subnet  = string
+    cluster_svc_subnet_v6  = string
+    external_svc_subnet = string
+    external_svc_subnet_v6 = string
+    ingress_ip          = string
+    ntp_server          = string
+    time_zone           = string
+    docker_mirror       = string
+    http_proxy_status   = string
+    http_proxy          = string
+
+     })
   default = {
   kube_version        = "1.22.1-00"
   crio_version        = "1.21"
@@ -156,15 +222,15 @@ variable "k8s_cluster" {
   pod_subnet_v6          = "2001:db8:43::/56"  
   cluster_svc_subnet  = "192.168.8.0/22"
   cluster_svc_subnet_v6  = "2001:db8:44:1::/112"  
+  external_svc_subnet = "192.168.3.0/24"
+  external_svc_subnet_v6 = "2001:db8:44:2::/112"
+  ingress_ip          = "192.168.3.1"
   ntp_server          = "clock.cisco.com"
   time_zone           = "Europe/Rome"
   docker_mirror       = "10.67.185.120:5000"
-  ingress_ip          = "192.168.3.1"
-  external_svc_subnet = "192.168.3.0/24"
-  external_svc_subnet_v6 = "2001:db8:44:2::/112"
   #if the k8s cluster should use a proxy to connect to internet, http_proxy_status should be set to enabled and the http_proxy should be specified
   http_proxy_status   = "enabled" 
   #http_proxy should be expressed as proxy_ip:port or proxy_fqdn:port
-  http_proxy          = "10.61.73.65:9090"
+  http_proxy          = "10.61.77.20:9090"
 }
 }

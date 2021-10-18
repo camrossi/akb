@@ -1,7 +1,6 @@
 # Configure Floating SVI for every Anchor Node
 
 resource "aci_l3out_floating_svi" "floating_svi_v6" {
-  depends_on = [ aci_logical_interface_profile.calico_interface_profile ]
   logical_interface_profile_dn = aci_logical_interface_profile.calico_interface_profile_v6.id
   for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
   node_dn                      = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
@@ -56,6 +55,8 @@ locals {
 #    value = local.peering_v6
 #}
 ## Create the BGP Peer
+
+## TO DO: replace these 3 with aci_bgp_peer_connectivity_profile once the module is ready
 resource "aci_rest" "bgp_peer_v6" {
   depends_on = [ aci_l3out_floating_svi.floating_svi_v6 ]
   for_each = {for v in local.peering_v6:  v.index_key => v}
@@ -79,13 +80,13 @@ resource "aci_rest" "bgp_peer_remote_as_v6" {
   }
 }
 
-resource "aci_rest" "bgp_peer_propagate_v6" {
-  depends_on = [ aci_rest.bgp_peer_v6 ]
+resource "aci_rest" "bgp_peer_prefix_v6" {
+  depends_on = [ aci_rest.bgp_peer ]
   for_each = {for v in local.peering_v6:  v.index_key => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}]/rspeerToProfile-[uni/tn-${var.l3out.l3out_tenant}/prof-PropagateTest]-import.json"
-  class_name = "bgpRsPeerToProfile"
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}]/rspeerPfxPol.json"
+  class_name = "bgpRsPeerPfxPol"
       content = {
-        "direction" = "import"
+        "tnBgpPeerPfxPolName" = aci_bgp_peer_prefix.bgp_peer_prefix.name
 
   }
 }

@@ -5,17 +5,14 @@
     </head>
     <body>
      <ul>
-      <li><a class="active" href="/tenants">Tenants</a></li>
-      <li><a href="/epgs">EPGs</a></li>
-      <li><a href="/endpoints">Endpoints</a></li>
-      <li><a href="/terraform">Terraform</a></li>
+      <li><a class="active" href="/terraform">Terraform</a></li>
     </ul>
     <br>
     <form name="tenantForm" method="post" action="/terraform">
     
         <label for="l3out_tenant">L3out Tenant name:</label>
         <input type="text" id="l3out_tenant" name="l3out_tenant" value="common"><br>
-       <label for="name">L3out name:</label>
+        <label for="name">L3out name:</label>
         <input type="text" id="name" name="name" value="FL3out"><br>
         <label for="vrf_name">VRF name:</label>
         <input type="text" id="vrf_name" name="vrf_name" value="k8sVRF"><br>
@@ -37,9 +34,7 @@
         <input type="text" id="dns_servers" name="dns_servers" value="10.48.170.50,144.254.71.184"><br>
         <label for="dns_domain">DNS Domain:</label>
         <input type="text" id="dns_domain" name="dns_domain" value="k8s.cisco.com"><br>
-        
 
-        
 
         <input type="submit" value="Create" class="button button2" name="button">
         <input type="submit" value="Destroy" class="button button2" name="button">

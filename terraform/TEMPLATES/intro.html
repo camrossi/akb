@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+
+   
+<head>
+   <meta charset="utf-8">
+   <title>CKO - Day0</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+   <style>
+      .chevron ul.tabs li.active a {
+         background-color: #017cad !important;
+         opacity: 1 !important;
+         color: #ffffff;
+         box-shadow: none !important;
+      }
+
+      .chevron ul.tabs li a {
+         height: 56px min-width: 90% !important;
+         padding: 10px 6px;
+         background-color: #ffffff;
+         opacity: 1 !important;
+         color: #58585d;
+         text-align: center;
+         position: relative;
+         line-height: 16px;
+         font-size: 12px;
+         cursor: pointer;
+         flex: 1 !important;
+         flex-shrink: 1 !important;
+         flex-wrap: wrap !important;
+         display: flex !important;
+         justify-content: center !important;
+      }
+   </style>
+</head>
+
+<form name="tenantForm" method="post" action="/intro">
+
+  <body class="cui cui--animated cui--compressed" data-theme="">
+   <div id="oneui">
+      <!-- Main Content -->
+      <header class="header" id="_uid818d10e3">
+         <div class="container">
+            <div class="header-panels">
+               <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
+                  <div class="header__title">Cisco Kubernetes Operator</div>
+               </div>
+               <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
+            </div>
+         </div>
+      </header>
+      <div class="flexrow">
+         <div class="cell"></div>
+         <div class="cell"> </div>
+      </div>
+      <div class="container bg-gray">
+            <h2>CKO Project Information</h2>
+            <p> 
+               <br>   This is the CKO Project. </br>
+               <br> CKO is intended to provide the best experience for k8s and network administrators.
+               <br>
+               <br>This POC is designed to demonstrate the following operational values:
+   
+               <br>- Day 0 - fabric configuration, and
+   
+               <br>- Day 1 - Kubernetes configuration.
+   
+               <br><br>The CKO PoC will provide value to {persona-network-operator}s or {persona-kubernetes-operator}s by simplifying configuration of the ACI fabric, Kubernetes and Calico and will automate the application of the configuration and any required installation activities. This PoC will automate with code best practices and reference configurations previously communicated in white papers and design guides.
+   
+               <br>The CKO will be a pure Kubernetes operator using CRDs for configuration and distributed controller patterns for actuation and reconciliation.
+               <br><br>To begin the experience, please click the Go button below
+               <br><br>
+            </p>
+            <div class="container">
+               <input type="submit" value="Go" class="btn btn--wide" name="button">
+            </div>
+            <br><br><br><br><br><br>
+      </div>
+
+
+         <div class="container">
+         <footer class="footer footer--tertiary" id="_uidca388897">
+            <div class="footer__links">
+               <ul class="list list--inline" id="_uid08010aa3">
+                  <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank" id="_uidbb5636c3">Contacts</a></li>
+                  <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank" id="_uid92d9bfeb">Feedback</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank" id="_uidcbd80f09">Help</a></li>
+                  <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank" id="_uid134ab5bc">Site Map</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank" id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank" id="_uide8b9adf9">Privacy Statement</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank" id="_uid5580971c">Cookie Policy</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank" id="_uidbe7db422">Trademarks</a></li>
+               </ul>
+            </div>
+         </footer>
+      </div>
+
+      
+
+      <div class="form-group base-margin-bottom"></div>
+      <main class="c549">
+         <div></div>
+      </main>
+      <!-- End Main Content -->
+   </div>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+   <div id="canvas"></div>
+   <script>
+      $(document).ready(function() {
+         $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
+            var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
+            var myChart = Highcharts.chart(val, JSON.parse(finalJson));
+         })
+      })
+      $('#canvas').on('click', function() {
+         html2canvas(document.body, {}).then(canvas => {
+            html2canvas(document.body, {}).then(canvas => {
+               document.body.appendChild(canvas);
+               getCanvas = canvas;
+               var imgageData = getCanvas.toDataURL('image/png');
+               var newData = imgageData.replace(
+                  /^data:image\/png/,
+                  'data:application/octet-stream'
+               );
+               // console.log(newData);
+               document.getElementById('canvas').setAttribute("data-title", newData);
+               /**
+                * remove canvas and link after download
+                */
+               document.querySelector('canvas').remove();
+            });
+         });
+      });
+   </script>
+</body>
+
+</html>

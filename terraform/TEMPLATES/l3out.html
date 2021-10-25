@@ -54,7 +54,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/terraform">
+<form name="tenantForm" method="post" action="/l3out">
 
   <body class="cui cui--animated cui--compressed" data-theme="">
    <div id="oneui">
@@ -74,7 +74,20 @@
          <div class="cell"> </div>
       </div>
       <div class="container bg-gray">
-         <h2>L3out Details</h2>
+
+      <h2>L3out Details</h2>
+      <p> 
+         <br>  Here you should insert the L3out details </br>
+         <br> CKO will configure a Floating L3out in the ACI fabric.
+         <br>
+         <br> The Floating L3out will be used to peer the K8s nodes through Calico BGP
+
+         <br> Calico BGP nodes will advertise their subnet supernet, services and pod subnet to the ACI fabric
+
+         <br> A few parameters to define the floating L3out should be defined. Advanced L3out is optionally configurable
+
+      </p>
+
       </div>
       <form name="tenantForm" method="post" action="/">
          <div class="container">
@@ -110,14 +123,10 @@
             </div>
          </div>
          <div class="container">
-            <div class="form-group">
-               <div class="form-group__text select">
-                  <select id="_uid739ab2ba">
-                     <option type="text" id="physical_dom" name="physical_dom" value="k8slab-pdom">k8slab-pdom</option>
-                     <option type="text" id="physical_dom" name="physical_dom" value="k8slab-pdom">dom2</option>
-                     <option type="text" id="physical_dom" name="physical_dom" value="k8slab-pdom">dom3</option>
-                  </select>
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
                   <label for="physical_dom">Physical Domain for L3out:</label>
+                  <input type="text" id="physical_dom" name="physical_dom" value="k8slab-pdom">
                </div>
             </div>
          </div>
@@ -170,8 +179,8 @@
             <div class="container">
                <div class="form-group base-margin-bottom">
                   <div class="form-group__text">
-                     <label for="def_ext_epg_scope">Scope for Ext EPG Subnets (i.e. ["import-security", "shared-security", "shared-rtctrl" ]):</label>
-                     <input type="text" id="def_ext_epg_scope" name="def_ext_epg_scope" value="['import-security','shared-security','shared-rtctrl']"> 
+                     <label for="def_ext_epg_scope">Scope for Ext EPG Subnets (i.e. import-security,shared-security,shared-rtctrl ):</label>
+                     <input type="text" id="def_ext_epg_scope" name="def_ext_epg_scope" value="import-security,shared-security,shared-rtctrl"> 
                   </div>
                </div>
             </div>
@@ -256,238 +265,12 @@
                </div>
             </div>
          </div>
-           
-   <!--  VCenter Settings   -->       
-
-         <div class="form-group base-margin-bottom">
-            <div class="form-group__text"></div>
-         </div>
-         
-            
-         <div class="container bg-gray">
-            <h2>Vcenter Details</h2>
-         </div>  
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="url">VCenter IP:</label>
-                  <input type="text" id="url" name="url" value="dom-vc02.cisco.com">
-               </div>
-            </div>       
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="username">VCenter User Name:</label>
-                  <input type="text" id="username" name="username" value="administrator@dom.local">
-               </div>
-            </div>       
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="pass">VCenter Password:</label>
-                  <input type="password" id="pass" name="pass" value="C!sc0123">
-               </div>
-            </div>       
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="dc">VCenter DC Name:</label>
-                  <input type="text" id="dc" name="dc" value="DC1">
-               </div>
-            </div>       
-         </div>
-
-   <!--  VCenter Advanced Settings   -->       
 
          <div class="container">
-            <div class="checkbox form-group form-group--inline c8041">
-               <label class="checkbox">
-               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-vc-checked','adv-vc-unchecked')" style="margin:0;">
-               <span class="checkbox__input"></span>
-               <span class="checkbox__label hidden-xs">VCenter Advanced Settings</span>
-               </label>
-            </div>
+            <input type="submit" value="Previous" class="btn btn--wide" name="button">
+            <input type="submit" value="Next" class="btn btn--wide" name="button">
          </div>
-               <div id="adv-vc-checked" style="display:none;" >                       
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="datastore">VCenter Datastore Name:</label>
-                           <input type="text" id="datastore" name="datastore" value="Edge">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="cluster">VCenter Cluster Name:</label>
-                           <input type="text" id="cluster" name="cluster" value="vc02-DC1">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="dvs">VCenter DVS Name:</label>
-                           <input type="text" id="dvs" name="dvs" value="vc02-DC1">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="port_group">VCenter Port Group Name:</label>
-                           <input type="text" id="port_group" name="port_group" value="vlan_k8s">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="vm_template">VCenter Template Name:</label>
-                           <input type="text" id="vm_template" name="vm_template" value="Ubuntu20.04">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="vm_folder">VCenter Folder:</label>
-                           <input type="text" id="vm_folder" name="vm_folder" value="Demo">
-                        </div>
-                     </div>       
-                  </div>                                                                                                            
-               </div>
-
-
-<!--  K8s Settings   -->       
-
-         <div class="form-group base-margin-bottom">
-            <div class="form-group__text"></div>
-         </div>
-            
-         <div class="container bg-gray">
-            <h2>K8s Cluster Details</h2>
-         </div>  
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="ntp_server">NTP Server IP:</label>
-                  <input type="text" id="ntp_server" name="ntp_server" value="clock.cisco.com">
-               </div>
-            </div>       
-         </div>
-   
-
-            
-<!--  K8s Advanced Settings   -->       
-
-         <div class="container">
-            <div class="checkbox form-group form-group--inline c8041">
-               <label class="checkbox">
-               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-calico-checked','adv-vc-unchecked')" style="margin:0;">
-               <span class="checkbox__input"></span>
-               <span class="checkbox__label hidden-xs">K8s Advanced Settings</span>
-               </label>
-            </div>
-         </div>
-         <div class="form-group base-margin-bottom">
-            <div class="form-group__text"></div>
-         </div>
-         <div id="adv-calico-checked" style="display:none;" >                       
-            <div class="container">
-               <div class="form-group base-margin-bottom">
-                  <div  class="form-group__text">
-                     <label for="control_plane_vip">API LB IP for K8s:</label>
-                     <input type="text" id="control_plane_vip" name="control_plane_vip" value="192.168.2.100">
-                  </div>
-               </div>       
-            </div>
-            <div class="container">
-               <div class="form-group base-margin-bottom">
-                  <div  class="form-group__text">
-                     <label for="http_proxy_status">HTTP Proxy enabled/disabled:</label>
-                        <input type="text" id="http_proxy_status" name="http_proxy_status" value="enabled">
-                  </div>
-               </div>       
-            </div>
-            <div class="container">
-               <div class="form-group base-margin-bottom">
-                  <div  class="form-group__text">
-                     <label for="http_proxy">VCenter Datastore Name:</label>
-                        <input type="text" id="http_proxy" name="http_proxy" value="proxy.esl.cisco.com:8080">
-                  </div>
-               </div>       
-            </div>
-            <div class="container">
-               <div class="form-group base-margin-bottom">
-                  <div  class="form-group__text">
-                     <label for="node_sub">Node Subnet:</label>
-                        <input type="text" id="node_sub" name="node_sub" value="192.168.2.0/24">
-                  </div>
-               </div>       
-            </div>
-            <div class="container">
-               <div class="form-group base-margin-bottom">
-                  <div  class="form-group__text">
-                     <label for="node_sub_v6">Node Subnet v6:</label>
-                        <input type="text" id="node_sub_v6" name="node_sub_v6" value="2001:db8:42::/56">
-                  </div>
-               </div>       
-            </div>
-         </div>
-
-         <div class="container">
-            <div class="checkbox form-group form-group--inline c8041">
-               <label class="checkbox">
-               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-nodes-checked','adv-vc-unchecked')" style="margin:0;">
-               <span class="checkbox__input"></span>
-               <span class="checkbox__label hidden-xs">K8s Cluster Advanced Settings</span>
-               </label>
-            </div>
-         </div>
-         <div class="form-group base-margin-bottom">
-            <div class="form-group__text"></div>
-         </div>
-         <div id="adv-nodes-checked" style="display:none;" >    
-            <div class="container">
-               <div class="form-group base-margin-bottom">
-                  <div  class="form-group__text">
-                     <label for="calico_nodes">k8s node cluster details i.e. type=list(object({"hostname":"string","ip":"string","ipv6":"string","natip":"string","local_as":"number","rack_id":"string"}))</label>
-                        <input type="text" id="calico_nodes" name="calico_nodes" value='[{"hostname":"master-1","ip":"192.168.2.1/24","natip":"10.48.170.112","local_as":"64501","ipv6":"2001:db8:42::1/56","rack_id":"1"},{"hostname":"master-2","ip":"192.168.2.2/24","natip":"10.48.170.113","local_as":"64502","ipv6":"2001:db8:42::2/56","rack_id":"1"},{"hostname":"master-3","ip":"192.168.2.3/24","natip":"10.48.170.114","local_as":"64503","ipv6":"2001:db8:42::3/56","rack_id":"1"},{"hostname":"worker-1","ip":"192.168.2.4/24","natip":"10.48.170.115","local_as":"64504","ipv6":"2001:db8:42::4/56","rack_id":"1"},{"hostname":"worker-2","ip":"192.168.2.5/24","natip":"10.48.170.116","local_as":"64505","ipv6":"2001:db8:42::5/56","rack_id":"1"},{"hostname":"worker-3","ip":"192.168.2.6/24","natip":"10.48.170.117","local_as":"64506","ipv6":"2001:db8:42::6/56","rack_id":"1"}]'>
-                  </div>
-               </div>       
-            </div>
-         </div>
-
-         <div class="container">
-            <input type="submit" value="Create" class="btn btn--wide" name="button">
-            <input type="submit" value="Destroy" class="btn btn--wide" name="button">
-         </div>
-
-   </form>
-
-<!--      <div class="form-group base-margin-bottom">
-            <div class="form-group__text">
-            -->
-         <div id="popup1" class="overlay">
-            <div class="popup">      
-               <script>
-                  var source = new EventSource("/terraform");
-                  source.addEventListener("message", function(e) {
-                      console.log(e.data.log)
-                  }, false)
-                  source.addEventListener("online", function(e) {
-                      document.querySelector("#output").innerText = data.log
-                  }, true)
-                 </script>
-         </div>
-      </div>
-<!--      
--->
+      </form>
 
          <div class="container">
          <footer class="footer footer--tertiary" id="_uidca388897">

@@ -74,10 +74,10 @@ variable "l3out" {
     }))
   })
   default = {
-  name              = "FL3out"
+  name              = "FL3outnew"
   l3out_tenant      = "common"
   vrf_tenant        = "common"
-  vrf_name          = "tfcam"
+  vrf_name          = "k8sVRF"
   node_profile_name = "node_profile_FL3out"
   int_prof_name     = "int_profile_FL3out"
   int_prof_name_v6  = "int_profile_v6_FL3out"
@@ -231,6 +231,6 @@ variable "k8s_cluster" {
   #if the k8s cluster should use a proxy to connect to internet, http_proxy_status should be set to enabled and the http_proxy should be specified
   http_proxy_status   = "enabled" 
   #http_proxy should be expressed as proxy_ip:port or proxy_fqdn:port
-  http_proxy          = "10.61.77.20:9090"
+  http_proxy          = "proxy.esl.cisco.com:8080"
 }
 }

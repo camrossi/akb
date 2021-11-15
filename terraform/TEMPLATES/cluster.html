@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+
+   <script>
+      function DoCheckUncheckDisplay(d,dchecked,dunchecked)
+      {
+         if( d.checked == true )
+         {
+            document.getElementById(dchecked).style.display = "block";
+            document.getElementById(dunchecked).style.display = "none";
+         }
+         else
+         {
+            document.getElementById(dchecked).style.display = "none";
+            document.getElementById(dunchecked).style.display = "block";
+         }
+      }
+      </script>
+      
+
+<head>
+   <meta charset="utf-8">
+   <title>CKO - Day0</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+   <style>
+      .chevron ul.tabs li.active a {
+         background-color: #017cad !important;
+         opacity: 1 !important;
+         color: #ffffff;
+         box-shadow: none !important;
+      }
+
+      .chevron ul.tabs li a {
+         height: 56px min-width: 90% !important;
+         padding: 10px 6px;
+         background-color: #ffffff;
+         opacity: 1 !important;
+         color: #58585d;
+         text-align: center;
+         position: relative;
+         line-height: 16px;
+         font-size: 12px;
+         cursor: pointer;
+         flex: 1 !important;
+         flex-shrink: 1 !important;
+         flex-wrap: wrap !important;
+         display: flex !important;
+         justify-content: center !important;
+      }
+   </style>
+</head>
+
+<form name="tenantForm" method="post" action="/cluster">
+
+  <body class="cui cui--animated cui--compressed" data-theme="">
+   <div id="oneui">
+      <!-- Main Content -->
+      <header class="header" id="_uid818d10e3">
+         <div class="container">
+            <div class="header-panels">
+               <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
+                  <div class="header__title">Cisco Kubernetes Operator</div>
+               </div>
+               <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
+            </div>
+         </div>
+      </header>
+      <div class="flexrow">
+         <div class="cell"></div>
+         <div class="cell"> </div>
+      </div>
+
+<!--  K8s Settings   -->       
+
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+            
+         <div class="container bg-gray">
+            <h2>K8s Cluster Details</h2>
+            <p> 
+               <br>  Here you should insert the cluster details </br>
+               <br> 
+               <br><br><br>
+      
+            </p>
+         </div>  
+
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="node_sub">Node Subnet:</label>
+                     <input type="text" id="node_sub" name="node_sub" value="192.168.2.0/24">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="node_sub_v6">Node Subnet v6:</label>
+                     <input type="text" id="node_sub_v6" name="node_sub_v6" value="2001:db8:42::/56">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="control_plane_vip">API LB IP for K8s:</label>
+                  <input type="text" id="control_plane_vip" name="control_plane_vip" value="192.168.2.100">
+               </div>
+            </div>       
+         </div>
+   
+
+            
+<!--  K8s Advanced Settings   -->       
+
+         <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-calico-checked','adv-vc-unchecked')" style="margin:0;">
+               <span class="checkbox__input"></span>
+               <span class="checkbox__label hidden-xs">K8s Advanced Settings</span>
+               </label>
+            </div>
+         </div>
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+         <div id="adv-calico-checked" style="display:none;" >                       
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="http_proxy_status">HTTP Proxy enabled/disabled:</label>
+                        <input type="text" id="http_proxy_status" name="http_proxy_status" value="enabled">
+                  </div>
+               </div>       
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="http_proxy">VCenter Datastore Name:</label>
+                        <input type="text" id="http_proxy" name="http_proxy" value="proxy.esl.cisco.com:8080">
+                  </div>
+               </div>       
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="ntp_server">NTP Server IP:</label>
+                     <input type="text" id="ntp_server" name="ntp_server" value="clock.cisco.com">
+                  </div>
+               </div>       
+            </div>
+         </div>
+
+
+         <div class="container">
+            <input type="submit" value="Previous" class="btn btn--wide" name="button">
+            <input type="submit" value="Next" class="btn btn--wide" name="button">
+         </div>
+
+   </form>
+
+<!--      <div class="form-group base-margin-bottom">
+            <div class="form-group__text">
+            -->
+         <div id="popup1" class="overlay">
+            <div class="popup">      
+               <script>
+                  var source = new EventSource("/cluster");
+                  source.addEventListener("message", function(e) {
+                      console.log(e.data.log)
+                  }, false)
+                  source.addEventListener("online", function(e) {
+                      document.querySelector("#output").innerText = data.log
+                  }, true)
+                 </script>
+         </div>
+      </div>
+<!--      
+-->
+
+         <div class="container">
+         <footer class="footer footer--tertiary" id="_uidca388897">
+            <div class="footer__links">
+               <ul class="list list--inline" id="_uid08010aa3">
+                  <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank" id="_uidbb5636c3">Contacts</a></li>
+                  <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank" id="_uid92d9bfeb">Feedback</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank" id="_uidcbd80f09">Help</a></li>
+                  <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank" id="_uid134ab5bc">Site Map</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank" id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank" id="_uide8b9adf9">Privacy Statement</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank" id="_uid5580971c">Cookie Policy</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank" id="_uidbe7db422">Trademarks</a></li>
+               </ul>
+            </div>
+         </footer>
+      </div>
+
+      
+
+      <div class="form-group base-margin-bottom"></div>
+      <main class="c549">
+         <div></div>
+      </main>
+      <!-- End Main Content -->
+   </div>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+   <div id="canvas"></div>
+   <script>
+      $(document).ready(function() {
+         $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
+            var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
+            var myChart = Highcharts.chart(val, JSON.parse(finalJson));
+         })
+      })
+      $('#canvas').on('click', function() {
+         html2canvas(document.body, {}).then(canvas => {
+            html2canvas(document.body, {}).then(canvas => {
+               document.body.appendChild(canvas);
+               getCanvas = canvas;
+               var imgageData = getCanvas.toDataURL('image/png');
+               var newData = imgageData.replace(
+                  /^data:image\/png/,
+                  'data:application/octet-stream'
+               );
+               // console.log(newData);
+               document.getElementById('canvas').setAttribute("data-title", newData);
+               /**
+                * remove canvas and link after download
+                */
+               document.querySelector('canvas').remove();
+            });
+         });
+      });
+   </script>
+</body>
+
+</html>

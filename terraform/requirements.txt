@@ -1,0 +1,8 @@
+Flask==1.1.2
+Flask-WTF==0.15.1
+pyOpenSSL==20.0.1
+python-terraform==0.10.1
+requests==2.25.1
+urllib3==1.26.3
+gevent
+netaddr

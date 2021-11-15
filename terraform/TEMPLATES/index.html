@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+
+   <script>
+      function DoCheckUncheckDisplay(d,dchecked,dunchecked)
+      {
+         if( d.checked == true )
+         {
+            document.getElementById(dchecked).style.display = "block";
+            document.getElementById(dunchecked).style.display = "none";
+         }
+         else
+         {
+            document.getElementById(dchecked).style.display = "none";
+            document.getElementById(dunchecked).style.display = "block";
+         }
+      }
+      </script>
+      
+
+<head>
+   <meta charset="utf-8">
+   <title>CKO - Day0</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+   <style>
+      .chevron ul.tabs li.active a {
+         background-color: #017cad !important;
+         opacity: 1 !important;
+         color: #ffffff;
+         box-shadow: none !important;
+      }
+
+      .chevron ul.tabs li a {
+         height: 56px min-width: 90% !important;
+         padding: 10px 6px;
+         background-color: #ffffff;
+         opacity: 1 !important;
+         color: #58585d;
+         text-align: center;
+         position: relative;
+         line-height: 16px;
+         font-size: 12px;
+         cursor: pointer;
+         flex: 1 !important;
+         flex-shrink: 1 !important;
+         flex-wrap: wrap !important;
+         display: flex !important;
+         justify-content: center !important;
+      }
+   </style>
+</head>
+
+<form name="tenantForm" method="post" action="/terraform">
+
+  <body class="cui cui--animated cui--compressed" data-theme="">
+   <div id="oneui">
+      <!-- Main Content -->
+      <header class="header" id="_uid818d10e3">
+         <div class="container">
+            <div class="header-panels">
+               <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
+                  <div class="header__title">Cisco Kubernetes Operator</div>
+               </div>
+               <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
+            </div>
+         </div>
+      </header>
+      <div class="flexrow">
+         <div class="cell"></div>
+         <div class="cell"> </div>
+      </div>
+      <div class="container bg-gray">
+         <h2>L3out Details</h2>
+      </div>
+      <form name="tenantForm" method="post" action="/">
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">      
+                  <label for="l3out_tenant">L3out Tenant name:</label>
+                  <input type="text" id="l3out_tenant" name="l3out_tenant" value="common">
+               </div>
+            </div>
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="name">L3out name:</label>
+                  <input type="text" id="name" name="name" value="FL3outnew">
+               </div>
+            </div>
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="vrf_name">VRF name:</label>
+                  <input type="text" id="vrf_name" name="vrf_name" value="k8sVRF">         
+               </div>
+            </div>
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="vrf_tenant">VRF Tenant name:</label>
+                  <input type="text" id="vrf_tenant" name="vrf_tenant" value="common">
+               </div>
+            </div>
+         </div>
+         <div class="container">
+            <div class="form-group">
+               <div class="form-group__text select">
+                  <select id="_uid739ab2ba">
+                     <option type="text" id="physical_dom" name="physical_dom" value="k8slab-pdom">k8slab-pdom</option>
+                     <option type="text" id="physical_dom" name="physical_dom" value="k8slab-pdom">dom2</option>
+                     <option type="text" id="physical_dom" name="physical_dom" value="k8slab-pdom">dom3</option>
+                  </select>
+                  <label for="physical_dom">Physical Domain for L3out:</label>
+               </div>
+            </div>
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+            </div>
+         </div>
+         
+         <div class="container"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATQAAAD6CAYAAAAvFLvvAAABQmlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSCwoyGFhYGDIzSspCnJ3UoiIjFJgf8rAxcDHIMRgysCfmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsgsXvYnEZ3RQsd5lkQ5bZoUXoWpHgVwpaQWJwPpP0CclFxQVMLAwJgAZCuXlxSA2C1AtkgR0FFA9gwQOx3CXgNiJ0HYB8BqQoKcgewrQLZAckZiCpD9BMjWSUIST0diQ+0FAY4AI/NCXSMDAk4lHZSkVpSAaOf8gsqizPSMEgVHYAilKnjmJevpKBgZGBkyMIDCG6L6cxA4HBnF9iHE8pcwMFh8Y2BgnogQS5rCwLC9jYFB4hZCTGUeAwM/MKy2HSpILEqEO4DxG0txmrERhM1jz8DAevf//88aDAzsExkY/k78///34v///y4Gmn+bgeFAJQBSRF4RJ6aA7AAAAFZlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA5KGAAcAAAASAAAARKACAAQAAAABAAABNKADAAQAAAABAAAA+gAAAABBU0NJSQAAAFNjcmVlbnNob3RUg+hHAAAB1mlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDxleGlmOlBpeGVsWERpbWVuc2lvbj4zMDg8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpVc2VyQ29tbWVudD5TY3JlZW5zaG90PC9leGlmOlVzZXJDb21tZW50PgogICAgICAgICA8ZXhpZjpQaXhlbFlEaW1lbnNpb24+MjUwPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CrlXac4AAEAASURBVHgB7V0HfFRV1j/JEAJJSCEhJISE3qU3pYmgWBCVZndXpdgFXV3brru2Vdf1U7BhL7t2BQEFCyBFkE7oJQTSSCMVUghJZr77v8MbJ5NJZpJ5U96bc36/SV657977/ve8c88959x7A0yCiIkRYAQYAR0gEKiDd+BXYAQYAUZAIsACjRmBEWAEdIMACzTdNCW/CCPACLBAYx5gBBgB3SDAAk03TckvwggwAizQmAcYAUZANwiwQNNNU/KLMAKMAAs05gFGgBHQDQIs0HTTlPwijAAjwAKNeYARYAR0gwALNN00Jb8II8AIsEBjHmAEGAHdIMACTTdNyS/CCDACLNCYBxgBRkA3CLBA001T8oswAowACzTmAUaAEdANAizQdNOU/CKMACPAAo15gBFgBHSDAAs03TQlvwgjwAiwQGMeYAQYAd0gwAJNN03JL8IIMAIs0JgHGAFGQDcIsEDTTVPyizACjAALNOYBRoAR0A0CLNB005T8IowAI8ACjXmAEWAEdIMACzTdNCW/CCPACLBAYx5gBBgB3SDAAk03TckvwggwAn4l0Kqrq6mgoIDOnDnDLc8IeByB0tJSKi4u9ni5/lRggEmQv7zwzp076amnnqK5c+fS5MmTPfraKSkptGrVKtq+fTuVlZVRz549adasWdS5c2dLPSBo33nnHZkGwrd379509913U7t27SxpcFBbU0srVq6gtWvXyjRz5sypc59PfBOBhx9+mPLy8uiTTz7xaAXPnj1LP/30E23ZsoUOHjxIUVFRNGnSJJo+bToZWhgsddm1axd99NFHlJWVRXFxcTLN1VdfbbmPA2f4uM4DHj4x/FOQh8v0WnFVVVV06tQpGjRoEMXHx3usHocPH6bHH39cljdlyhTq168fJScn08qVK2nChAnUunVree/555+n3bt3080330zjxo0jMNjy5cvp4osvppYtW8o0+fn5NH/+fNq0aZN8l9DQULrwwgs99i5cUPMRQNtFR0fTiBEjmp9JM5588cUX6eeff6YhQ4bQVVddRdBhli5dStU11fJbQJYQVE888QT17duXbrn5FgoNC6XPPvuMgoKC5DWkcZaPkdZrBA1NS1RZWWk6duyYyWg01qk2zpVrFRUV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" class="c1795"></div>
+         <div class="container">
+            <div class="form-group">
+               <div class="form-group__text select"><select id="_uid739ab2ba">
+                     <option value="1">1</option>
+                     <option value=" 2"> 2</option>
+                     <option value=" 3"> 3</option>
+                  </select><label for="select-type-basic">Rack ID</label></div>
+            </div>
+         </div>
+         
+         <!--advanced tab for L3out-->
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+         <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'checkbox-checked','checkbox-unchecked')" style="margin:0;">
+               <span class="checkbox__input"></span>
+               <span class="checkbox__label hidden-xs">Advanced L3out Settings</span>
+               </label>
+            </div>
+         </div>
+         <div id="checkbox-checked" style="display:none;" >     
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="contract">Contract Name for Ext EPG (must exist):</label>
+                     <input type="text" id="contract" name="contract" value="k8s"> 
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="local_as">Contract Name for Ext EPG (must exist):</label>
+                     <input type="text" id="local_as" name="local_as" value="65534"> 
+                  </div>
+               </div>
+            </div>                           
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="def_ext_epg_scope">Scope for Ext EPG Subnets (i.e. ["import-security", "shared-security", "shared-rtctrl" ]):</label>
+                     <input type="text" id="def_ext_epg_scope" name="def_ext_epg_scope" value="['import-security','shared-security','shared-rtctrl']"> 
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="bgp_pass">Password for BGP neighbors:</label>
+                     <input type="password" id="bgp_pass" name="bgp_pass" value="123Cisco123"> 
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="def_ext_epg">Contract Name for Ext EPG (must exist):</label>
+                     <input type="text" id="def_ext_epg" name="def_ext_epg" value="catch_all"> 
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="secondary_ip">Floating IPv4 IP/mask:</label>
+                     <input type="text" id="secondary_ip" name="secondary_ip" value="192.168.2.254/24"><br>         
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="floating_ipv6">Floating IPv6 IP/mask:</label>
+                     <input type="text" id="floating_ipv6" name="floating_ipv6" value="2001:db8:42:00::253/56">
+                  </div>
+               </div>
+            </div>   
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="secondary_ipv6">Secondary IPv6 IP/mask:</label>
+                     <input type="text" id="secondary_ipv6" name="secondary_ipv6" value="2001:db8:42:00::254/56">
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="floating_ip">Floating IPv4 IP/mask:</label>
+                     <input type="text" id="floating_ip" name="floating_ip" value="192.168.2.253/24">
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="vlan_id">vlan id:</label>
+                     <input type="text" id="vlan_id" name="vlan_id" value="770">
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="dns_servers">DNS servers:</label>
+                     <input type="text" id="dns_servers" name="dns_servers" value="10.48.170.50,144.254.71.184">
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="dns_domain">DNS Domain:</label>
+                     <input type="text" id="dns_domain" name="dns_domain" value="k8s.cisco.com"> 
+                  </div>
+               </div>
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div class="form-group__text">
+                     <label for="anchor_nodes">Anchor nodes (i.e. anchor_nodes=list(object({"node_id":"number","rtr_id":"string","pod_id":"number","primary_ip":"string","primary_ipv6":"string","rack_id":"string"})):</label>
+                     <input type="text" id="anchor_nodes" name="anchor_nodes" value='[{"node_id":"101","pod_id":"1","rtr_id":"1.1.4.201","primary_ip":"192.168.2.101/24","primary_ipv6":"2001:db8:42::201/56","rack_id":"1"},{"node_id":"102","pod_id":"1","rtr_id":"1.1.4.202","primary_ip":"192.168.2.102/24","rack_id":"1","primary_ipv6":"2001:db8:42::202/56"}]'> 
+                  </div>
+               </div>
+            </div>
+         </div>
+           
+   <!--  VCenter Settings   -->       
+
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+         
+            
+         <div class="container bg-gray">
+            <h2>Vcenter Details</h2>
+         </div>  
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="url">VCenter IP:</label>
+                  <input type="text" id="url" name="url" value="dom-vc02.cisco.com">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="username">VCenter User Name:</label>
+                  <input type="text" id="username" name="username" value="administrator@dom.local">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="pass">VCenter Password:</label>
+                  <input type="password" id="pass" name="pass" value="C!sc0123">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="dc">VCenter DC Name:</label>
+                  <input type="text" id="dc" name="dc" value="DC1">
+               </div>
+            </div>       
+         </div>
+
+   <!--  VCenter Advanced Settings   -->       
+
+         <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-vc-checked','adv-vc-unchecked')" style="margin:0;">
+               <span class="checkbox__input"></span>
+               <span class="checkbox__label hidden-xs">VCenter Advanced Settings</span>
+               </label>
+            </div>
+         </div>
+               <div id="adv-vc-checked" style="display:none;" >                       
+                  <div class="container">
+                     <div class="form-group base-margin-bottom">
+                        <div  class="form-group__text">
+                           <label for="datastore">VCenter Datastore Name:</label>
+                           <input type="text" id="datastore" name="datastore" value="Edge">
+                        </div>
+                     </div>       
+                  </div>
+                  <div class="container">
+                     <div class="form-group base-margin-bottom">
+                        <div  class="form-group__text">
+                           <label for="cluster">VCenter Cluster Name:</label>
+                           <input type="text" id="cluster" name="cluster" value="vc02-DC1">
+                        </div>
+                     </div>       
+                  </div>
+                  <div class="container">
+                     <div class="form-group base-margin-bottom">
+                        <div  class="form-group__text">
+                           <label for="dvs">VCenter DVS Name:</label>
+                           <input type="text" id="dvs" name="dvs" value="vc02-DC1">
+                        </div>
+                     </div>       
+                  </div>
+                  <div class="container">
+                     <div class="form-group base-margin-bottom">
+                        <div  class="form-group__text">
+                           <label for="port_group">VCenter Port Group Name:</label>
+                           <input type="text" id="port_group" name="port_group" value="vlan_k8s">
+                        </div>
+                     </div>       
+                  </div>
+                  <div class="container">
+                     <div class="form-group base-margin-bottom">
+                        <div  class="form-group__text">
+                           <label for="vm_template">VCenter Template Name:</label>
+                           <input type="text" id="vm_template" name="vm_template" value="Ubuntu20.04">
+                        </div>
+                     </div>       
+                  </div>
+                  <div class="container">
+                     <div class="form-group base-margin-bottom">
+                        <div  class="form-group__text">
+                           <label for="vm_folder">VCenter Folder:</label>
+                           <input type="text" id="vm_folder" name="vm_folder" value="Demo">
+                        </div>
+                     </div>       
+                  </div>                                                                                                            
+               </div>
+
+
+<!--  K8s Settings   -->       
+
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+            
+         <div class="container bg-gray">
+            <h2>K8s Cluster Details</h2>
+         </div>  
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="ntp_server">NTP Server IP:</label>
+                  <input type="text" id="ntp_server" name="ntp_server" value="clock.cisco.com">
+               </div>
+            </div>       
+         </div>
+   
+
+            
+<!--  K8s Advanced Settings   -->       
+
+         <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-calico-checked','adv-vc-unchecked')" style="margin:0;">
+               <span class="checkbox__input"></span>
+               <span class="checkbox__label hidden-xs">K8s Advanced Settings</span>
+               </label>
+            </div>
+         </div>
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+         <div id="adv-calico-checked" style="display:none;" >                       
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="control_plane_vip">API LB IP for K8s:</label>
+                     <input type="text" id="control_plane_vip" name="control_plane_vip" value="192.168.2.100">
+                  </div>
+               </div>       
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="http_proxy_status">HTTP Proxy enabled/disabled:</label>
+                        <input type="text" id="http_proxy_status" name="http_proxy_status" value="enabled">
+                  </div>
+               </div>       
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="http_proxy">VCenter Datastore Name:</label>
+                        <input type="text" id="http_proxy" name="http_proxy" value="proxy.esl.cisco.com:8080">
+                  </div>
+               </div>       
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="node_sub">Node Subnet:</label>
+                        <input type="text" id="node_sub" name="node_sub" value="192.168.2.0/24">
+                  </div>
+               </div>       
+            </div>
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="node_sub_v6">Node Subnet v6:</label>
+                        <input type="text" id="node_sub_v6" name="node_sub_v6" value="2001:db8:42::/56">
+                  </div>
+               </div>       
+            </div>
+         </div>
+
+         <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-nodes-checked','adv-vc-unchecked')" style="margin:0;">
+               <span class="checkbox__input"></span>
+               <span class="checkbox__label hidden-xs">K8s Cluster Advanced Settings</span>
+               </label>
+            </div>
+         </div>
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+         <div id="adv-nodes-checked" style="display:none;" >    
+            <div class="container">
+               <div class="form-group base-margin-bottom">
+                  <div  class="form-group__text">
+                     <label for="calico_nodes">k8s node cluster details i.e. type=list(object({"hostname":"string","ip":"string","ipv6":"string","natip":"string","local_as":"number","rack_id":"string"}))</label>
+                        <input type="text" id="calico_nodes" name="calico_nodes" value='[{"hostname":"master-1","ip":"192.168.2.1/24","natip":"10.48.170.112","local_as":"64501","ipv6":"2001:db8:42::1/56","rack_id":"1"},{"hostname":"master-2","ip":"192.168.2.2/24","natip":"10.48.170.113","local_as":"64502","ipv6":"2001:db8:42::2/56","rack_id":"1"},{"hostname":"master-3","ip":"192.168.2.3/24","natip":"10.48.170.114","local_as":"64503","ipv6":"2001:db8:42::3/56","rack_id":"1"},{"hostname":"worker-1","ip":"192.168.2.4/24","natip":"10.48.170.115","local_as":"64504","ipv6":"2001:db8:42::4/56","rack_id":"1"},{"hostname":"worker-2","ip":"192.168.2.5/24","natip":"10.48.170.116","local_as":"64505","ipv6":"2001:db8:42::5/56","rack_id":"1"},{"hostname":"worker-3","ip":"192.168.2.6/24","natip":"10.48.170.117","local_as":"64506","ipv6":"2001:db8:42::6/56","rack_id":"1"}]'>
+                  </div>
+               </div>       
+            </div>
+         </div>
+
+         <div class="container">
+            <input type="submit" value="Create" class="btn btn--wide" name="button">
+            <input type="submit" value="Destroy" class="btn btn--wide" name="button">
+         </div>
+
+   </form>
+
+<!--      <div class="form-group base-margin-bottom">
+            <div class="form-group__text">
+            -->
+         <div id="popup1" class="overlay">
+            <div class="popup">      
+               <script>
+                  var source = new EventSource("/terraform");
+                  source.addEventListener("message", function(e) {
+                      console.log(e.data.log)
+                  }, false)
+                  source.addEventListener("online", function(e) {
+                      document.querySelector("#output").innerText = data.log
+                  }, true)
+                 </script>
+         </div>
+      </div>
+<!--      
+-->
+
+         <div class="container">
+         <footer class="footer footer--tertiary" id="_uidca388897">
+            <div class="footer__links">
+               <ul class="list list--inline" id="_uid08010aa3">
+                  <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank" id="_uidbb5636c3">Contacts</a></li>
+                  <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank" id="_uid92d9bfeb">Feedback</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank" id="_uidcbd80f09">Help</a></li>
+                  <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank" id="_uid134ab5bc">Site Map</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank" id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank" id="_uide8b9adf9">Privacy Statement</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank" id="_uid5580971c">Cookie Policy</a></li>
+                  <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank" id="_uidbe7db422">Trademarks</a></li>
+               </ul>
+            </div>
+         </footer>
+      </div>
+
+      
+
+      <div class="form-group base-margin-bottom"></div>
+      <main class="c549">
+         <div></div>
+      </main>
+      <!-- End Main Content -->
+   </div>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+   <div id="canvas"></div>
+   <script>
+      $(document).ready(function() {
+         $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
+            var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
+            var myChart = Highcharts.chart(val, JSON.parse(finalJson));
+         })
+      })
+      $('#canvas').on('click', function() {
+         html2canvas(document.body, {}).then(canvas => {
+            html2canvas(document.body, {}).then(canvas => {
+               document.body.appendChild(canvas);
+               getCanvas = canvas;
+               var imgageData = getCanvas.toDataURL('image/png');
+               var newData = imgageData.replace(
+                  /^data:image\/png/,
+                  'data:application/octet-stream'
+               );
+               // console.log(newData);
+               document.getElementById('canvas').setAttribute("data-title", newData);
+               /**
+                * remove canvas and link after download
+                */
+               document.querySelector('canvas').remove();
+            });
+         });
+      });
+   </script>
+</body>
+
+</html>

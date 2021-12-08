@@ -5,7 +5,7 @@
     connect_timeout: 10
     sleep: 5
     delay: 5
-    timeout: 500
+    timeout: 5000
 
 - name: Disable swap
   command: swapoff -a
@@ -303,8 +303,10 @@
   apt: 
     name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
     state: present
+    force: True
   register: apt_res
   retries: 100
   until: apt_res is success
   tags:
     - k8s_nodes
+    - kubeadm

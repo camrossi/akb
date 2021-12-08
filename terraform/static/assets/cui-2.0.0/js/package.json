@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "ip-addr": "^2.0.3",
+    "ip-cidr": "^3.0.4"
+  }
+}

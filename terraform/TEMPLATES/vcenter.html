@@ -1,26 +1,13 @@
 <!doctype html>
 <html lang="en">
 
-   <script>
-      function DoCheckUncheckDisplay(d,dchecked,dunchecked)
-      {
-         if( d.checked == true )
-         {
-            document.getElementById(dchecked).style.display = "block";
-            document.getElementById(dunchecked).style.display = "none";
-         }
-         else
-         {
-            document.getElementById(dchecked).style.display = "none";
-            document.getElementById(dunchecked).style.display = "block";
-         }
-      }
-      </script>
+
       
 
 <head>
+     {{ turbo() }}
    <meta charset="utf-8">
-   <title>CKO - Day0</title>
+   <title>CKO - vCenter Details</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
@@ -94,127 +81,26 @@
       
             </p>
       
-            </div>         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="url">VCenter IP:</label>
-                  <input type="text" id="url" name="url" value="dom-vc02.cisco.com">
-               </div>
-            </div>       
-         </div>
+            </div>         
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
-                  <label for="username">VCenter User Name:</label>
-                  <input type="text" id="username" name="username" value="administrator@dom.local">
+                  <select id="dc" name="dc" onchange="this.form.requestSubmit()">
+                     <option disabled selected value> -- select a DC -- </option>
+                     {% for o in dcs %}
+                     <option name="{{ o }}">{{ o }} </option>
+                     {% endfor %}
+                  </select><label for="dc">VCenter DC Name:</label>
                </div>
             </div>       
          </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="pass">VCenter Password:</label>
-                  <input type="password" id="pass" name="pass" value="C!sc0123">
-               </div>
-            </div>       
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="dc">VCenter DC Name:</label>
-                  <input type="text" id="dc" name="dc" value="DC1">
-               </div>
-            </div>       
-         </div>
-
-   <!--  VCenter Advanced Settings   -->       
-
-         <div class="container">
-            <div class="checkbox form-group form-group--inline c8041">
-               <label class="checkbox">
-               <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'adv-vc-checked','adv-vc-unchecked')" style="margin:0;">
-               <span class="checkbox__input"></span>
-               <span class="checkbox__label hidden-xs">VCenter Advanced Settings</span>
-               </label>
-            </div>
-         </div>
-               <div id="adv-vc-checked" style="display:none;" >                       
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="datastore">VCenter Datastore Name:</label>
-                           <input type="text" id="datastore" name="datastore" value="datastorem4">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="cluster">VCenter Cluster Name:</label>
-                           <input type="text" id="cluster" name="cluster" value="Edge">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="dvs">VCenter DVS Name:</label>
-                           <input type="text" id="dvs" name="dvs" value="vc02-DC1">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="port_group">VCenter Port Group Name:</label>
-                           <input type="text" id="port_group" name="port_group" value="vlan_k8s">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="vm_template">VCenter Template Name:</label>
-                           <input type="text" id="vm_template" name="vm_template" value="Ubuntu20.04">
-                        </div>
-                     </div>       
-                  </div>
-                  <div class="container">
-                     <div class="form-group base-margin-bottom">
-                        <div  class="form-group__text">
-                           <label for="vm_folder">VCenter Folder:</label>
-                           <input type="text" id="vm_folder" name="vm_folder" value="Demo">
-                        </div>
-                     </div>       
-                  </div>                                                                                                            
-               </div>
+         {% include "_vc_details.html" %}
 
          <div class="container">
             <input type="submit" value="Previous" class="btn btn--wide" name="button">
-            <input type="submit" value="Next" class="btn btn--wide" name="button">
+            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button">
          </div>
-
-
    </form>
-
-<!--      <div class="form-group base-margin-bottom">
-            <div class="form-group__text">
-            -->
-         <div id="popup1" class="overlay">
-            <div class="popup">      
-               <script>
-                  var source = new EventSource("/l3out");
-                  source.addEventListener("message", function(e) {
-                      console.log(e.data.log)
-                  }, false)
-                  source.addEventListener("online", function(e) {
-                      document.querySelector("#output").innerText = data.log
-                  }, true)
-                 </script>
-         </div>
-      </div>
-<!--      
--->
 
          <div class="container">
          <footer class="footer footer--tertiary" id="_uidca388897">
@@ -249,33 +135,6 @@
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
    <div id="canvas"></div>
-   <script>
-      $(document).ready(function() {
-         $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
-            var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
-            var myChart = Highcharts.chart(val, JSON.parse(finalJson));
-         })
-      })
-      $('#canvas').on('click', function() {
-         html2canvas(document.body, {}).then(canvas => {
-            html2canvas(document.body, {}).then(canvas => {
-               document.body.appendChild(canvas);
-               getCanvas = canvas;
-               var imgageData = getCanvas.toDataURL('image/png');
-               var newData = imgageData.replace(
-                  /^data:image\/png/,
-                  'data:application/octet-stream'
-               );
-               // console.log(newData);
-               document.getElementById('canvas').setAttribute("data-title", newData);
-               /**
-                * remove canvas and link after download
-                */
-               document.querySelector('canvas').remove();
-            });
-         });
-      });
-   </script>
 </body>
 
 </html>

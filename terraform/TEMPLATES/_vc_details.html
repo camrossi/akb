@@ -1,0 +1,66 @@
+<turbo-frame id="vc">
+   <div class="container">
+      <div class="form-group base-margin-bottom">
+         <div class="form-group__text">
+            <label for="datastore">VCenter Datastore Name:</label>
+            <input list="datastore_list" id="datastore" name="datastore">
+            <datalist id="datastore_list">
+               {% for o in dss %}
+               <option value="{{ o }}">
+                  {% endfor %}
+            </datalist>
+         </div>
+      </div>
+   </div>
+   <div class="container">
+      <div class="form-group base-margin-bottom">
+         <div class="form-group__text">
+            <select id="cluster" name="cluster">
+               {% for o in clusters %}
+               <option name="{{ o }}">{{ o }} </option>
+               {% endfor %}
+            </select>
+            <label for="cluster">VCenter Cluster Name:</label>
+         </div>
+      </div>
+   </div>
+
+   <div class="container">
+      <div class="form-group base-margin-bottom">
+         <div class="form-group__text">
+            <label for="port_group">VCenter Port Group Name:</label>
+            <input list="port_group_list" id="port_group" name="port_group" />
+            <datalist id="port_group_list">
+               {% for o in pgs %}
+               <option value="{{ o }}">
+                  {% endfor %}
+            </datalist>
+         </div>
+      </div>
+   </div>
+<div class="container">
+   <div class="form-group base-margin-bottom">
+      <div class="form-group__text datalist">
+         <label for="vm_templates">Select the VM tempaltes for your K8s Cluster:</label>
+         <input list="vms_list" id="vm_templates" name="vm_templates" />
+         <datalist id="vms_list">
+            {% for o in vm_templates %}
+            <option value="{{ o }}">
+               {% endfor %}
+         </datalist>
+      </div>
+   </div>
+</div>
+<div class="container">
+   <div class="form-group base-margin-bottom">
+      <div class="form-group__text">
+         <select id="vm_folder" name="vm_folder">
+            {% for o in vc_folders %}
+            <option name="{{ o }}">{{ o }} </option>
+            {% endfor %}
+         </select>
+         <label for="vm_folder">VC Destination Folder for K8S VMs:</label>
+      </div>
+   </div>
+</div>
+</turbo-frame>

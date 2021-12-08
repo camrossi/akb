@@ -12333,3 +12333,7 @@ body.cui a.sidebar-toggle {
     opacity: 1;
     color: inherit;
     text-decoration: none; }
+
+datalist {
+      display: none;
+    }

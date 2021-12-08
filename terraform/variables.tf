@@ -62,6 +62,7 @@ variable "l3out" {
     bgp_pass          = string
     max_node_prefixes = number
     contract          = string
+    contract_tenant   = string
     dns_servers       = list(string)
     dns_domain        = string
     anchor_nodes      = list(object({
@@ -94,6 +95,7 @@ variable "l3out" {
   bgp_pass          = "123Cisco123"
   max_node_prefixes = 500
   contract          = "k8s"
+  contract_tenant   = "common"
   dns_servers       = ["10.48.170.50","144.254.71.184"]
   dns_domain        = "k8s.cisco.com"
   anchor_nodes      = [

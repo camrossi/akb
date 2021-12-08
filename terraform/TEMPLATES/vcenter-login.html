@@ -1,11 +1,9 @@
 <!doctype html>
 <html lang="en">
-     
 
 <head>
-   {{ turbo () }}
    <meta charset="utf-8">
-   <title>CKO - Calico Nodes</title>
+   <title>CKO - vCenter Login</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
@@ -39,7 +37,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/calico_nodes">
+<form name="tenantForm" method="post" action="/vcenterlogin">
 
   <body class="cui cui--animated cui--compressed" data-theme="">
    <div id="oneui">
@@ -58,60 +56,56 @@
          <div class="cell"></div>
          <div class="cell"> </div>
       </div>
-      <div class="container bg-gray">
-         <h2>K8s Cluster Topology</h2>
-         <p> 
-            <br>  This should become a drap and drop topology where you can add your K8s nodes and select details of your k8s nodes </br>
-            <br> 
-            <br><br><br>
-   
-         </p>
-      </div>    
+   <!--  VCenter Settings   -->       
 
-      <div class="container">
-         <div class="form-group__text">
-            <div class="row">
-               <div class="col-md-6">
-                  <div class="form-group base-margin-bottom">
-                     {% include "_calico_nodes.html" %}
-                 </div>
-               </div>
-               <div class="col-md-6">
-                  <div class="form-group base-margin-bottom">
-                     <div class="form-group__text">
-                        <div class="form-group__text"><input type="text" name="hostname" id="hostname" ><label>Hostname</label></div>
-                     </div>
-                  </div>
-                  <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="text" name="ip" id="ip" value={{ ipv4_cluster_subnet }}><label>Node IP</label></div>
-                  </div>
-                  <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="text" name="ipv6" id="ipv6" value={{ ipv6_cluster_subnet }}><label>Node IPv6</label></div>
-                  </div>
-                  <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="text" name="natip" id="natip"><label>Nat IP (optional)</label></div>
-                  </div>
-                  <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="number" name="local_as" id="local_as" ><label>Local Node BGP AS</label></div>
-                  </div>
-                  <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="text" name="rack_id" id="rack_id"><label>Rack ID</label></div>
-                  </div>
-                  <input id="add_node" type="submit" value="Add Node" class="btn btn--wide" name="button">
-     
-            </div>
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
          </div>
-      </div>
-     </div>
+         
+            
+         <div class="container bg-gray">
 
-     <div class="container">
-      <input type="submit" value="Previous" class="btn btn--wide" name="button">
-      <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" >
-   </div>
-
-   </div>
+            <h2>VCenter Details</h2>
+            <p> 
+               <br>  Here you should insert the VCenter details </br>
+               <br> CKO will optionally connect to a VCenter and deploy a K8s cluster 
+               <br>
+               <br> The k8s cluster will automatically be configured with Calico using non overlay mode and leveraging BGP to advertise routes to ACI leaves
+      
+               <br> If you prefer CKO not to configure the K8s cluster, CKO can provide you the Calico BGP configuration file to provide to your K8s installer
+               <br><br><br>
+      
+            </p>
+      
+            </div>         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="url">VCenter Hostname/IP:</label>
+                  <input type="text" id="url" name="url">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="username">VCenter User Name:</label>
+                  <input type="text" id="username" name="username">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div  class="form-group__text">
+                  <label for="pass">VCenter Password:</label>
+                  <input type="password" id="pass" name="pass">
+               </div>
+            </div>       
+         </div>
+         <div class="container">
+            <input type="submit" value="Previous" class="btn btn--wide" name="button">
+            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button">
+         </div>
    </form>
-
 
          <div class="container">
          <footer class="footer footer--tertiary" id="_uidca388897">
@@ -146,7 +140,6 @@
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
    <div id="canvas"></div>
-
 </body>
 
 </html>

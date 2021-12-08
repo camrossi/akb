@@ -1,13 +1,14 @@
 
+
 terraform {
  required_providers {
    aci = {
      source = "CiscoDevNet/aci"
-     version = "0.6.0"
+     version = "1.0.1"
    }
    vsphere = {
       source = "hashicorp/vsphere"
-      version = "1.24.3"
+      version = "2.0.2"
     }
  }
 }
@@ -17,9 +18,6 @@ provider "aci" {
   username = var.apic.username
   cert_name = var.apic.cert_name
   private_key = var.apic.private_key
-  # cisco-aci password
-  #password = var.apic_password
-  # cisco-aci url
   url      = var.apic.url 
   insecure = true
 }
@@ -28,10 +26,15 @@ data "aci_tenant" "tenant_l3out" {
   name  = var.l3out.l3out_tenant
 }
 
+data "aci_tenant" "tenant_contract" {
+  name  = var.l3out.contract_tenant
+}
+
 data "aci_vrf" "l3out_vrf" {
   tenant_dn  = data.aci_tenant.tenant_l3out.id
   name       = var.l3out.vrf_name
 }
+
 
 
 resource "aci_l3_outside" "calico_l3out" {
@@ -66,7 +69,7 @@ resource "aci_logical_interface_profile" "calico_interface_profile_v6" {
   } 
 
 data "aci_contract" "default" {
-  tenant_dn  = data.aci_tenant.tenant_l3out.id
+  tenant_dn  = data.aci_tenant.tenant_contract.id
   name       = var.l3out.contract
 } 
 

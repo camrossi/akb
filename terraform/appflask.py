@@ -540,7 +540,9 @@ def l3out():
     nodes_id = []
     anchor_nodes = []
     contracts = ['select a tenant']
-    pyaci_apic = Node(apic['url'])
+    home = os.path.expanduser("~")
+    meta_path = home + '/.aci-meta/aci-meta.json'
+    pyaci_apic = Node(apic['url'],aciMetaFilePath = meta_path)
     try:
         pyaci_apic.useX509CertAuth(apic['username'],apic['cert_name'],apic['private_key'])
     except FileNotFoundError as e:

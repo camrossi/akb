@@ -12,7 +12,6 @@ from pyVim import connect
 import re
 from shelljob import proc
 from distutils.version import LooseVersion
-import threading
 l3out = {}
 vc = {}
 apic = {}

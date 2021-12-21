@@ -2,7 +2,10 @@
     <div class="container">
         <div class="form-group base-margin-bottom">
         <div class="form-group__text">
-            <label for="vrf_name">VRF name:</label>
+            <label for="vrf_name">VRF name:
+                <span data-title="Pick a pre-existing VRF for you Calico Cluster.">ⓘ</span>
+
+            </label>
             <input list="vrf_name_list" id="vrf_name" name="vrf_name" />
               <datalist id="vrf_name_list">
                 {% for o in vrfs %}
@@ -16,7 +19,9 @@
     <div class="container">
         <div class="form-group base-margin-bottom">
            <div class="form-group__text">
-              <label for="contract">Contract Name for Ext EPG (must exist and applied manually to any EPG that needs to speak with the Catch All External EPG above):</label>
+              <label for="contract" >Contract Name for Ext EPG :
+                <span data-title="Must exist and applied manually to any EPG that needs to speak with the Catch All External EPG define above">ⓘ</span>
+              </label>
               <input list="contract_list" id="contract" name="contract" />
               <datalist id="contract_list">
                 {% for o in contracts %}

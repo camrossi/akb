@@ -5,7 +5,7 @@
 <head>
    {{ turbo () }}
    <meta charset="utf-8">
-   <title>CKT - Calico Nodes</title>
+   <title>AKB - Calico Nodes</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
@@ -48,7 +48,7 @@
          <div class="container">
             <div class="header-panels">
                <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                  <div class="header__title">Cisco Kubenertes Tool</div>
+                  <div class="header__title">ACI Kubernetes Bootstrapper</div>
                </div>
                <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
             </div>
@@ -61,9 +61,9 @@
       <div class="container bg-gray">
          <h2>K8s Cluster Topology</h2>
          <p> 
-            <br>  This should become a drap and drop topology where you can add your K8s nodes and select details of your k8s nodes </br>
-            <br> 
-            <br><br><br>
+            <br> Add here the details of yuour K8s nodes. 
+            <br> A minimum of 3 nodes are requried. The first 3 nodes are master and all subsequent nodes are workers.
+            <br> You can enter the JSON manually or use the form on the right to add one node at a time.
    
          </p>
       </div>    
@@ -92,10 +92,17 @@
                      <div class="form-group__text"><input type="text" name="natip" id="natip"><label>Nat IP (optional)</label></div>
                   </div>
                   <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="number" name="local_as" id="local_as" ><label>Local Node BGP AS</label></div>
+                     <div class="form-group__text"><input type="number" name="local_as" id="local_as" >
+                        <label>Local Node BGP AS
+                           <span data-title="A unique AS number per node is required">ⓘ</span>
+                        </label></div>
                   </div>
                   <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="text" name="rack_id" id="rack_id"><label>Rack ID</label></div>
+                     <div class="form-group__text"><input type="text" name="rack_id" id="rack_id">
+                        <label>Rack ID
+                           <span data-title="Select a alphanumeric value to identify your rack ID. This Rack ID is matched against the anchor node Rack ID. eBGP peering is automatically configuerd between anchor nodes and K8s nodes with the same Rack ID. ">ⓘ</span>
+                        </label>
+                     </div>
                   </div>
                   <input id="add_node" type="submit" value="Add Node" class="btn btn--wide" name="button">
      

@@ -484,6 +484,19 @@ body.cui [data-balloon] {
   --cui-tooltip-border-radius: var(--cui-border-radius);
   --cui-tooltip-padding: var(--cui-spacing-qtr) var(--cui-spacing-half); }
 
+/* Make (i) work instantly for span that has a data-title attribute*/
+
+span[data-title]:hover::after 
+{
+  content: attr(data-title);
+  padding: 5px;
+  border: 1px solid #000;
+  position: absolute;
+  top: 20px;
+  left: 5px;
+  background: #311bf3;
+  color: white;
+}
 /*
 ================================================================================
 Cisco Brand UI Kit Dark Theme
@@ -7111,7 +7124,10 @@ body.cui .label {
   font-size: var(--cui-label-default-font-size);
   background-color: var(--cui-theme-primary);
   border: var(--cui-label-border-thickness) solid var(--cui-theme-primary);
-  color: var(--cui-theme-primary-color); }
+  color: var(--cui-theme-primary-color);}
+  
+
+
   body.cui .label + .label {
     margin-bottom: var(--cui-spacing-qtr); }
   body.cui .label.label--tiny {

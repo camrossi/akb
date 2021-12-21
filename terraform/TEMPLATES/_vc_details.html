@@ -2,7 +2,9 @@
    <div class="container">
       <div class="form-group base-margin-bottom">
          <div class="form-group__text">
-            <label for="datastore">VCenter Datastore Name:</label>
+            <label  for="datastore">vCenter Datastore Name:
+               <span data-title="The destination datastore for you K8s VMs, ideally a shared DataStore is reccomneded">ⓘ</span> 
+            </label>
             <input list="datastore_list" id="datastore" name="datastore">
             <datalist id="datastore_list">
                {% for o in dss %}
@@ -20,7 +22,7 @@
                <option name="{{ o }}">{{ o }} </option>
                {% endfor %}
             </select>
-            <label for="cluster">VCenter Cluster Name:</label>
+            <label for="cluster">vCenter Cluster Name:</label>
          </div>
       </div>
    </div>
@@ -28,7 +30,9 @@
    <div class="container">
       <div class="form-group base-margin-bottom">
          <div class="form-group__text">
-            <label for="port_group">VCenter Port Group Name:</label>
+            <label for="port_group">vCenter Port Group Name:
+               <span data-title="The port group name to be used for conenctivity between the K8s VMs and the border leaves. This must be pre configured" >ⓘ</span> 
+            </label>
             <input list="port_group_list" id="port_group" name="port_group" />
             <datalist id="port_group_list">
                {% for o in pgs %}
@@ -41,7 +45,9 @@
 <div class="container">
    <div class="form-group base-margin-bottom">
       <div class="form-group__text datalist">
-         <label for="vm_templates">Select the VM tempaltes for your K8s Cluster:</label>
+         <label for="vm_templates">Select the VM templates for your K8s Cluster:
+            <span data-title="Must be deployed on vCenter">ⓘ</span> 
+         </label>
          <input list="vms_list" id="vm_templates" name="vm_templates" />
          <datalist id="vms_list">
             {% for o in vm_templates %}
@@ -59,7 +65,9 @@
             <option name="{{ o }}">{{ o }} </option>
             {% endfor %}
          </select>
-         <label for="vm_folder">VC Destination Folder for K8S VMs:</label>
+         <label for="vm_folder">VC Destination Folder for K8S VMs:
+            <span data-title="Destination Folder for you K8s VMs, must be pre-existing. Subfolders are not supported currently">ⓘ</span> 
+         </label>
       </div>
    </div>
 </div>

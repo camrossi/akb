@@ -28,7 +28,7 @@ app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
 
-def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, dns_servers, dns_domain, anchor_nodes):
+def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, dns_servers, dns_domain, anchor_nodes):
     def_ext_epg_scope = []
     floating_ip = ""
     secondary_ip = ""
@@ -76,7 +76,7 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, ipv4_cluster_sub
              "def_ext_epg": def_ext_epg, 
              "def_ext_epg_scope": def_ext_epg_scope, 
              "local_as": local_as, 
-             "mtu": "9000", 
+             "mtu": mtu, 
              "bgp_pass": bgp_pass, 
              "max_node_prefixes": "500", 
              'contract': contract.split('/')[1], 
@@ -543,6 +543,7 @@ def l3out():
     home = os.path.expanduser("~")
     meta_path = home + '/.aci-meta/aci-meta.json'
     pyaci_apic = Node(apic['url'],aciMetaFilePath = meta_path)
+
     try:
         pyaci_apic.useX509CertAuth(apic['username'],apic['cert_name'],apic['private_key'])
     except FileNotFoundError as e:
@@ -553,6 +554,9 @@ def l3out():
         button = req.get("button")
         if button == "Next":
             global l3out
+            mtu = int(req.get("mtu"))
+            if mtu < 1280 or mtu > 9000:
+                return anchor_node_error(req.get("anchor_nodes"), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
             if req.get("anchor_nodes") == "":
                 return anchor_node_error(req.get("anchor_nodes"), "At least one anchor node is required")
             try:
@@ -561,7 +565,7 @@ def l3out():
                 return anchor_node_error(req.get("anchor_nodes"), "Invalid JSON:" + str(e))
             if "l3out_tenant" not in req:
                 return anchor_node_error(req.get("anchor_nodes"), "Please Select a Tenant from the First Drop Down at the top of the page")
-            l3out = createl3outVars(req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
+            l3out = createl3outVars(req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("dns_servers"), req.get("dns_domain"), req.get("anchor_nodes"))
             return redirect('/vcenterlogin')
         # Then the post came from the L3OUT Tenant Select

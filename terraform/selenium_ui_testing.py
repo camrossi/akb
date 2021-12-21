@@ -46,7 +46,7 @@ def add_calico_ndoe(hostname, ip, ipv6, local_as, rack_id):
 driver = webdriver.Chrome()
 
 driver.get("http://10.67.185.120:5002/")
-assert "CKT" in driver.title
+assert "AKB" in driver.title
 
 current_url = driver.current_url
 elem = driver.find_element(By.NAME,"button")
@@ -89,6 +89,10 @@ elem = driver.find_element(By.ID,'contract')
 elem.send_keys("common/calico2")
 elem = driver.find_element(By.ID,'physical_dom')
 elem.send_keys("Fab2")
+
+elem = driver.find_element(By.ID,'mtu')
+elem.clear()
+elem.send_keys("9000")
 
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
 elem.send_keys("192.168.12.0/24")

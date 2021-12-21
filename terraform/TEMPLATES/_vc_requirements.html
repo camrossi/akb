@@ -1,0 +1,9 @@
+<ul>
+    <li>A working ESXi infrastructure connected to ACI</li>
+    <li>A port-group to carry the traffic between the K8s VMs and the border leaves. This can be manually created or created with a custom port-group from a VMM domain.</li>
+    <li>A folder to store the K8s VMs, subfolders are not supported at the moment</li>
+    <li>A data store, shared if the VMs are required to run on more than one host</li>
+    <li>Ubuntu VM temaplate, download it from <a
+          href="{{ url_for('static',filename='vm_template/ubuntu_template.') }}">here</a> if you don't have one:
+    </li>
+ </ul>

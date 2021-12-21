@@ -1,0 +1,90 @@
+{
+    "description": "Build base Alpine Linux x86_64",
+    "variables": {
+      "vm_name": "alpine-3.8.0-x86_64",
+      "cpus": "1",
+      "memory": "1024",
+      "disk_size": "10240",
+      "iso_local_url": "../../isos/alpine-virt-3.8.0-x86_64.iso",
+      "iso_download_url": "http://dl-cdn.alpinelinux.org/alpine/v3.8/releases/x86_64/alpine-virt-3.8.0-x86_64.iso",
+      "iso_checksum": "c0daab130ff32399bfce8893d7f6c591078ce8f87e82a2b987f8832fa6cf2d76",
+      "iso_checksum_type": "sha256",
+      "root_password": "packer",
+      "ssh_username": "packer",
+      "ssh_password": "packer"
+    },
+    "provisioners": [
+      {
+        "type": "shell",
+        "inline": "echo hello"
+      }
+    ],
+    "builders": [
+      {
+        "type": "virtualbox-iso",
+        "headless": false,
+        "vm_name": "{{user `vm_name`}}",
+        "format": "ova",
+        "guest_os_type": "Linux26_64",
+        "guest_additions_mode": "disable",
+        "disk_size": "{{user `disk_size`}}",
+        "iso_urls": [
+          "{{user `iso_local_url`}}",
+          "{{user `iso_download_url`}}"
+        ],
+        "iso_checksum": "{{user `iso_checksum`}}",
+        "iso_checksum_type": "{{user `iso_checksum_type`}}",
+        "http_directory": "http",
+        "communicator": "ssh",
+        "ssh_username": "{{user `ssh_username`}}",
+        "ssh_password": "{{user `ssh_password`}}",
+        "ssh_wait_timeout": "10m",
+        "shutdown_command": "echo {{user `ssh_password`}} | sudo -S /sbin/poweroff",
+        "boot_wait": "30s",
+        "boot_command": [
+          "root<enter><wait>",
+          "ifconfig eth0 up && udhcpc -i eth0<enter><wait10>",
+          "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answers<enter><wait>",
+          "setup-alpine -f $PWD/answers<enter><wait5>",
+          "{{user `root_password`}}<enter><wait>",
+          "{{user `root_password`}}<enter><wait>",
+          "<wait10>y<enter>",
+          "<wait10><wait10>",
+          "<wait10><wait10>",
+          "<wait10><wait10>",
+          "reboot<enter>",
+          "<wait10><wait10><wait10>",
+          "root<enter>",
+          "{{user `root_password`}}<enter>",
+          "apk add sudo<enter><wait5>",
+          "echo 'Defaults env_keep += \"http_proxy https_proxy\"' > /etc/sudoers.d/wheel<enter>",
+          "echo '%wheel ALL=(ALL) ALL' >> /etc/sudoers.d/wheel<enter>",
+          "adduser {{user `ssh_username`}}<enter>",
+          "{{user `ssh_password`}}<enter>",
+          "{{user `ssh_password`}}<enter>",
+          "adduser {{user `ssh_username`}} wheel<enter>"
+        ],
+        "hard_drive_interface": "sata",
+        "vboxmanage": [
+          [
+            "modifyvm",
+            "{{.Name}}",
+            "--memory",
+            "{{user `memory`}}"
+          ],
+          [
+            "modifyvm",
+            "{{.Name}}",
+            "--cpus",
+            "{{user `cpus`}}"
+          ],
+          [
+            "modifyvm",
+            "{{.Name}}",
+            "--rtcuseutc",
+            "on"
+          ]
+        ]
+      }
+    ]
+  }

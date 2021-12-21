@@ -158,6 +158,11 @@ def create():
             button = req.get("button")
             if button == "Previous":
                 return redirect('/cluster')
+            if button == "Update Config":
+                config = req.get('config')
+                with open('cluster.tfvars', 'w') as f:
+                    f.write(config)
+                return render_template('create.html', config=config)
 
 @app.route('/calico_nodes', methods=['GET', 'POST'])
 def calico_nodes():

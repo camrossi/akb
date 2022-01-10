@@ -95,7 +95,7 @@ def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, 
 
 
 def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, kube_version, kubeadm_token, 
-                        crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server):
+                        crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror):
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0],
                 "vip_port": control_plane_vip.split(":")[1],
                 "pod_subnet": ipv4_pod_sub, 
@@ -118,7 +118,8 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "time_zone": timezone, 
                 "docker_mirror": docker_mirror, 
                 "http_proxy_status": http_proxy_status if http_proxy_status else "", 
-                "http_proxy": http_proxy
+                "http_proxy": http_proxy,
+                "ubuntu_apt_mirror" : ubuntu_apt_mirror
                 }
     return cluster
 
@@ -254,8 +255,8 @@ def calico_nodes():
                     return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv4:" + ip)
                 elif calico_node['ipv6'] == ipv6:
                     return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv6:" + ipv6)
-                elif calico_node['local_as'] == local_as:
-                    return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node Local AS:" + local_as)
+                elif calico_node['local_as'] != local_as:
+                    return calico_nodes_error(req.get("calico_nodes"), "Node local AS must be the same:" + local_as)
 
             calico_nodes.append({"hostname": hostname, "ip": ip,
                                 "ipv6": ipv6,"natip": natip, "local_as": local_as, "rack_id": rack_id})
@@ -348,7 +349,7 @@ def cluster():
             cluster = createClusterVars(req.get("control_plane_vip"), l3out['ipv4_cluster_subnet'], l3out['ipv6_cluster_subnet'], req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"),req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
             req.get("kube_version"), req.get("kubeadm_token"), req.get("crio_version"), req.get("crio_os"), 
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
-            req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"))
+            req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"))
             return redirect('/create')
         elif button == "Previous":
             return redirect('/calico_nodes')
@@ -365,9 +366,9 @@ def cluster():
         ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
 
         # Calculate SVC Subnets (Cluster_IP) and 
-        # make them smaller as K8s only accepts up to 108 for services 
+        # make them smaller as K8s only accepts up to 128 for services 
         ipv4_svc_sub = (ipv4_cluster_subnet + 2 * ipv4_cluster_subnet.size())
-        ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
+        ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=128)
         ipv6_svc_sub = next(ipv6_svc_sub_iterator)
         # Calculate External SVC Subnets (Cluster_IP)
         ipv4_ext_svc_sub = (ipv4_cluster_subnet + 3 * ipv4_cluster_subnet.size())

@@ -89,12 +89,12 @@
             network overlay using VXLAN or IPinIP (default) encapsulations to exchange traffic between workloads.
             <br> AKB will deploying Calico in direct routing mode.
             <br>
-            <br>Each Kubernetes node will have a dedicated AS number and will peer via eBGP with a pair of ACI
+            <br>All the nodes in the Kubernetes cluster will have the same AS number and will peer via eBGP with a pair of ACI.
             top-of-rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy
             within the rack.
             <br>
-            This eBGP design does not require running any route reflector in the Calico infrastructure; this results in
-            a more scalable, simpler, and easier to maintain architecture.
+            This eBGP design does not require running any route reflector in the Calico infrastructure: ACI will be configured to send back to the nodes the routes leatned.
+            <br> this results in a more scalable, simpler, and easier to maintain architecture.
 
             Once this design is implemented, the following connectivity is expected:
             <ul>

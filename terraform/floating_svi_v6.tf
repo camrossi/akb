@@ -57,37 +57,78 @@ locals {
 ## Create the BGP Peer
 
 ## TO DO: replace these 3 with aci_bgp_peer_connectivity_profile once the module is ready
+###### OLD WAY OF ADDING ONE PEER PER NODE WITH DIFFERENT NODE PER AS ######
+
+#resource "aci_rest" "bgp_peer_v6" {
+#  depends_on = [ aci_l3out_floating_svi.floating_svi_v6 ]
+#  for_each = {for v in local.peering_v6:  v.index_key => v}
+#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}].json"
+#  class_name = "bgpPeerP"
+#      content = {
+#        "addr" = each.value.calico_ipv6
+#        "password" = var.l3out.bgp_pass
+#
+#  }
+#}
+#
+#resource "aci_rest" "bgp_peer_remote_as_v6" {
+#  depends_on = [ aci_rest.bgp_peer_v6 ]
+#  for_each = {for v in local.peering_v6:  v.index_key => v}
+#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}]/as.json"
+#  class_name = "bgpAsP"
+#      content = {
+#        "asn" = each.value.calico_as
+#
+#  }
+#}
+#
+#resource "aci_rest" "bgp_peer_prefix_v6" {
+#  depends_on = [ aci_rest.bgp_peer ]
+#  for_each = {for v in local.peering_v6:  v.index_key => v}
+#  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}]/rspeerPfxPol.json"
+#  class_name = "bgpRsPeerPfxPol"
+#      content = {
+#        "tnBgpPeerPfxPolName" = aci_bgp_peer_prefix.bgp_peer_prefix.name
+#
+#  }
+#}
+
+
+
+###### NEW WAY ALL NODE WITH THE SAME AS AND PEERING WITH THE SUBNET ######
+
 resource "aci_rest" "bgp_peer_v6" {
   depends_on = [ aci_l3out_floating_svi.floating_svi_v6 ]
-  for_each = {for v in local.peering_v6:  v.index_key => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}].json"
+  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${var.l3out.ipv6_cluster_subnet}].json"
   class_name = "bgpPeerP"
       content = {
-        "addr" = each.value.calico_ipv6
+        "addr" = var.l3out.ipv6_cluster_subnet
         "password" = var.l3out.bgp_pass
+        "ctrl" = "as-override,dis-peer-as-check"
 
   }
 }
 
 resource "aci_rest" "bgp_peer_remote_as_v6" {
-  depends_on = [ aci_rest.bgp_peer_v6 ]
-  for_each = {for v in local.peering_v6:  v.index_key => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}]/as.json"
+  depends_on = [ aci_rest.bgp_peer ]
+  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${var.l3out.ipv6_cluster_subnet}]/as.json"
   class_name = "bgpAsP"
       content = {
-        "asn" = each.value.calico_as
+        "asn" = var.calico_nodes[0].local_as
 
   }
 }
 
+
 resource "aci_rest" "bgp_peer_prefix_v6" {
   depends_on = [ aci_rest.bgp_peer ]
-  for_each = {for v in local.peering_v6:  v.index_key => v}
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ipv6}]/rspeerPfxPol.json"
+  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name_v6}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${var.l3out.ipv6_cluster_subnet}]/rspeerPfxPol.json"
   class_name = "bgpRsPeerPfxPol"
       content = {
         "tnBgpPeerPfxPolName" = aci_bgp_peer_prefix.bgp_peer_prefix.name
 
   }
 }
-

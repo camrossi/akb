@@ -17,6 +17,9 @@ vc ={
     "vm_folder": "Calico-Cluster2"
 }
 l3out ={
+    "ipv4_cluster_subnet": "192.168.12.0/24",
+    "ipv6_cluster_subnet": "2001:db8:12::0/56",
+    "vlan_id": "310",
     "name": "calico_l3out",
     "l3out_tenant": "calico2",
     "vrf_tenant": "calico2",
@@ -78,10 +81,8 @@ l3out ={
             "primary_ip": "192.168.12.204/24",
             "primary_ipv6": "2001:db8:12::204/56"
         }
-    ],
-    "ipv4_cluster_subnet": "192.168.12.0/24",
-    "ipv6_cluster_subnet": "2001:db8:12::0/56",
-    "vlan_id": "310"
+    ]
+
 }
 calico_nodes =[
     {
@@ -141,4 +142,5 @@ k8s_cluster ={
     "docker_mirror": "10.67.185.120:5000",
     "http_proxy_status": "",
     "http_proxy": ""
+    
 }

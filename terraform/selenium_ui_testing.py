@@ -164,10 +164,10 @@ elem.click()
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
-add_calico_ndoe('calico-1','192.168.12.11/24','2001:db8:12::11/56', '11', '1')
-add_calico_ndoe('calico-2','192.168.12.12/24','2001:db8:12::12/56', '12', '1')
-add_calico_ndoe('calico-3','192.168.12.13/24','2001:db8:12::13/56', '13', '2')
-add_calico_ndoe('calico-4','192.168.12.14/24','2001:db8:12::14/56', '14', '2')
+add_calico_ndoe('calico-1','192.168.12.11/24','2001:db8:12::11/56', '650011', '1')
+add_calico_ndoe('calico-2','192.168.12.12/24','2001:db8:12::12/56', '650011', '1')
+add_calico_ndoe('calico-3','192.168.12.13/24','2001:db8:12::13/56', '650011', '2')
+add_calico_ndoe('calico-4','192.168.12.14/24','2001:db8:12::14/56', '650011', '2')
 
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
@@ -186,6 +186,8 @@ elem = driver.find_element(By.ID,'docker_mirror')
 elem.send_keys("10.67.185.120:5000")
 elem = driver.find_element(By.ID,'ntp_server')
 elem.send_keys("72.163.32.44")
+elem = driver.find_element(By.ID,'ubuntu_apt_mirror')
+elem.send_keys("ubuntu.mirror.digitalpacific.com.au/archive/")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

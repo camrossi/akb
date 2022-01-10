@@ -366,9 +366,9 @@ def cluster():
         ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
 
         # Calculate SVC Subnets (Cluster_IP) and 
-        # make them smaller as K8s only accepts up to 128 for services 
+        # make them smaller as K8s only accepts up to 108 for services 
         ipv4_svc_sub = (ipv4_cluster_subnet + 2 * ipv4_cluster_subnet.size())
-        ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=128)
+        ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
         ipv6_svc_sub = next(ipv6_svc_sub_iterator)
         # Calculate External SVC Subnets (Cluster_IP)
         ipv4_ext_svc_sub = (ipv4_cluster_subnet + 3 * ipv4_cluster_subnet.size())

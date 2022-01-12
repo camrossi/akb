@@ -24,16 +24,12 @@ resource "aci_rest" "floating_svi_path" {
   }
 }
 
-resource "aci_rest" "floating_svi_sec_ip" {
-    depends_on = [ aci_l3out_floating_svi.floating_svi ]
-    path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/addr-[${var.l3out.secondary_ip}].json"
-    for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
-    class_name = "l3extIp"
-      content = {
-        "addr" = var.l3out.secondary_ip
-  }
+resource "aci_l3out_path_attachment_secondary_ip" "floating_svi_sec_ip" {
+  depends_on = [ aci_l3out_floating_svi.floating_svi ]
+  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+  l3out_path_attachment_dn  = "uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]"
+  addr  = var.l3out.secondary_ip
 }
-
 
 ###### OLD WAY OF ADDING ONE PEER PER NODE WITH DIFFERENT NODE PER AS ######
 #Add eBPG Peers

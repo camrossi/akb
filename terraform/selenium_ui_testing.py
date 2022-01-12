@@ -116,8 +116,6 @@ add_anchor_ndoe("1","1","201","1.1.1.201","192.168.12.201","2001:db8:12::201/56"
 add_anchor_ndoe("1","1","202","1.1.1.202","192.168.12.202/24","2001:db8:12::202/56")
 add_anchor_ndoe("1","2","203","1.1.1.203","192.168.12.203/24","2001:db8:12::203/56")
 add_anchor_ndoe("1","2","204","1.1.1.204","192.168.12.204/24","2001:db8:12::204/56")
-#Need to wait a moment or I miss the last node. 
-sleep(1)
 current_url = driver.current_url
 
 elem = driver.find_element(By.ID,"submit")

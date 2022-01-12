@@ -24,11 +24,6 @@
   tags:
     - k8s_addons
 
-- name: Allow Scheduling on Masters
-  shell: kubectl taint nodes --all node-role.kubernetes.io/master-
-  tags:
-    - k8s_addons
-
 - name: Create guestbook ingress
   shell: kubectl apply -f /tmp/ingress.yaml
   tags:

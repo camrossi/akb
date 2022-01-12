@@ -2,7 +2,6 @@ Flask
 pyOpenSSL
 requests
 urllib3
-gevent
 turbo_flask
 pyaci
 ipaddress

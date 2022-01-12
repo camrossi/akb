@@ -1,1 +1,17 @@
 KEYMAPOPTS="us us"
+HOSTNAMEOPTS="-n localhost"
+INTERFACESOPTS="auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+        address 192.168.66.77/24
+        gateway 192.168.66.1
+"
+DNSOPTS="-d cisco.com 192.168.66.1"
+TIMEZONEOPTS="-z UTC"
+PROXYOPTS="none"
+APKREPOSOPTS="http://mirror.aarnet.edu.au/pub/alpine/v3.14/main/"
+SSHDOPTS="-c openssh"
+NTPOPTS="-c chrony"
+DISKOPTS="-m sys /dev/sda"

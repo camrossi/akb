@@ -45,18 +45,18 @@ resource "aci_l3out_path_attachment_secondary_ip" "floating_svi_sec_ip_v6" {
 # Generate a  list of all the anchor-nodes and calico nodes for BPG peering only for the nodes in the same rack (see the if)
 # I basically create the cartesian product (setproduct) of all the anchor_nodes and calico_nodes
 # and then I build a  list of all the items to be user after by for_each
-locals {
-  peering_v6 = [for k, v in setproduct(var.l3out.anchor_nodes, var.calico_nodes): 
-            {
-                    node_id = v[0].node_id
-                    pod_id = v[0].pod_id
-                    calico_ipv6 = split("/",v[1].ipv6)[0]
-                    calico_as = v[1].local_as
-                    index_key = join("_",[v[0].node_id, split("/",v[1].ipv6)[0]])
-            } if v[0].rack_id == v[1].rack_id 
-  ]
-
-}
+#locals {
+#  peering_v6 = [for k, v in setproduct(var.l3out.anchor_nodes, var.calico_nodes): 
+#            {
+#                    node_id = v[0].node_id
+#                    pod_id = v[0].pod_id
+#                    calico_ipv6 = split("/",v[1].ipv6)[0]
+#                    calico_as = v[1].local_as
+#                    index_key = join("_",[v[0].node_id, split("/",v[1].ipv6)[0]])
+#            } if v[0].rack_id == v[1].rack_id 
+#  ]
+#
+#}
 
 #output "name" {
 #    value = local.peering_v6

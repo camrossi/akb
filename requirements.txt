@@ -3,7 +3,6 @@ pyOpenSSL
 requests
 urllib3
 turbo_flask
-pyaci
 ipaddress
 pyVmomi
 pyVim

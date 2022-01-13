@@ -6,10 +6,8 @@ packer {
     }
   }
 }
-# Need to install:
-##apk add open-vm-tools
-##apk add open-vm-tools-guestinfo
-##apk add open-vm-tools-deploypkg
+# The tempalte Need to have:
+##apk add open-vm-tools open-vm-tools-guestinfo
 ##rc-update add open-vm-tools default
 
 
@@ -43,13 +41,26 @@ build {
 
   provisioner "shell" {
     inline = [
+      "echo 'https://mirror.aarnet.edu.au/pub/alpine/v3.15/main' > /etc/apk/repositories",
+      "echo 'https://mirror.aarnet.edu.au/pub/alpine/v3.15/community' >> /etc/apk/repositories",
       "apk update",
       "apk upgrade",
-      "apk add python3 py3-pip gcc",
+      "apk add python3 py3-pip gcc python3-dev libressl-dev musl-dev libffi-dev libxml2-dev libxslt-dev make openssl-dev cargo",
       "wget https://aci-github.cisco.com/camrossi/calico_aci/archive/master.zip",
       "unzip master.zip",
       "pip3 install -r calico_aci-master/requirements.txt",
-
+      "pip3 install https://github.com/datacenter/pyaci/archive/master.zip",
+      "wget -qO- https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip",
+      "unzip terraform_1.1.3_linux_amd64.zip  -d /bin",
+      "rc-update add local default",
+      "echo 'python3 /root/calico_aci-master/terraform/appflask.py &' > /etc/local.d/akb.start",
+      "chmod +x /etc/local.d/akb.start",
+      "echo 'auto lo' > /etc/network/interfaces",
+      "echo 'iface lo inet loopback' >> /etc/network/interfaces",
+      "echo 'auto eth0' >> /etc/network/interfaces",
+      "echo 'iface eth0 inet dhcp' >> /etc/network/interfaces",
+      "echo 'https://dl-cdn.alpinelinux.org/alpine/v3.15/main' > /etc/apk/repositories",
+      "echo 'https://dl-cdn.alpinelinux.org/alpine/v3.15/community' >> /etc/apk/repositories"
     ]
   }
 }

@@ -10,6 +10,7 @@
     - k8s_dashboard_220.yaml
     - ingress.yaml
     - metric_server.yaml
+    - goldpinger.yaml
   tags:
     - k8s_addons
 
@@ -37,7 +38,12 @@
 - name: Install Metric Server
   shell: kubectl apply -f /tmp/metric_server.yaml
   tags:
-    - k8s_addons1
+    - k8s_addons
+
+- name: Install Gold Pinger
+  shell: kubectl apply -f /tmp/goldpinger.yaml
+  tags:
+    - k8s_addons
 
 - name: add kubectl bash completion for root
   lineinfile:

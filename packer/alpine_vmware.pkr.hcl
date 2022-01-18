@@ -28,7 +28,7 @@ source "vsphere-clone" "clone" {
   username       = "administrator@vsphere.local"
   password     = "123Cisco123!"
   vcenter_server = "vc2.cam.ciscolabs.com"
-  vm_name        = "alpine-${local.timestamp}"
+  vm_name        = "akb-${local.timestamp}"
   ssh_username = "root"
   ssh_password = "123Cisco123"
 }
@@ -50,7 +50,7 @@ build {
       "unzip master.zip",
       "pip3 install -r calico_aci-master/requirements.txt",
       "pip3 install https://github.com/datacenter/pyaci/archive/master.zip",
-      "wget -qO- https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip",
+      "wget https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip",
       "unzip terraform_1.1.3_linux_amd64.zip  -d /bin",
       "rc-update add local default",
       "echo 'python3 /root/calico_aci-master/terraform/appflask.py &' > /etc/local.d/akb.start",

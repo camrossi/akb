@@ -127,22 +127,13 @@
   tags:
     - k8s_nodes
 
+# Certificates and NTP must start before as if the time is not in sycn apt update might fail
 - name: Install the ca-certificates 
   apt: 
     name: ca-certificates
     state: latest
   tags:
     - k8s_nodes    
-    
-- name: apt update
-  apt:
-    update_cache: yes
-    cache_valid_time: 0
-  register: apt_res
-  retries: 100
-  until: apt_res is success
-  tags:
-    - k8s_nodes
 
 - name: Install the NTP daemon
   apt: name=ntp
@@ -164,6 +155,16 @@
 
 - name: Make sure ntp is started, and is enabled on restart.
   service: name=ntp state=started enabled=yes
+  tags:
+    - k8s_nodes
+    
+- name: apt update
+  apt:
+    update_cache: yes
+    cache_valid_time: 0
+  register: apt_res
+  retries: 100
+  until: apt_res is success
   tags:
     - k8s_nodes
 

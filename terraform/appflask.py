@@ -127,7 +127,7 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
         g = proc.Group()
-        g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
+        g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         #p = g.run("ls")
         return Response( read_process(g), mimetype='text/event-stream' )
 

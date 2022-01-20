@@ -13,11 +13,15 @@ vc = {
   cluster           = "Cluster"
   dvs               = "ACI"
   port_group        = "CalicoL3OUT_300"
-  vm_template       = "Ubuntu20-Template"
-  vm_folder         = "Calico2.0"
+  vm_template       = "Ubuntu21-Template"
+  vm_folder         = "Calico-Cluster1"
 }
 
 l3out = {
+    "ipv4_cluster_subnet": "192.168.2.0/24"
+    "ipv6_cluster_subnet": "2001:db8:2::0/56"
+    "contract": "default1"
+    "contract_tenant": "common"
     # Name of the L3OUT
     name                = "calico_l3out" 
     # L3OUT could be in any tenant
@@ -35,10 +39,10 @@ l3out = {
     physical_dom        = "Fab2"
     # secondary_ip is the default GW for the calico nodes
     secondary_ip        = "192.168.2.254/24"
-    secondary_ipv6      = "2001:db8:42:00::254/56"
+    secondary_ipv6      = "2001:db8:2::254/56"
     # Used internally for leaf to leaf communicaiton. 
     floating_ip         = "192.168.2.253/24"
-    floating_ipv6       = "2001:db8:42:00::253/56"
+    floating_ipv6       = "2001:db8:2::253/56"
     # SVI VLAN ID
     vlan_id             = 300
     local_as            = 65002
@@ -57,7 +61,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.201"
         primary_ip      = "192.168.2.201/24"
-        primary_ipv6    = "2001:db8:42::201/56"
+        primary_ipv6    = "2001:db8:2::201/56"
         rack_id         = "1"
         },
         {
@@ -65,7 +69,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.202"
         primary_ip      = "192.168.2.202/24"
-        primary_ipv6    = "2001:db8:42::202/56"
+        primary_ipv6    = "2001:db8:2::202/56"
         rack_id         = "1"
         },
         {
@@ -73,7 +77,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.203"
         primary_ip      = "192.168.2.203/24"
-        primary_ipv6    = "2001:db8:42::203/56"
+        primary_ipv6    = "2001:db8:2::203/56"
         rack_id         = "2"
         },
         {
@@ -81,7 +85,7 @@ l3out = {
         pod_id          = 1
         rtr_id          = "1.1.4.204"
         primary_ip      = "192.168.2.204/24"
-        primary_ipv6    = "2001:db8:42::204/56"
+        primary_ipv6    = "2001:db8:2::204/56"
         rack_id         = "2"
         }
     ]
@@ -93,87 +97,97 @@ l3out = {
 calico_nodes = [{
     hostname        = "master-1"
     ip              = "192.168.2.1/24"
-    ipv6            = "2001:db8:42::1/56"
-    local_as        = "64501"
+    ipv6            = "2001:db8:2::1/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "2"
 },
 {
     hostname        = "master-2"
     ip              = "192.168.2.2/24"
-    ipv6            = "2001:db8:42::2/56"
-    local_as        = "64502"
+    ipv6            = "2001:db8:2::2/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "1"
 },
 {
     hostname        = "master-3"
     ip              = "192.168.2.3/24"
-    ipv6            = "2001:db8:42::3/56"
-    local_as        = "64503"
+    ipv6            = "2001:db8:2::3/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "2"
 },
 {
     hostname        = "worker-1"
     ip              = "192.168.2.4/24"
-    ipv6            = "2001:db8:42::4/56"
-    local_as        = "64504"
+    ipv6            = "2001:db8:2::4/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "1"
 },
 {
     hostname        = "worker-2"
     ip              = "192.168.2.5/24"
-    ipv6            = "2001:db8:42::5/56"
-    local_as        = "64505"
+    ipv6            = "2001:db8:2::5/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "2"
 },
 {
     hostname        = "worker-3"
     ip              = "192.168.2.6/24"
-    ipv6            = "2001:db8:42::6/56"
-    local_as        = "64506"
+    ipv6            = "2001:db8:2::6/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "1"
 },
 {
     hostname        = "worker-4"
     ip              = "192.168.2.7/24"
-    ipv6            = "2001:db8:42::7/56"
-    local_as        = "64507"
+    ipv6            = "2001:db8:2::7/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "2"
 },
 {
     hostname        = "worker-5"
     ip              = "192.168.2.8/24"
-    ipv6            = "2001:db8:42::8/56"
-    local_as        = "64508"
+    ipv6            = "2001:db8:2::8/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "1"
 },
 {
     hostname        = "worker-6"
     ip              = "192.168.2.9/24"
-    ipv6            = "2001:db8:42::9/56"
-    local_as        = "64509"
+    ipv6            = "2001:db8:2::9/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "2"
 },
 {
     hostname        = "worker-7"
     ip              = "192.168.2.10/24"
-    ipv6            = "2001:db8:42::a/56"
-    local_as        = "64510"
+    ipv6            = "2001:db8:2::a/56"
+    local_as        = "650011"
+    natip           = ""
     rack_id         = "1"
 }
 ]
 
 k8s_cluster = {
-    kube_version        = "1.22.1-00"
+    kube_version        = "1.22.4-00"
     crio_version        = "1.22"
-    OS_Version          = "xUbuntu_20.04"
+    OS_Version          = "xUbuntu_21.04"
     control_plane_vip   = "192.168.2.100"
     vip_port            = 8443
-    haproxy_image       = "haproxy:2.3.6"
-    keepalived_image    = "osixia/keepalived:2.0.20"
+    haproxy_image       = "haproxy:latest"
+    keepalived_image    = "osixia/keepalived:latest"
     keepalived_router_id= "51"
     kubeadm_token       = "fqv728.htdmfzf6rt9blhej"
     node_sub            = "192.168.2.0/24"
-    node_sub_v6         = "2001:db8:42::/56"
+    node_sub_v6         = "2001:db8:2::/56"
     pod_subnet          = "10.1.0.0/16"
     pod_subnet_v6       = "2001:db8:43::/56"
     cluster_svc_subnet  = "192.168.8.0/22"
@@ -183,6 +197,9 @@ k8s_cluster = {
     docker_mirror       = "10.67.185.120:5000"
     ingress_ip          = "192.168.3.1"
     external_svc_subnet = "192.168.3.0/24"
-    external_svc_subnet_v6 = "2001:db8:44:2::/112"
+    external_svc_subnet_v6 = "2001:db8:44:2::/112",
+    "http_proxy_status": "",
+    "http_proxy": "",
+    "ubuntu_apt_mirror": "ubuntu.mirror.digitalpacific.com.au/archive/"
 
   }

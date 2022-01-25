@@ -1,9 +1,32 @@
 ---
-- name: Copy Helm
+- name: add apt-key for helm
+  apt_key:
+    url: https://baltocdn.com/helm/signing.asc
+  tags:
+    - helm
+
+- name: add helm repo
   copy:
-    src: helm
-    dest: /usr/local/bin/helm
-    force: yes
-    mode: '0755'
+    content: "deb https://baltocdn.com/helm/stable/debian/ all main"
+    dest: /etc/apt/sources.list.d/helm-stable-debian.list
+    force: no
+  tags:
+    - helm
+
+- name: apt update
+  apt:
+    update_cache: yes
+    cache_valid_time: 0
+  register: apt_res
+  retries: 100
+  until: apt_res is success
+  tags:
+    - helm
+
+- name: Install helm
+  apt: name=helm
+  register: apt_res
+  retries: 100
+  until: apt_res is success
   tags:
     - helm

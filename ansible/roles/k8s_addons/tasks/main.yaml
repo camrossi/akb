@@ -11,6 +11,7 @@
     - ingress.yaml
     - metric_server.yaml
     - goldpinger.yaml
+    - vkaci.yaml.j2
   tags:
     - k8s_addons
 
@@ -42,6 +43,11 @@
 
 - name: Install Gold Pinger
   shell: kubectl apply -f /tmp/goldpinger.yaml
+  tags:
+    - k8s_addons
+
+- name: Install vkaci
+  shell: kubectl apply -f /tmp/vkaci.yaml.j2
   tags:
     - k8s_addons
 

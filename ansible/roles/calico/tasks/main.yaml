@@ -29,6 +29,9 @@
   shell: |
     kubectl label node {{ item }} rack_id="{{ hostvars[item]['rack_id'] }}" --overwrite
   loop: "{{groups['k8s_nodes']}}"
+  register: label_res
+  retries: 100
+  until: label_res is success
   tags:
     - calico
 

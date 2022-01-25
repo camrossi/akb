@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from time import sleep
+
 def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem = driver.find_element(By.NAME,"pod_id")
     elem.send_keys(pod_id)
@@ -23,6 +24,7 @@ def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem.send_keys(node_ipv6)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
+    sleep(0.5)
 
 def add_calico_ndoe(hostname, ip, ipv6, local_as, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
@@ -42,6 +44,7 @@ def add_calico_ndoe(hostname, ip, ipv6, local_as, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
+    sleep(0.5)
 
 driver = webdriver.Chrome()
 
@@ -116,11 +119,10 @@ add_anchor_ndoe("1","1","201","1.1.1.201","192.168.12.201","2001:db8:12::201/56"
 add_anchor_ndoe("1","1","202","1.1.1.202","192.168.12.202/24","2001:db8:12::202/56")
 add_anchor_ndoe("1","2","203","1.1.1.203","192.168.12.203/24","2001:db8:12::203/56")
 add_anchor_ndoe("1","2","204","1.1.1.204","192.168.12.204/24","2001:db8:12::204/56")
-current_url = driver.current_url
 
 elem = driver.find_element(By.ID,"submit")
+current_url = driver.current_url
 elem.click()
-
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
@@ -168,7 +170,8 @@ add_calico_ndoe('calico-1','192.168.12.11/24','2001:db8:12::11/56', '650011', '1
 add_calico_ndoe('calico-2','192.168.12.12/24','2001:db8:12::12/56', '650011', '1')
 add_calico_ndoe('calico-3','192.168.12.13/24','2001:db8:12::13/56', '650011', '2')
 add_calico_ndoe('calico-4','192.168.12.14/24','2001:db8:12::14/56', '650011', '2')
-exit()
+
+
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

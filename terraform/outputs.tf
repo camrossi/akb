@@ -20,6 +20,9 @@ resource "local_file" "AnsibleConfig" {
      bgp_pass = var.l3out.bgp_pass
      anchor_nodes = var.l3out.anchor_nodes
      dns_domain = var.l3out.dns_domain
+     vrf_tenant = var.l3out.vrf_tenant
+     vrf_name = var.l3out.vrf_name
+     apic = var.apic
  }
  )
  filename = "../ansible/inventory/group_vars/all.yml"

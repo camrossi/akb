@@ -2,7 +2,8 @@ apic ={
     "url": "https://10.67.185.102",
     "username": "ansible",
     "cert_name": "ansible.crt",
-    "private_key": "/home/cisco/Coding/ansible.key"
+    "private_key": "/home/cisco/Coding/ansible.key",
+    "oob_ips": "10.67.185.102,10.67.185.41,10.67.185.42,"
 }
 vc ={
     "url": "vc2.cam.ciscolabs.com",

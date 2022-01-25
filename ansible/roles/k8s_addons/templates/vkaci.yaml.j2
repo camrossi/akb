@@ -1,0 +1,106 @@
+# Add permission to list the POD for incluster PODs using the default ServiceAccount
+# Might be better to use a dedicate Service Accout I am lazy. 
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pods-list
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pods-list
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: pods-list
+  apiGroup: rbac.authorization.k8s.io
+# APIC Key, this needs to be vase64 encoded. 
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aci-user-cert
+data:
+  user.key: {{  lookup('file', apic_private_key) | b64encode }}
+# The pod, the init container will put the aci metadata in the /root/.aci-meta foder so that pyACI has it locally. 
+# User needs to set the list of APIC IPs (for both containers) and the name of the APIC certificate and the user that is associated to it. 
+# The vkaci POD will just sleep forever waiting for someone to call the visibility.py script.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vkaci
+  labels:
+    app: vkaci
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vkaci
+  template:
+    metadata:
+      labels:
+        app: vkaci
+    spec:
+       containers:
+       - name: vkaci
+         image: quay.io/camillo/vkaci
+         ports:
+         - containerPort: 50000
+         command: ['sh', '-c', "python3 visibility_ui.py" ]
+         env:
+           - name: MODE
+             value: "CLUSTER"
+           - name: APIC_IPS
+             value: "{{ apic_oob_ips }}"
+           - name: CERT_NAME
+             value: "{{ apic_cert_name }}"
+           - name: CERT_USER
+             value: "{{ apic_username }}"
+           - name: TENANT
+             value: "{{ vrf_tenant }}"
+           - name: VRF
+             value: "{{ vrf_name }}"
+         volumeMounts:
+           - name: aci-user-cert-volume
+             mountPath: /usr/local/etc/aci-cert/
+           - name: aci-meta
+             mountPath: "/root/.aci-meta"
+       initContainers:
+       - name: init-vkaci
+         image: quay.io/camillo/vkaci-init
+         command: ['sh', '-c', "python3 init.py"]
+         env:
+           - name: APIC_IPS
+             value: "{{ apic_oob_ips }}"
+         volumeMounts:
+           - name: aci-meta
+             mountPath: "/root/.aci-meta"
+       volumes:
+         - name: aci-user-cert-volume
+           secret:
+             secretName: aci-user-cert
+         - name: aci-meta
+           emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vkaci
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  selector:
+    app: vkaci
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

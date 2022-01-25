@@ -693,6 +693,7 @@ def l3out():
         pods = pyaci_apic.methods.ResolveClass('fabricPod').GET()
         nodes = pyaci_apic.methods.ResolveClass('fabricNode').GET(
             **options.filter(filters.Eq('fabricNode.role', 'leaf')))
+        apics = pyaci_apic.methods.ResolveClass('topSystem').GET(**options.filter(filters.Eq('topSystem.role', 'controller')))
         for physDomP in physDomPs:
             phys_dom.append(physDomP.name)
         for fvTenant in fvTenants:
@@ -701,6 +702,10 @@ def l3out():
             pod_ids.append(pod.id)
         for node in nodes:
             nodes_id.append(node.id)
+        for a in apics:
+            apic['oob_ips'] += (a.oobMgmtAddr) + ","
+        #Remove the last comma
+        apic['oob_ips'] = apic['oob_ips'][:-1]
         phys_dom = sorted(phys_dom, key=str.lower)
         tenants = sorted(tenants, key=str.lower)
         nodes_id = sorted(nodes_id, key=int)
@@ -720,6 +725,7 @@ def login():
             apic['username'] = request.form['username']
             apic['cert_name'] = request.form['certname']
             apic['private_key'] = request.form['privatekey']
+            apic['oob_ips'] = ""
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
             # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR

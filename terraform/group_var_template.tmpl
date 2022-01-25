@@ -29,6 +29,13 @@ time_zone: "${k8s_cluster.time_zone}"
 kubeadm_token: ${k8s_cluster.kubeadm_token}
 
 aci_as: ${as}
+apic_username : ${apic.username}
+apic_cert_name : ${apic.cert_name}
+apic_private_key: ${apic.private_key}
+apic_oob_ips :  ${apic.oob_ips}
+vrf_tenant: ${vrf_tenant}
+vrf_name: ${vrf_name}
+
 anchor_nodes:
 %{ for node in anchor_nodes ~}
   - id: ${node.node_id}

@@ -3,7 +3,8 @@ variable "apic" {
   username          = string
   cert_name         = string
   private_key       = string
-  url          = string
+  url               = string
+  oob_ips           = string
   })
 }
 

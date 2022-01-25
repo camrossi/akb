@@ -490,7 +490,7 @@ calico_nodes =[
 k8s_cluster ={
     "control_plane_vip": "192.168.12.252",
     "vip_port": "8443",
-    "pod_subnet": "192.168.13.0/24",
+    "pod_subnet": "192.168.16.0/22",
     "pod_subnet_v6": "2001:db8:12:100::/56",
     "cluster_svc_subnet": "192.168.14.0/24",
     "cluster_svc_subnet_v6": "2001:db8:12:200::/112",

@@ -6,7 +6,6 @@
     dest: /tmp/{{ item }}
     force: yes
   with_items:
-    - calico.yaml
     - BGPPassSecret.yaml
     - IPPool.yaml
     - BGPConfiguration.yaml
@@ -15,10 +14,19 @@
   tags:
     - calico
 
-- name: Copy calicoctl
-  copy:
-    src: calicoctl
+- name: Install calicoctl
+  get_url:
+    url: https://github.com/projectcalico/calico/releases/download/v3.21.4/calicoctl-linux-amd64
     dest: /bin/calicoctl
+    force: yes
+    mode: '0755'
+  tags:
+    - calico
+
+- name: Download calico-typha
+  get_url:
+    url: https://docs.projectcalico.org/manifests/calico-typha.yaml
+    dest: /tmp/calico.yaml
     force: yes
     mode: '0755'
   tags:

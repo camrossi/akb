@@ -4,7 +4,7 @@ terraform {
  required_providers {
    aci = {
      source = "CiscoDevNet/aci"
-     version = "1.2.0"
+     version = "2.0.0"
    }
    vsphere = {
       source = "hashicorp/vsphere"
@@ -41,8 +41,7 @@ resource "aci_l3_outside" "calico_l3out" {
   tenant_dn      = data.aci_tenant.tenant_l3out.id
   name           = var.l3out.name
   relation_l3ext_rs_ectx = data.aci_vrf.l3out_vrf.id
-  # Bug: need to do a rest call for now
-  #enforce_rtctrl = "export,import"
+  enforce_rtctrl = ["export", "import"]
 }
 
 resource "aci_logical_node_profile" "calico_node_profile" {

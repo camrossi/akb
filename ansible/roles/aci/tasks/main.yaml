@@ -82,7 +82,7 @@
       }
   tags:
     - apic_user 
-    
+
 - name: Add Certificate to the user
   cisco.aci.aci_aaa_user_certificate:
     host: "{{ inventory_hostname }}"

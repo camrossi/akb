@@ -18,9 +18,6 @@ vc = {}
 apic = {}
 cluster = {}
 calico_nodes = ""
-apic = ""
-apic_username = ""
-apic_password = ""
 
 
 # app = Flask(__name__)
@@ -144,7 +141,13 @@ def tf_apply():
 def create():
     if request.method == 'GET':
         try: 
-            config = "apic =" + json.dumps(apic, indent=4)
+            tf_apic = {}
+            tf_apic['username'] = apic["akb_user"]
+            tf_apic['cert_name'] = apic["cert_name"]
+            tf_apic['private_key'] = apic["private_key"]
+            tf_apic['url'] = apic["url"]
+            tf_apic['oob_ips'] = apic["oob_ips"]
+            config = "apic =" + json.dumps(tf_apic, indent=4)
             config += "\nvc =" + json.dumps(vc, indent=4)
             config += "\nl3out =" + json.dumps(l3out, indent=4)
             config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)

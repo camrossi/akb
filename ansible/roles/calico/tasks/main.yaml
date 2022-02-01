@@ -11,6 +11,8 @@
     - BGPConfiguration.yaml
     - BGPPeer.j2
     - Node.j2
+    - kustomization.yaml
+    - calico-typha-patch.yaml
   tags:
     - calico
 
@@ -23,12 +25,26 @@
   tags:
     - calico
 
-- name: Download calico-typha
+- name: download latest calico
   get_url:
-    url: https://docs.projectcalico.org/manifests/calico-typha.yaml
-    dest: /tmp/calico.yaml
+    url: https://projectcalico.docs.tigera.io/manifests/calico-typha.yaml
+    dest: /tmp/calico-typha.yaml
     force: yes
     mode: '0755'
+  tags:
+    - calico
+
+- name: Extract and update calico Config Map 
+  shell: |
+    data=$(yq '. | select(.metadata.name=="calico-config") | .data.cni_network_config' /tmp/calico-typha.yaml)
+    updateddata=$(echo $data | yq -o json '.plugins[0].ipam.assign_ipv4 = "true" | .plugins[0].ipam.assign_ipv6 = "true"')
+    myenv=$updateddata  yq  'select(.metadata.name=="calico-config") |= .data.cni_network_config=strenv(myenv)' /tmp/calico-typha.yaml > /tmp/config-map-patch.yaml
+  tags:
+    - calico
+
+- name: Kustomize the Calico config and apply it
+  shell: |
+    kubectl kustomize /tmp/ > /tmp/calico-typha-custom.yaml
   tags:
     - calico
 
@@ -44,7 +60,7 @@
     - calico
 
 - name: Apply Calico CNI
-  shell: kubectl apply -f /tmp/calico.yaml
+  shell: kubectl apply -f /tmp/calico-typha-custom.yaml
   tags:
     - calico
 

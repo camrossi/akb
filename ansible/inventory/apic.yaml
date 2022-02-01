@@ -1,0 +1,14 @@
+#Dynmically Generated here isd an example 
+apic: #You ACI Fabric Name
+  hosts:
+    fab1-apic1.cam.ciscolabs.com:
+      validate_certs: no
+      # APIC HTTPs Port 
+      port: 443
+      # APIC user with admin credential
+      admin_user: admin
+      admin_pass: 123Cisco123
+      # APIC User that we create only for the duration of this playbook
+      # We also create certificates for this user name to use cert based authentication
+      aci_temp_username: akb_user
+      aci_temp_pass: 123Cisco123

@@ -94,25 +94,21 @@
                      <td><input type="text" size=25 name="fabric"></td>
                   </tr>
                   <tr>
-                     <td>Username associated to the certificate:</td>
-                     <td><input type="text" size=25 name="username"></td>
+                     <td>Username (with Admin Privilege):</td>
+                     <td><input type="text" size=25 name="username" value="admin"></td>
                   </tr>
                   <tr>
-                     <td>Certificate Name (As per APIC user configuration):</td>
-                     <td><input type="text" size=25 name="certname"></td>
+                     <td>Password:</td>
+                     <td><input type="password" size=25 name="password"></td>
                   </tr>
                   <tr>
-                     <td>Private Key Path (Absolute Paht of the privatekey on the server where this application is running. i.e.:'/home/cisco/Coding/private.key'):</td>
-                     <td><input type="text" size=25 name="privatekey"></td>
+                     <td>New APIC Username (used for AKB provisioning cert based):</td>
+                     <td><input type="text" size=25 name="akb_user" value="akb_user"></td>
                   </tr>
                   <tr>
-                     <td></td>
-                     <td></td>
-                  </tr>
-                  <tr>
-                     <td></td>
-                     <td></td>
-                  </tr>
+                  <td>New AKB Password (default: 123Cisco123):</td>
+                  <td><input type="password" size=25 name="akb_pass" value="123Cisco123"></td>
+               </tr>
                   <tr>
                      <td>
                         <div class="container">

@@ -17,10 +17,6 @@
   tags:
     - ingress-nginx
 
-- name: Pause for 5 minutes to make sure previous apps are available
-  pause:
-    minutes: 5    
-
 - name: helm install ingress-nginx 
   shell: helm install -n kube-system ingress-nginx ingress-nginx/ingress-nginx -f /tmp/ingress-nginx-values.yaml
   tags:

@@ -1,0 +1,97 @@
+---
+- name: Generate an OpenSSL private key.
+  openssl_privatekey:
+    path: "{{ './roles/aci/files/' + aci_temp_username + '-user.key' }}"
+    type: RSA
+    size: 1024
+  tags:
+    - apic_user
+
+- name: Generate an OpenSSL CSR.
+  openssl_csr:
+    path: "{{ './roles/aci/files/' + aci_temp_username +'-user.csr' }}"
+    privatekey_path: "{{ './roles/aci/files/' + aci_temp_username + '-user.key' }}"
+  tags:
+    - apic_user
+
+- name: Generate a Self Signed OpenSSL certificate
+  openssl_certificate:
+    path: "{{ './roles/aci/files/'+ aci_temp_username + '-user.crt' }}"
+    privatekey_path: "{{ './roles/aci/files/' + aci_temp_username + '-user.key' }}"
+    csr_path: "{{ './roles/aci/files/' +  aci_temp_username +'-user.csr' }}"
+    provider: selfsigned
+  tags:
+    - apic_user
+
+- name: Create temporary user
+  cisco.aci.aci_aaa_user:
+    host: "{{ inventory_hostname }}"
+    username: "{{ admin_user }}"
+    password: "{{ admin_pass }}"
+    aaa_user: "{{ aci_temp_username }}"
+    aaa_password: "{{ aci_temp_pass }}"
+    validate_certs: "{{ validate_certs }}"
+    clear_password_history: yes
+    state: present
+  tags:
+    - apic_user
+
+- name: Add Security Domain All with write permissions
+  cisco.aci.aci_rest:
+    host: "{{ inventory_hostname }}"
+    username: "{{ admin_user }}"
+    password: "{{ admin_pass }}"
+    validate_certs: "{{ validate_certs }}"
+    method: post
+    path: /api/mo/uni.json
+    content:
+      {
+        "totalCount": "1",
+        "imdata": [
+          {
+            "aaaUserDomain": {
+              "attributes": {
+                "annotation": "",
+                "descr": "",
+                "dn": "{{'uni/userext/user-' + aci_temp_username + '/userdomain-all' }}",
+                "name": "all",
+                "nameAlias": "",
+                "ownerKey": "",
+                "ownerTag": "",
+                "userdom": "all"
+              },
+              "children": [
+                {
+                  "aaaUserRole": {
+                    "attributes": {
+                      "annotation": "",
+                      "descr": "",
+                      "name": "admin",
+                      "nameAlias": "",
+                      "ownerKey": "",
+                      "ownerTag": "",
+                      "privType": "writePriv",
+                      "userdom": "all"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+  tags:
+    - apic_user 
+    
+- name: Add Certificate to the user
+  cisco.aci.aci_aaa_user_certificate:
+    host: "{{ inventory_hostname }}"
+    username: "{{ admin_user }}"
+    password: "{{ admin_pass }}"
+    aaa_user: "{{ aci_temp_username }}"
+    certificate_name: "{{ aci_temp_username }}"
+    certificate_data: "{{ lookup('file', './roles/aci/files/' + aci_temp_username + '-user.crt') }}"
+    state: present
+    validate_certs: "{{ validate_certs }}"
+  tags:
+    - apic_user

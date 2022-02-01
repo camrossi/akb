@@ -12,6 +12,7 @@ from pyVim import connect
 import re
 from shelljob import proc
 from distutils.version import LooseVersion
+from time import sleep
 l3out = {}
 vc = {}
 apic = {}
@@ -551,7 +552,7 @@ def l3out():
     pyaci_apic = Node(apic['url'],aciMetaFilePath = meta_path)
 
     try:
-        pyaci_apic.useX509CertAuth(apic['username'],apic['cert_name'],apic['private_key'])
+        pyaci_apic.useX509CertAuth(apic['akb_user'],apic['cert_name'],apic['private_key'])
     except FileNotFoundError as e:
         flash(u'Private Key Not Found', 'error')
         return redirect('/login')
@@ -688,8 +689,7 @@ def l3out():
             flash(u'Invalid Credentials', 'error')
             return redirect('/login')
         fvTenants = pyaci_apic.methods.ResolveClass('fvTenant').GET()
-        local_as = pyaci_apic.mit.FromDn(
-            'uni/fabric/bgpInstP-default/as').GET()[0].asn
+        local_as = pyaci_apic.mit.FromDn('uni/fabric/bgpInstP-default/as').GET()[0].asn
         pods = pyaci_apic.methods.ResolveClass('fabricPod').GET()
         nodes = pyaci_apic.methods.ResolveClass('fabricNode').GET(
             **options.filter(filters.Eq('fabricNode.role', 'leaf')))
@@ -723,8 +723,11 @@ def login():
         if button == "Login":
             apic['url'] = "https://" +  request.form['fabric']
             apic['username'] = request.form['username']
-            apic['cert_name'] = request.form['certname']
-            apic['private_key'] = request.form['privatekey']
+            apic['password'] = request.form['password']
+            apic['akb_user'] = request.form['akb_user']
+            apic['akb_pass'] = request.form['akb_pass']
+            apic['private_key']= "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
+            apic['cert_name'] = request.form['akb_user']
             apic['oob_ips'] = ""
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
@@ -739,7 +742,29 @@ def login():
             meta_path = home + '/.aci-meta'
             if not os.path.exists(meta_path):
                 os.makedirs(meta_path)
-            open(meta_path + '/aci-meta.json', 'wb').write(r.content)
+            open(meta_path + '/aci-meta.json', 'wb').write(r.content) 
+    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
+            config = f"""apic: #You ACI Fabric Name
+  hosts:
+    {request.form['fabric']}:
+      validate_certs: no
+      # APIC HTTPs Port 
+      port: 443
+      # APIC user with admin credential
+      admin_user: {apic['username']}
+      admin_pass: {apic['password']}
+      # APIC User that we create only for the duration of this playbook
+      # We also create certificates for this user name to use cert based authentication
+      aci_temp_username: {apic['akb_user']}
+      aci_temp_pass: {apic['akb_pass']}"""
+            with open('../ansible/inventory/apic.yaml', 'w') as f:
+                f.write(config)      
+            # Generate temporary user and certificate
+            g = proc.Group()
+            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml"])
+            #Just wait for terraform to finish
+            while g.is_pending():
+                lines = g.readlines()
             return redirect('/l3out')
         if button == "Previous":
             return redirect('/intro')

@@ -17,9 +17,10 @@
 
 - name: Enable Scheduling on Masters
   shell: kubectl taint nodes --all node-role.kubernetes.io/master-
-  when: "{{ groups['k8s_workers' | length ] < 3}}"
+  when: "groups['k8s_workers'] | length < 3"
+  ignore_errors: yes
   tags:
-    - k8s_addons
+    - k8s_addons1
 
 - name: Create guestbook ns
   shell: kubectl create ns gb

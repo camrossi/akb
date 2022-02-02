@@ -7,3 +7,5 @@ ipaddress
 pyVmomi
 pyVim
 shelljob
+
+ansible

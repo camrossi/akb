@@ -48,7 +48,7 @@ def add_calico_ndoe(hostname, ip, ipv6, local_as, rack_id):
     sleep(0.5)
 
 chrome_options = Options()
-#chrome_options.add_argument("--headless")
+chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(options=chrome_options)
 
 
@@ -197,4 +197,4 @@ elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-driver.exit()
+driver.quit()

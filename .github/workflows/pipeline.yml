@@ -27,6 +27,22 @@ jobs:
         run: | 
           cd terraform
           python3 appflask.py &
-      - name: Run headless chrome
+      - name: Run headless chrome to generate the config
         run: | 
-          curl http://10.67.185.120:5002/
+          python3 selenium_ui_testing_dev_cluster.py
+      - name: Terraform init
+        run: | 
+          terraform init
+      - name: Terraform plan
+        run: | 
+          terraform plan -var-file="cluster.tfvars" -out=plan
+      - name: Terraform apply
+        run: | 
+          terraform apply "plan"
+      - name: Connect to node and get status
+        run: | 
+          kubectl --kubeconfig=/tmp/kubeadm-ha/admin.conf get node
+      - name: Terraform destroy
+        run: | 
+          terraform destroy -var-file='cluster.tfvars'
+

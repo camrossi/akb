@@ -3,6 +3,8 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+
 from time import sleep
 def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem = driver.find_element(By.NAME,"pod_id")
@@ -45,7 +47,10 @@ def add_calico_ndoe(hostname, ip, ipv6, local_as, rack_id):
     elem.click()
     sleep(0.5)
 
-driver = webdriver.Chrome()
+chrome_options = Options()
+#chrome_options.add_argument("--headless")
+driver = webdriver.Chrome(options=chrome_options)
+
 
 driver.get("http://10.67.185.120:5002/")
 assert "AKB" in driver.title

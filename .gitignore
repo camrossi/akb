@@ -1,4 +1,4 @@
 .terraform.lock.hcl
 *.tfstate
 *.terraform
-visibility/config
+.DS_Store

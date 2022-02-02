@@ -24,36 +24,14 @@ Terminology refresher:
 
 * Floating IP: A common internal IP for non anchor leaf nodes to communicate with anchor leaf node.
 
-### Floating L3 OUT Design
+### ACI design
 
-**WARNING: This needs to be updated pedning the 2 Anchoer node vs all Anchor node desing due to the tromboning and scaling issue.**
-
-The design choices for the floating L3OUT are as following:
-
-* Physical Domain: The Floating L3 OUT VLAN will be deployed on all the ports that are associated with the Physical Domain. Be carful if you choose to re-use a physical domain as you might end up with the Floating L3 OUT VLAN deplouyed on ports that are not connected to your Calico Nodes.
-* Two Anchor Ndoes: A single border leaf can handle up to 400 dynamic routing adjagencies. This allow use to deploy up to 400 Calico Nodes per pair of Anchor Nodes. If more than 400 nodes are required we will instantiate a new set of Anchor nodes to spread the load.
-* Non-Anchor nodes: This depends only on the rack layout and VM/BM spread.
-
-### eBGP desing
-
-The eBGP desing follow the approach to configure every Calico Node with a dedicated AS number and to peer with the two ACI Anchor nodes.
-The following optimizations are already implementd:
-
-* BGP Timers set to 1s/3s to match the Calico Config
-* Graceful Restart Helper
-* Configure AS relax policy to allow installing ECMP path more than one node
-* Increase Max eBGP ECMP Path to 64 (from 16). 64 is the current maximum on ACI
-* Configure default-export policy to advertise the POD subnets back to the nodes
-* BGP Control plan protection:
-  * BGP Password authentication
-  * Ability to set a limit on the number of received prefixes from the nodes
-  * Set the Maximum of AS limit to 1, no Calico Node should send more than 1 AS in its path.
-  * Subnet import filtering: Only the expected subnets (POD, Node and Services) are accepted by ACI
+The ACI configuration will follow the Floating L3OUT architecture described in the [Cisco Application Centric Infrastructure Calico Design White Paper](https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html)
 
 ## The Kubernetes Cluster
 
 The cluster is composed by 3 masters and N workers.
-The control plane redundancy is ensured by deploying HaProxy and KeepaliveD. 
+The control plane redundancy is ensured by deploying HaProxy and KeepaliveD.
 
 A few add-ons are also installed on the cluster:
 
@@ -61,15 +39,20 @@ A few add-ons are also installed on the cluster:
 * Nginx Ingress
 * kubectl bash completion
 * kubernetes dashboard
+* Kustomize
 * metric server: the default config is modified to add the `--kubelet-insecure-tls` since all the certificates are self signed
 * Guestbook demo application exposed via ingress. Access via: http://ingress_ip/ this is not ideal, is just for demo purposes
+* Gold Pinger
 
-## Terraform Configuration Variables for ACI
+## UI
 
-All the configurations requires to spin up a cluster are done in the terraform configuraiton file. Some of the parameters are then used to generate the ansible inventory file and ansible variables.
-[Variables Documentation](docs/terraformVars.md)
+All the configurations can be done via the integrated webui.
+Just execture the `appflask.py` file from the `terraform` directory
+
+### Visibility
+
+A visualization tool `vkaci` is also deployed on the cluster. It is exposed as a service and can be used to visualize the cluster topology.
 
 ## Open Issues
 
 * L3OUT ECMP is used to load balance traffic to the services running in the cluster: Every node that has a POD for an exposed service will advertise a /32 host route for the service IP. Currently ACI does not support Resilient hashing for L3out ECMP. This means that if the number of ECMP paths are changed (scaling up/down a deploument could result in that as well as node failure) the flows can potentially be re-hashed to a different nodes resulting in connections resets. There is currently a feature request opened to support Resilient hashing for L3out ECMP: US9273
-* Due to CSCvx73502 the `bgp policy timers` mapping into the `BGP policy` can't be deleted by the `terraform destroy` command resulting in terraform failing to complete the destroy operation. You can workaround this by executing the `terraform state rm aci_rest.bgp_pol_timers` command before invoking `terraform destroy` as a work around.

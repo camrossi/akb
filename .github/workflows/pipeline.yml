@@ -24,8 +24,8 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Start AKB
-        run: |
-          nohup python3 terraform/appflask.py 
+        run: | 
+          python3 terraform/appflask.py &
       - name: Run headless chrome
         run: | 
           curl http://10.67.185.120:5002/

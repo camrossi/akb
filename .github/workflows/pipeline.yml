@@ -17,6 +17,9 @@ jobs:
   start-akb:
     # The type of runner that the job will run on
     runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ./terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -25,7 +28,6 @@ jobs:
 
       - name: Start AKB
         run: | 
-          cd terraform
           python3 appflask.py &
       - name: Run headless chrome to generate the config
         run: | 

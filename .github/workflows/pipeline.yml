@@ -41,10 +41,13 @@ jobs:
       - name: Terraform apply
         run: | 
           terraform apply "plan"
-      - name: Connect to node and get status
+      - name: Check if all the nodes are ready
         run: | 
-          kubectl --kubeconfig=/tmp/kubeadm-ha/admin.conf get node
+          kubectl wait --for=condition=Ready nodes --all --timeout=600s
+      - name: Check if all the pods are ready
+        run: | 
+          kubectl wait --for=condition=Ready pods --all --all-namespaces
       - name: Terraform destroy
         run: | 
-          terraform destroy -var-file='cluster.tfvars'
+          terraform destroy -auto-approve -var-file='cluster.tfvars'
 

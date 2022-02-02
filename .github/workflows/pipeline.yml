@@ -25,4 +25,5 @@ jobs:
 
       - name: Start AKB
         run: |
-          python ./terrafrom/appflask.py
+          pwd
+          python3 terraform/appflask.py

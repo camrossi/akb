@@ -25,4 +25,4 @@ jobs:
 
       - name: Start AKB
         run: |
-          python ./akb/terrafrom/appflask.py
+          python ./akb/akb/terrafrom/appflask.py

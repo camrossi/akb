@@ -4,13 +4,17 @@
   shell: kubeadm token create --print-join-command
   register: kubeadm_join_cmd
   delegate_to: "{{groups['k8s_primary_master'][0]}}"
+  retries: 10
+  until: kubeadm_join_cmd is success
+  any_errors_fatal: true
   tags:
     - workers
 
 - name: Join Workers  to cluster
   shell: "{{ kubeadm_join_cmd.stdout }}"
   register: join_workers
-  retries: 100
+  retries: 10
   until: join_workers is success
+  any_errors_fatal: true
   tags:
     - workers

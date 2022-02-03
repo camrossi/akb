@@ -11,6 +11,10 @@
 
 - name: Disable swap
   command: swapoff -a
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -63,12 +67,20 @@
 - name: Test http internet connectivity get http://www.google.com
   uri:
     url: http://www.google.com
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
    
 - name: Test https internet connectivity get https://www.google.com
   uri:
     url: https://www.google.com
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -85,6 +97,10 @@
 - name: add apt-key for Kubeadm
   apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -93,18 +109,31 @@
     content: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
     dest: /etc/apt/sources.list.d/kubernetes.list
     force: yes
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
 - name: add apt-key for cri-o-runc
   apt_key:
     url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS_Version }}/Release.key
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
 - name: add apt-key for cri-o
   apt_key:
     url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:/{{ crio_version }}/{{ OS_Version }}/Release.key
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+
   tags:
     - k8s_nodes
 
@@ -121,6 +150,10 @@
     content: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ OS_Version }}/ /"
     dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}.list
     force: no
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -176,6 +209,7 @@
   register: apt_res
   retries: 100
   until: apt_res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
     - apt_upgrade
@@ -238,9 +272,10 @@
   apt:
     name: cri-o
     state: latest
-  register: apt_res
-  retries: 100
-  until: apt_res is success
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -248,9 +283,10 @@
   apt:
     name: cri-o-runc
     state: latest
-  register: apt_res
-  retries: 100
-  until: apt_res is success
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -258,9 +294,10 @@
   apt: 
     name: cri-tools
     state: latest
-  register: apt_res
-  retries: 100
-  until: apt_res is success
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -288,6 +325,7 @@
     name: crio.service
     state: reloaded
   when: http_proxy_status == "enabled"    
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -317,6 +355,7 @@
   service:
     name: crio
     state: restarted
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -325,9 +364,10 @@
     name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
     state: present
     force: True
-  register: apt_res
-  retries: 100
-  until: apt_res is success
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - k8s_nodes
 
@@ -336,7 +376,11 @@
   async: 1
   poll: 0
   tags:
-    - k8s_nodes1
+    - k8s_nodes
+
+- name: Pause for 1 minutes to ensure the hosts are off
+  pause:
+    minutes: 1
 
 - name: Wait for the nodes to be reachable
   wait_for_connection:
@@ -345,4 +389,4 @@
     delay: 5
     timeout: 5000
   tags:
-    - k8s_nodes1
+    - k8s_nodes

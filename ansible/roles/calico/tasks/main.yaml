@@ -22,6 +22,10 @@
     dest: /bin/calicoctl
     force: yes
     mode: '0755'
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - calico
 
@@ -31,6 +35,9 @@
     dest: /tmp/calico-typha.yaml
     force: yes
     mode: '0755'
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - calico
 
@@ -39,12 +46,14 @@
     data=$(yq '. | select(.metadata.name=="calico-config") | .data.cni_network_config' /tmp/calico-typha.yaml)
     updateddata=$(echo $data | yq -o json '.plugins[0].ipam.assign_ipv4 = "true" | .plugins[0].ipam.assign_ipv6 = "true"')
     myenv=$updateddata  yq  'select(.metadata.name=="calico-config") |= .data.cni_network_config=strenv(myenv)' /tmp/calico-typha.yaml > /tmp/config-map-patch.yaml
+  any_errors_fatal: true
   tags:
     - calico
 
 - name: Kustomize the Calico config and apply it
   shell: |
     kubectl kustomize /tmp/ > /tmp/calico-typha-custom.yaml
+  any_errors_fatal: true
   tags:
     - calico
 
@@ -54,18 +63,27 @@
     kubectl label node {{ item }} rack_id="{{ hostvars[item]['rack_id'] }}" --overwrite
   loop: "{{groups['k8s_nodes']}}"
   register: label_res
-  retries: 100
+  retries: 10
   until: label_res is success
+  any_errors_fatal: true
   tags:
     - calico
 
 - name: Apply Calico CNI
   shell: kubectl apply -f /tmp/calico-typha-custom.yaml
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - calico
 
 - name: Create BGP Pass Secret
   shell: kubectl apply -f /tmp/BGPPassSecret.yaml
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - calico
 
@@ -76,8 +94,9 @@
     - BGPConfiguration.yaml
     - BGPPeer.j2
     - Node.j2
-  register: calicoctl_apply
+  register: res
   retries: 100
-  until: calicoctl_apply is success
+  until: res is success
+  any_errors_fatal: true
   tags:
     - calico

@@ -1,3 +1,4 @@
+https://github.com/datacenter/pyaci/archive/master.zip
 Flask
 pyOpenSSL
 requests
@@ -7,5 +8,4 @@ ipaddress
 pyVmomi
 pyVim
 shelljob
-
 ansible

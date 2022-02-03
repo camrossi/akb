@@ -50,7 +50,6 @@ build {
       "unzip main.zip",
       "rm main.zip",
       "pip3 install -r akb-main/requirements.txt",
-      "pip3 install https://github.com/datacenter/pyaci/archive/master.zip",
       "wget http://10.67.185.120/akb/akb_ubuntu21_template.ova -O akb-main/terraform/static/vm_templates/akb_ubuntu21_template.ova",
       "wget https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip",
       "unzip terraform_1.1.3_linux_amd64.zip  -d /bin",

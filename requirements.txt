@@ -9,3 +9,4 @@ pyVmomi
 pyVim
 shelljob
 ansible
+python-dateutil

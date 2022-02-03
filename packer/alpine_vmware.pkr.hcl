@@ -45,7 +45,7 @@ build {
       "echo 'https://mirror.aarnet.edu.au/pub/alpine/v3.15/community' >> /etc/apk/repositories",
       "apk update",
       "apk upgrade",
-      "apk add python3 py3-pip gcc python3-dev libressl-dev musl-dev libffi-dev libxml2-dev libxslt-dev make openssl-dev cargo",
+      "apk add bash python3 py3-pip gcc python3-dev libressl-dev musl-dev libffi-dev libxml2-dev libxslt-dev make openssl-dev cargo",
       "wget https://github.com/camrossi/akb/archive/refs/heads/main.zip",
       "unzip main.zip",
       "rm main.zip",

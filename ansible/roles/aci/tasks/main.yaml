@@ -89,8 +89,8 @@
     username: "{{ admin_user }}"
     password: "{{ admin_pass }}"
     aaa_user: "{{ aci_temp_username }}"
-    certificate_name: "{{ aci_temp_username }}"
-    certificate_data: "{{ lookup('file', './roles/aci/files/' + aci_temp_username + '-user.crt') }}"
+    name: "{{ aci_temp_username }}"
+    certificate: "{{ lookup('file', './roles/aci/files/' + aci_temp_username + '-user.crt') }}"
     state: present
     validate_certs: "{{ validate_certs }}"
   tags:

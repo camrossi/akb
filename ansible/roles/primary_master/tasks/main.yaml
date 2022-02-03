@@ -204,20 +204,28 @@
 
 - name: Install JQ
   apt: name=jq
-  register: apt_res
-  retries: 100
-  until: apt_res is success
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - primary_master
 
 - name: Install YQ
   shell: wget https://github.com/mikefarah/yq/releases/download/v4.18.1/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - primary_master
 
 - name: Install Kustomize
   shell: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
-  ignore_errors: yes
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - primary_master
 

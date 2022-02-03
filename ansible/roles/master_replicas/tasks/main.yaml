@@ -7,6 +7,10 @@
     mode: 0640
     owner: root
     group: root
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - master_replicas
 
@@ -17,6 +21,10 @@
     owner: root
     group: root
     mode: preserve
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - master_replicas
 
@@ -24,11 +32,18 @@
   shell: kubeadm token create --print-join-command
   register: kubeadm_join_cmd
   delegate_to: "{{groups['k8s_primary_master'][0]}}"
+  retries: 10
+  until: kubeadm_join_cmd is success
+  any_errors_fatal: true
   tags:
     - master_replicas
 
 - name: Join Master replicas to cluster
   shell: "{{ kubeadm_join_cmd.stdout }} --control-plane"
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
   tags:
     - master_replicas
 

@@ -15,7 +15,7 @@
   tags:
     - k8s_addons
 
-- name: Enable Scheduling on Masters
+- name: Enable Scheduling on Masters if less than 3 workers are detected
   shell: kubectl taint nodes --all node-role.kubernetes.io/master-
   when: "groups['k8s_workers'] | length < 3"
   ignore_errors: yes

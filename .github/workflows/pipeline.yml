@@ -18,7 +18,7 @@ jobs:
     runs-on: self-hosted
     defaults:
       run:
-        working-directory: ./terraform
+        working-directory: ./v4/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -28,7 +28,7 @@ jobs:
           path: v4
       - name: Start AKB
         run: | 
-          python3 appflask.py &
+          python3 appflask.py --port=5003 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium_ui_testing_dev_cluster_v4.py
@@ -56,7 +56,7 @@ jobs:
     runs-on: self-hosted
     defaults:
       run:
-        working-directory: ./terraform
+        working-directory: ./v6/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -66,7 +66,7 @@ jobs:
           path: v46
       - name: Start AKB
         run: | 
-          python3 appflask.py &
+          python3 appflask.py --port=5004 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium_ui_testing_dev_cluster_v46.py

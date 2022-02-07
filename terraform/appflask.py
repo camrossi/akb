@@ -1,4 +1,5 @@
 import json
+import sys
 from logging import error
 from flask import Flask, Response, request, render_template, redirect, flash
 from logging.config import dictConfig
@@ -845,4 +846,8 @@ def get_page():
          return render_template('intro.html')
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    if sys.argv[1]:
+        port= sys.argv[1]
+    else:
+        port=5002
+    app.run(host='0.0.0.0', port=port, debug=True)

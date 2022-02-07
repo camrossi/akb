@@ -25,16 +25,17 @@ variable "vc" {
 
 variable "l3out" {
   type = object({
+    ipv6_enabled      = bool
     name              = string
     l3out_tenant      = string
     vrf_tenant        = string
     vrf_name          = string
     node_profile_name = string
     int_prof_name     = string
-    int_prof_name_v6     = string
+    int_prof_name_v6  = string
     physical_dom      = string
-    floating_ipv6       = string
-    secondary_ipv6      = string
+    floating_ipv6     = string
+    secondary_ipv6    = string
     floating_ip       = string
     secondary_ip      = string
     vlan_id           = number

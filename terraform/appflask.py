@@ -45,16 +45,18 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
             ipv4_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).prefixlen)
     except:
         pass
-    try:
-        floating_ipv6 = str(ipaddress.IPv6Network(
-            ipv6_cluster_subnet, strict=False).broadcast_address - 1) + "/" + str(ipaddress.IPv6Network(
-            ipv6_cluster_subnet, strict=False).prefixlen)
-        
-        secondary_ipv6 = str(ipaddress.IPv6Network(
-            ipv6_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv6Network(
-            ipv6_cluster_subnet, strict=False).prefixlen)
-    except:
-        pass
+    if ipv6_enabled:
+        try:
+            floating_ipv6 = str(ipaddress.IPv6Network(
+                ipv6_cluster_subnet, strict=False).broadcast_address - 1) + "/" + str(ipaddress.IPv6Network(
+                ipv6_cluster_subnet, strict=False).prefixlen)
+            
+            secondary_ipv6 = str(ipaddress.IPv6Network(
+                ipv6_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv6Network(
+                ipv6_cluster_subnet, strict=False).prefixlen)
+            ipv6_cluster_subnet = str(ipaddress.IPv6Network(ipv6_cluster_subnet))
+        except:
+            pass
 
     dns_servers = list(dns_servers.split(","))
     anchor_nodes = json.loads(anchor_nodes)
@@ -83,7 +85,9 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
              "dns_domain": dns_domain, 
              "anchor_nodes": anchor_nodes, 
              "ipv4_cluster_subnet": ipv4_cluster_subnet, 
-             "ipv6_cluster_subnet": str(ipaddress.IPv6Network(ipv6_cluster_subnet))}
+             "ipv6_cluster_subnet": ipv6_cluster_subnet,
+             "ipv6_enabled": ipv6_enabled
+             }
     return l3out
 
 def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, vm_template, vm_folder):
@@ -156,18 +160,18 @@ def create():
                 f.write(config)      
         except:
             config = []
-
         return render_template('create.html', config=config)
     elif request.method == 'POST':
-            req = request.form
-            button = req.get("button")
-            if button == "Previous":
-                return redirect('/cluster')
-            if button == "Update Config":
-                config = req.get('config')
-                with open('cluster.tfvars', 'w') as f:
-                    f.write(config)
-                return render_template('create.html', config=config)
+        print("POST")
+        req = request.form
+        button = req.get("button")
+        if button == "Previous":
+            return redirect('/cluster')
+        if button == "Update Config":
+            config = req.get('config')
+            with open('cluster.tfvars', 'w') as f:
+                f.write(config)
+            return render_template('create.html', config=config)
 
 @app.route('/calico_nodes', methods=['GET', 'POST'])
 def calico_nodes():
@@ -213,22 +217,22 @@ def calico_nodes():
                 return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the floating_ip " + l3out["floating_ip"])
             if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["secondary_ip"]).ip:
                 return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ip " + l3out["secondary_ip"])
-
-            try:
-                # Use the Netwrok to ensure that the mask is always present
-                ipaddress.IPv6Network(ipv6, strict=False)
-            except ValueError as e:
-                return calico_nodes_error(req.get("calico_nodes"), "Primary IPv6 Error: " + str(e))
-            if ipaddress.IPv6Network(ipv6, strict=False).broadcast_address == ipaddress.IPv6Interface(ipv6).ip:
-                return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 can't be the broadcast address " + ipv6)
-            if ipaddress.IPv6Network(ipv6, strict=False).network_address == ipaddress.IPv6Interface(ipv6).ip:
-                return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 can't be the network address " + ipv6)
-            if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]):
-                return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet: " + l3out["ipv6_cluster_subnet"])
-            if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["floating_ipv6"]).ip:
-                return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the floating_ipv6 " + l3out["floating_ipv6"])
-            if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["secondary_ipv6"]).ip:
-                return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ipv6 " + l3out["secondary_ipv6"])
+            if ipv6_enabled:
+                try:
+                    # Use the Netwrok to ensure that the mask is always present
+                    ipaddress.IPv6Network(ipv6, strict=False)
+                except ValueError as e:
+                    return calico_nodes_error(req.get("calico_nodes"), "Primary IPv6 Error: " + str(e))
+                if ipaddress.IPv6Network(ipv6, strict=False).broadcast_address == ipaddress.IPv6Interface(ipv6).ip:
+                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 can't be the broadcast address " + ipv6)
+                if ipaddress.IPv6Network(ipv6, strict=False).network_address == ipaddress.IPv6Interface(ipv6).ip:
+                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 can't be the network address " + ipv6)
+                if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]):
+                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet: " + l3out["ipv6_cluster_subnet"])
+                if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["floating_ipv6"]).ip:
+                    return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the floating_ipv6 " + l3out["floating_ipv6"])
+                if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["secondary_ipv6"]).ip:
+                    return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ipv6 " + l3out["secondary_ipv6"])
 
             if rack_id == "":
                 return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack is mandatory")
@@ -237,8 +241,9 @@ def calico_nodes():
             for anchor_node in l3out["anchor_nodes"]:
                 if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(anchor_node['primary_ip']).ip:
                     return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IP overlaps with the primary IP of anchor node " + anchor_node['node_id'],)
-                if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(anchor_node['primary_ipv6']).ip:
-                    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IPv6 overlaps with the primary IPv6 of anchor node " + anchor_node['node_id'])
+                if ipv6_enabled:
+                    if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(anchor_node['primary_ipv6']).ip:
+                        return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IPv6 overlaps with the primary IPv6 of anchor node " + anchor_node['node_id'])
                 # Check that there is at least one switch in the same rack ID as the node I am adding
                 if rack_id == anchor_node['rack_id']:
                     missing_rack = False
@@ -255,11 +260,12 @@ def calico_nodes():
 
                 if calico_node['hostname'] == hostname:
                     return calico_nodes_error(req.get("calico_nodes"), "Duplicated Hostname" + hostname)
-                elif calico_node['ip'] == ip:
+                if calico_node['ip'] == ip:
                     return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv4:" + ip)
-                elif calico_node['ipv6'] == ipv6:
-                    return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv6:" + ipv6)
-                elif calico_node['local_as'] != local_as:
+                if ipv6_enabled:
+                    if calico_node['ipv6'] == ipv6:
+                        return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv6:" + ipv6)
+                if calico_node['local_as'] != local_as:
                     return calico_nodes_error(req.get("calico_nodes"), "Node local AS must be the same:" + local_as)
 
             calico_nodes.append({"hostname": hostname, "ip": ip,
@@ -363,20 +369,28 @@ def cluster():
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
-        ipv6_cluster_subnet = BetterIPv6Network(l3out['ipv6_cluster_subnet'], strict=False)
 
         # Calculate POD Subnets
         ipv4_pod_sub = (ipv4_cluster_subnet + 1 * ipv4_cluster_subnet.size())
-        ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
 
         # Calculate SVC Subnets (Cluster_IP) and 
         # make them smaller as K8s only accepts up to 108 for services 
         ipv4_svc_sub = (ipv4_cluster_subnet + 2 * ipv4_cluster_subnet.size())
-        ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
-        ipv6_svc_sub = next(ipv6_svc_sub_iterator)
+
         # Calculate External SVC Subnets (Cluster_IP)
         ipv4_ext_svc_sub = (ipv4_cluster_subnet + 3 * ipv4_cluster_subnet.size())
-        ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
+
+        #same as above just for v6
+        ipv6_cluster_subnet = ""
+        ipv6_pod_sub = ""
+        ipv6_svc_sub = ""
+        ipv6_ext_svc_sub = ""
+        if ipv6_enabled: 
+            ipv6_cluster_subnet = BetterIPv6Network(l3out['ipv6_cluster_subnet'], strict=False)
+            ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
+            ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
+            ipv6_svc_sub = next(ipv6_svc_sub_iterator)
+            ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
 
         return render_template('cluster.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
         ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
@@ -553,7 +567,7 @@ def l3out():
     home = os.path.expanduser("~")
     meta_path = home + '/.aci-meta/aci-meta.json'
     pyaci_apic = Node(apic['url'],aciMetaFilePath = meta_path)
-
+    global ipv6_enabled
     try:
         pyaci_apic.useX509CertAuth(apic['akb_user'],apic['cert_name'],apic['private_key'])
     except FileNotFoundError as e:
@@ -615,11 +629,14 @@ def l3out():
                     anchor_nodes = json.loads(req.get("anchor_nodes"))
                 except ValueError as e:
                     return anchor_node_error(req.get("anchor_nodes"), "Invalid JSON:" + str(e))
-
+            if req.get("ipv6_cluster_subnet") == "":
+                ipv6_enabled = False
+            else:
+                ipv6_enabled = True
             rack_id = req.get("rack_id")
             rtr_id = req.get("rtr_id")
             primary_ip = req.get("node_ipv4")
-            primary_ipv6 = req.get("node_ipv6")
+            
             # I check here also the other parameters
 
             for dns in req.get("dns_servers").split(','):
@@ -636,16 +653,6 @@ def l3out():
                 return anchor_node_error(req.get("anchor_nodes"), "IPv4 Cluster Subnet Error: " + str(e))
 
             try:
-                # Use the Netwrok to ensure that the mask is always present
-                ipaddress.IPv6Network(
-                    req.get("ipv6_cluster_subnet"), strict=False)
-            except ValueError as e:
-                return anchor_node_error(req.get("anchor_nodes"), "IPv6 Cluster Subnet Error: " + str(e))
-            # vlan = int(req.get("vlan_id"))
-            # if vlan == 0 or vlan > 4094:
-            #    return anchor_node_error(req.get("anchor_nodes"), "Invalid VLAN ID")
-
-            try:
                 ipaddress.IPv4Address(rtr_id)
             except ValueError as e:
                 return anchor_node_error(req.get("anchor_nodes"), "Router ID Error: " + str(e))
@@ -653,11 +660,23 @@ def l3out():
             if ipaddress.IPv4Interface(primary_ip).ip not in ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")):
                 return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet")
 
-            if ipaddress.IPv6Interface(primary_ipv6).ip not in ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")):
-                return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
-            
+            if ipv6_enabled:
+                primary_ipv6 = req.get("node_ipv6")
+                try:
+                    # Use the Netwrok to ensure that the mask is always present
+                    ipaddress.IPv6Network(
+                        req.get("ipv6_cluster_subnet"), strict=False)
+                except ValueError as e:
+                    return anchor_node_error(req.get("anchor_nodes"), "IPv6 Cluster Subnet Error: " + str(e))
+                
+                if ipaddress.IPv6Interface(primary_ipv6).ip not in ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")):
+                    return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
+                
+                node_ipv6  = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
+            else:
+                node_ipv6 = ""
             node_ipv4  = str(ipaddress.IPv4Interface(primary_ip).ip) + "/" + str(ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).prefixlen)
-            node_ipv6  = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
+            
 
             if rack_id == "":
                 return anchor_node_error(req.get("anchor_nodes"), "Rack ID is required")
@@ -667,12 +686,13 @@ def l3out():
 
                 if anchor_node['node_id'] == req.get("node_id"):
                     return anchor_node_error(req.get("anchor_nodes"), "Duplicated Node ID:" + req.get("node_id"))
-                elif anchor_node['rtr_id'] == req.get("rtr_id"):
+                if anchor_node['rtr_id'] == req.get("rtr_id"):
                     return anchor_node_error(req.get("anchor_nodes"), "Duplicated Router ID:" + req.get("rtr_id"))
-                elif anchor_node['primary_ip'] == node_ipv4:
+                if anchor_node['primary_ip'] == node_ipv4:
                     return anchor_node_error(req.get("anchor_nodes"), "Duplicated Node Primary IPv4:" + req.get("node_ipv4"))
-                elif anchor_node['primary_ipv6'] == node_ipv6:
-                    return anchor_node_error(req.get("anchor_nodes"), "Duplicated Node Primary IPv6:" + req.get("node_ipv6"))
+                if ipv6_enabled:
+                    if anchor_node['primary_ipv6'] == node_ipv6:
+                        return anchor_node_error(req.get("anchor_nodes"), "Duplicated Node Primary IPv6:" + req.get("node_ipv6"))
 
             anchor_nodes.append({"pod_id": req.get("pod_id"), "rack_id": req.get("rack_id"), "node_id": req.get(
                 "node_id"), "rtr_id": req.get("rtr_id"), "primary_ip": node_ipv4, "primary_ipv6": node_ipv6})
@@ -720,6 +740,7 @@ def l3out():
 def login():
     global apic
     apic = {}
+    ansible_output = ''
     if request.method == "POST":
         req = request.form
         button = req.get("button")
@@ -766,9 +787,14 @@ def login():
             g = proc.Group()
             g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml"])
             #Just wait for terraform to finish
-            while g.is_pending():
-                lines = g.readlines()
-            return redirect('/l3out')
+            for s in read_process(g):
+                ansible_output += str(s, 'utf-8')
+
+            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error. 
+            if g.get_exit_codes()[0][1] == 0:
+                return redirect('/l3out')
+            else:
+                return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
         if button == "Previous":
             return redirect('/intro')
     return render_template('login.html')

@@ -46,7 +46,7 @@ chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(options=chrome_options)
 
 
-driver.get("http://10.67.185.120:5002/")
+driver.get("http://10.67.185.120:5003/")
 assert "AKB" in driver.title
 
 current_url = driver.current_url

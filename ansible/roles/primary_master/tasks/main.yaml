@@ -342,7 +342,7 @@
 - name: "Fetching Kubernetes Master PKI files from primary master"
   fetch:
     src: /etc/kubernetes/pki/{{item}}
-    dest: /tmp/kubeadm-ha/pki/{{item}}
+    dest: ./roles/primary_master/files/pki/{{item}}
     flat: yes
   with_items:
     - ca.crt
@@ -357,7 +357,7 @@
 - name: "Fetching Kubernetes Master ETCD files from primary master"
   fetch:
     src: /etc/kubernetes/pki/etcd/{{item}}
-    dest: /tmp/kubeadm-ha/pki/etcd/{{item}}
+    dest: ./roles/primary_master/files/pki/etcd/{{item}}
     flat: yes
   with_items:
     - ca.crt
@@ -368,7 +368,7 @@
 - name: "Fetching Kubernetes Master Admin files from primary master"
   fetch:
     src: /etc/kubernetes/{{item}}
-    dest: /tmp/kubeadm-ha/{{item}}
+    dest: ./roles/primary_master/files/{{item}}
     flat: yes
   with_items:
     - admin.conf 

@@ -100,7 +100,7 @@ elem.clear()
 elem.send_keys("9000")
 
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
-elem.send_keys("192.168.36.0/24")
+elem.send_keys("192.168.39.0/24")
 
 elem = driver.find_element(By.NAME,"dns_servers")
 elem.send_keys("10.67.185.100")
@@ -114,8 +114,8 @@ elem.click()
 elem = driver.find_element(By.ID,"shared-rtctrl-checkbox")
 elem.click()
 
-add_anchor_node("1","1","101","1.1.1.101","192.168.36.201")
-add_anchor_node("1","1","102","1.1.1.102","192.168.36.202/24")
+add_anchor_node("1","1","101","1.1.1.101","192.168.39.201")
+add_anchor_node("1","1","102","1.1.1.102","192.168.39.202/24")
 
 current_url = driver.current_url
 
@@ -165,10 +165,10 @@ elem.click()
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
-add_calico_ndoe('calico-1','192.168.36.11/24', '650011', '1')
-add_calico_ndoe('calico-2','192.168.36.12/24', '650011', '1')
-add_calico_ndoe('calico-3','192.168.36.13/24', '650011', '1')
-add_calico_ndoe('calico-4','192.168.36.14/24', '650011', '1')
+add_calico_ndoe('calico-1','192.168.39.11/24', '650011', '1')
+add_calico_ndoe('calico-2','192.168.39.12/24', '650011', '1')
+add_calico_ndoe('calico-3','192.168.39.13/24', '650011', '1')
+add_calico_ndoe('calico-4','192.168.39.14/24', '650011', '1')
 
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url

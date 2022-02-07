@@ -16,7 +16,7 @@
 
 - name: "Push Kubernetes Master PKI files to master replicas"
   copy: 
-    src: /tmp/kubeadm-ha/
+    src: ./roles/primary_master/files/
     dest: /etc/kubernetes/
     owner: root
     group: root

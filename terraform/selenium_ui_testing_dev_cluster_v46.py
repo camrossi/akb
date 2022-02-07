@@ -52,7 +52,7 @@ chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(options=chrome_options)
 
 
-driver.get("http://10.67.185.120:5002/")
+driver.get("http://10.67.185.120:5004/")
 assert "AKB" in driver.title
 
 current_url = driver.current_url
@@ -69,6 +69,9 @@ elem.clear()
 elem.send_keys("admin")
 elem = driver.find_element(By.NAME,"password")
 elem.send_keys("123Cisco123")
+elem = driver.find_element(By.NAME,"akb_user")
+elem.clear()
+elem.send_keys("akb_user_v46")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
@@ -77,7 +80,7 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
 assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
-elem.send_keys("calico_dev")
+elem.send_keys("calico_dev_v46")
 elem = driver.find_element(By.ID,'name')
 elem.clear()
 elem.send_keys("calico_l3out")
@@ -157,11 +160,11 @@ elem.send_keys("ESXi3_SSD")
 select = Select(driver.find_element(By.ID,'cluster'))
 select.select_by_visible_text("Cluster1")
 elem = driver.find_element(By.ID,'port_group')
-elem.send_keys("ACI/calico_dev/vlan-11")
+elem.send_keys("ACI/calico_dev_v46/vlan-12")
 elem = driver.find_element(By.ID,'vm_templates')
 elem.send_keys("Ubuntu21-Template")
 elem = driver.find_element(By.ID,'vm_folder')
-elem.send_keys("Calico-Cluster3")
+elem.send_keys("CalicoDev_v46")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

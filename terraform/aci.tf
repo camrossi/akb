@@ -63,6 +63,7 @@ resource "aci_logical_interface_profile" "calico_interface_profile" {
   }    
 
 resource "aci_logical_interface_profile" "calico_interface_profile_v6" {
+    count = var.l3out.ipv6_enabled ? 1 : 0
     logical_node_profile_dn = aci_logical_node_profile.calico_node_profile.id
     name                    = var.l3out.int_prof_name_v6
   } 
@@ -108,12 +109,14 @@ resource "aci_l3_ext_subnet" "external_svc_subnet" {
 }
 
 resource "aci_l3_ext_subnet" "node_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
   ip                                    = var.k8s_cluster.node_sub_v6
   scope                                 = var.l3out.def_ext_epg_scope
 }
 
 resource "aci_l3_ext_subnet" "pod_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
   ip                                    = var.k8s_cluster.pod_subnet_v6
   scope                                 = var.l3out.def_ext_epg_scope
@@ -121,6 +124,7 @@ resource "aci_l3_ext_subnet" "pod_v6" {
 }
 
 resource "aci_l3_ext_subnet" "cluster_svc_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
   ip                                    = var.k8s_cluster.cluster_svc_subnet_v6
   scope                                 = var.l3out.def_ext_epg_scope
@@ -128,8 +132,9 @@ resource "aci_l3_ext_subnet" "cluster_svc_v6" {
 }
 
 resource "aci_l3_ext_subnet" "external_svc_subnet_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   external_network_instance_profile_dn  = aci_external_network_instance_profile.default.id
   ip                                    = var.k8s_cluster.external_svc_subnet_v6
   scope                                 = var.l3out.def_ext_epg_scope
   aggregate                             = "shared-rtctrl"
-}
+} 

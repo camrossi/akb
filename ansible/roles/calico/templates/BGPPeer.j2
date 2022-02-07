@@ -12,6 +12,7 @@ spec:
     secretKeyRef:
       name: bgp-secrets
       key: rr-password
+{% if leaf.primary_ipv6 %}
 ---
 apiVersion: projectcalico.org/v3
 kind: BGPPeer
@@ -25,4 +26,5 @@ spec:
     secretKeyRef:
       name: bgp-secrets
       key: rr-password
+{% endif %}
 {% endfor %}

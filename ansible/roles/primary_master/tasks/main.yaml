@@ -220,6 +220,13 @@
   tags:
     - primary_master
 
+- name: Delete Kustomize if installed
+  ansible.builtin.file:
+    path: kustomize
+    state: absent
+  tags:
+    - primary_master
+
 - name: Install Kustomize
   shell: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
   register: res
@@ -229,7 +236,38 @@
   tags:
     - primary_master
 
-- name: Create Kubeadm config 
+- name: Create Kubeadm config - v4
+  copy:
+    dest: /tmp/kubeadm.yaml
+    force: yes
+    content: |
+      apiVersion: kubeadm.k8s.io/v1beta2
+      kind: InitConfiguration
+      bootstrapTokens:
+      - groups:
+        - system:bootstrappers:kubeadm:default-node-token
+        token: {{ kubeadm_token }}
+      nodeRegistration:
+        criSocket: "unix:///var/run/crio/crio.sock"
+      ---
+      apiServer:
+        timeoutForControlPlane: 4m0s
+      kind: ClusterConfiguration
+      controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
+      networking:
+        podSubnet: {{ pod_subnet }}
+        serviceSubnet: {{ cluster_svc_subnet }}
+      apiVersion: kubeadm.k8s.io/v1beta2
+      ---
+      apiVersion: kubelet.config.k8s.io/v1beta1
+      kind: KubeletConfiguration
+      cgroupDriver: systemd
+  run_once: true
+  when: pod_subnet and not pod_subnet_v6
+  tags:
+    - primary_master
+
+- name: Create Kubeadm config - Dual Stack
   copy:
     dest: /tmp/kubeadm.yaml
     force: yes
@@ -256,6 +294,7 @@
       kind: KubeletConfiguration
       cgroupDriver: systemd
   run_once: true
+  when: pod_subnet and pod_subnet_v6
   tags:
     - primary_master
 
@@ -303,7 +342,7 @@
 - name: "Fetching Kubernetes Master PKI files from primary master"
   fetch:
     src: /etc/kubernetes/pki/{{item}}
-    dest: /tmp/kubeadm-ha/pki/{{item}}
+    dest: ./roles/primary_master/files/pki/{{item}}
     flat: yes
   with_items:
     - ca.crt
@@ -318,7 +357,7 @@
 - name: "Fetching Kubernetes Master ETCD files from primary master"
   fetch:
     src: /etc/kubernetes/pki/etcd/{{item}}
-    dest: /tmp/kubeadm-ha/pki/etcd/{{item}}
+    dest: ./roles/primary_master/files/pki/etcd/{{item}}
     flat: yes
   with_items:
     - ca.crt
@@ -329,7 +368,7 @@
 - name: "Fetching Kubernetes Master Admin files from primary master"
   fetch:
     src: /etc/kubernetes/{{item}}
-    dest: /tmp/kubeadm-ha/{{item}}
+    dest: ./roles/primary_master/files/{{item}}
     flat: yes
   with_items:
     - admin.conf 

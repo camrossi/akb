@@ -78,6 +78,7 @@ resource "aci_rest" "bgp_addr_family_context_to_vrf" {
 
 # Map BGP Address Family Context Policy to Calico VRF for V6
 resource "aci_rest" "bgp_addr_family_context_to_vrf_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   depends_on = [ aci_bgp_address_family_context.bgp_addr_family_context ]
   path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/ctx-${var.l3out.vrf_name}/rsctxToBgpCtxAfPol-[${var.l3out.name}]-ipv6-ucast.json"
   class_name = "fvRsCtxToBgpCtxAfPol"
@@ -104,6 +105,7 @@ resource "aci_match_route_destination_rule" "export_pod_match_rule_subnet" {
 }
 
 resource "aci_match_route_destination_rule" "export_pod_match_rule_subnet_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   match_rule_dn       = aci_match_rule.export_match_rule.id
   ip = var.k8s_cluster.pod_subnet_v6
   aggregate = "yes"
@@ -144,6 +146,7 @@ resource "aci_match_route_destination_rule" "import_pod_match_rule_subnet" {
 }
 
 resource "aci_match_route_destination_rule" "import_pod_match_rule_subnet_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   match_rule_dn       = aci_match_rule.import_match_rule.id
   ip = var.k8s_cluster.pod_subnet_v6
   aggregate = "yes"
@@ -157,6 +160,7 @@ resource "aci_match_route_destination_rule" "import_node_match_rule_subnet" {
 }
 
 resource "aci_match_route_destination_rule" "import_node_match_rule_subnet_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   match_rule_dn       = aci_match_rule.import_match_rule.id
   ip = var.k8s_cluster.node_sub_v6
   aggregate = "yes"
@@ -169,8 +173,8 @@ resource "aci_match_route_destination_rule" "import_svc_match_rule_subnet" {
 }
 
 resource "aci_match_route_destination_rule" "import_svc_match_rule_subnet_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   match_rule_dn       = aci_match_rule.import_match_rule.id
-
   ip = var.k8s_cluster.cluster_svc_subnet_v6
   aggregate = "yes"
 }
@@ -182,6 +186,7 @@ resource "aci_match_route_destination_rule" "import_ext_svc_match_rule_subnet" {
 }
 
 resource "aci_match_route_destination_rule" "import_ext_svc_match_rule_subnet_v6" {
+  count = var.l3out.ipv6_enabled ? 1 : 0
   match_rule_dn       = aci_match_rule.import_match_rule.id
   ip = var.k8s_cluster.external_svc_subnet_v6
   aggregate = "yes"

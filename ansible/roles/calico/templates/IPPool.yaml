@@ -9,6 +9,7 @@ spec:
   vxlanMode: Never
   disabled: false
   nodeSelector: all()
+{% if pod_subnet_v6 %}
 ---
 apiVersion: projectcalico.org/v3
 kind: IPPool
@@ -21,3 +22,4 @@ spec:
   vxlanMode: Never
   disabled: false
   nodeSelector: all()
+{% endif %}

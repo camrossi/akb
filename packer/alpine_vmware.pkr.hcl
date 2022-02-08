@@ -49,8 +49,8 @@ build {
       "wget https://github.com/camrossi/akb/archive/refs/heads/main.zip",
       "unzip main.zip",
       "rm main.zip",
-      "pip3 install -r akb-main/requirements.txt",
-      "ansible-galaxy collection install cisco.aci"
+      "pip3 install -Ur akb-main/requirements.txt",
+      "ansible-galaxy collection install cisco.aci",
       "wget http://192.168.66.120/akb/akb_ubuntu21_template.ova -O akb-main/terraform/static/vm_templates/akb_ubuntu21_template.ova",
       "wget https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip",
       "unzip terraform_1.1.3_linux_amd64.zip  -d /bin",

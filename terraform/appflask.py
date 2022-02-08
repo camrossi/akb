@@ -792,7 +792,11 @@ def login():
                 ansible_output += str(s, 'utf-8')
 
             # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error. 
-            if g.get_exit_codes()[0][1] == 0:
+            # This for some reason does not work on Alpine so I do a hacky thing:
+            #if g.get_exit_codes()[0][1] == 0 :
+            #    return redirect('/l3out')
+            # If something failed then the user creaation failed. 
+            if "failed=0" in ansible_output:
                 return redirect('/l3out')
             else:
                 return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))

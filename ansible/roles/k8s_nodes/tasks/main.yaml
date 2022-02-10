@@ -34,15 +34,15 @@
 - name: Copy over the proxy configuration
   template: src=./templates/proxy.conf dest=/etc/apt/apt.conf.d/proxy.conf
   tags:
-    - k8s_nodes\
-  when: http_proxy_status == "enabled"    
+    - k8s_nodes
+  when: http_proxy_status == "on"    
     
 - name: populate /etc/environment 1
   lineinfile:
     dest: "/etc/environment"
     state: present
     line: HTTP_PROXY="http://{{ http_proxy }}"
-  when: http_proxy_status == "enabled"  
+  when: http_proxy_status == "on"  
   tags:
     - k8s_nodes
 
@@ -51,7 +51,7 @@
     dest: "/etc/environment"
     state: present
     line: HTTPS_PROXY="http://{{ http_proxy }}"
-  when: http_proxy_status == "enabled"  
+  when: http_proxy_status == "on"  
   tags:
     - k8s_nodes
 
@@ -60,7 +60,7 @@
     dest: "/etc/environment"
     state: present
     line: NO_PROXY=".{{ dns_domain }},localhost,172.30.0.1,.svc,.cluster.local,apiserver.kube-service-catalog.svc{% for host in groups ['k8s_nodes'] %},{{ hostvars[host]['real_ip'] }},{{ hostvars[host]['ipv6'] }},{{ host }}.{{ dns_domain }},{{ host }}{% endfor %},{{ pod_subnet }},{{ cluster_svc_subnet }},{{ external_svc_subnet }},{{ pod_subnet_v6 }},{{ cluster_svc_subnet_v6 }},::1,{{ control_plane_vip }}"
-  when: http_proxy_status == "enabled"
+  when: http_proxy_status == "on"
   tags:
     - k8s_nodes
 
@@ -311,12 +311,12 @@
   template: src=./templates/crioproxy.conf dest=/etc/systemd/system/crio.service.d/http-proxy.conf
   tags:
     - k8s_nodes
-  when: http_proxy_status == "enabled"    
+  when: http_proxy_status == "on"    
 
 - name: Just force systemd to reread configs (2.4 and above)
   ansible.builtin.systemd:
     daemon_reload: yes
-  when: http_proxy_status == "enabled"        
+  when: http_proxy_status == "on"        
   tags:
     - k8s_nodes
 
@@ -324,7 +324,7 @@
   ansible.builtin.systemd:
     name: crio.service
     state: reloaded
-  when: http_proxy_status == "enabled"    
+  when: http_proxy_status == "on"    
   any_errors_fatal: true
   tags:
     - k8s_nodes

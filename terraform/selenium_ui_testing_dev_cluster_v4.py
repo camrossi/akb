@@ -42,7 +42,7 @@ def add_calico_ndoe(hostname, ip, local_as, rack_id):
     sleep(0.5)
 
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+#chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(options=chrome_options)
 
 

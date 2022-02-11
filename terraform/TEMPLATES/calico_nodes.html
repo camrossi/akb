@@ -79,7 +79,7 @@
                <div class="col-md-6">
                   <div class="form-group base-margin-bottom">
                      <div class="form-group__text">
-                        <div class="form-group__text"><input type="text" name="hostname" id="hostname" ><label>Hostname</label></div>
+                        <div class="form-group__text"><input type="text" name="hostname" id="hostname"><label>Hostname</label></div>
                      </div>
                   </div>
                   <div class="form-group base-margin-bottom">
@@ -92,13 +92,7 @@
                      <div class="form-group__text"><input type="text" name="natip" id="natip"><label>Nat IP (optional)</label></div>
                   </div>
                   <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="number" name="local_as" id="local_as" >
-                        <label>Local Node BGP AS
-                           <span data-title="A unique AS number per Cluster is required">ⓘ</span>
-                        </label></div>
-                  </div>
-                  <div class="form-group base-margin-bottom">
-                     <div class="form-group__text"><input type="text" name="rack_id" id="rack_id">
+                     <div class="form-group__text"><input type="text" name="rack_id" id="rack_id" value=1>
                         <label>Rack ID
                            <span data-title="Select a alphanumeric value to identify your rack ID. This Rack ID is matched against the anchor node Rack ID. eBGP peering is automatically configuerd between anchor nodes and K8s nodes with the same Rack ID. ">ⓘ</span>
                         </label>

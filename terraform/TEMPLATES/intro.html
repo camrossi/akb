@@ -80,7 +80,7 @@
                <br> AKB uses, under the hood, Terraform to push the ACI configuration and Deploy the VMs.
                Ansible is used to configure the VMs, bootstrap and configure the Kubernetes Cluster.
 
-            <h2> High Level Architectuer</h2>
+            <h2> High Level Architecture</h2>
             For details Refer to: <a
                href="https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html">Cisco
                Application Centric Infrastructure Calico Design White Paper</a>
@@ -124,24 +124,16 @@
                      <li>A single subnet for the whole cluster</li>
                      <li>A single encapsulation (VLAN) for the whole cluster</li>
                   </ul>
-                  <h3>Pre Requisities</h3>
-                  Before running this AKB there are a few required steps:
-                  <br><br>
-                  <h4>ACI</h4>
+                  <h3>Network Architecture - eBGP Design</h3>
+                  Each Kubernetes node will have the same AS number and will peer via eBGP with a pair of ACI Top-of-Rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy within the rack.
+                  This eBGP design does not require running any route reflector nor full mesh peering (iBGP) in the Calico infrastructure; this results in a more scalable, simpler, and easier to maintain architecture.
+                  In order to remove the need of running iBGP in the cluster the ACI BGP configuration will need to enable the following features:
                   <ul>
-                     <li>Safety First: The Tenant, VRF and Physical Domain needs to be pre-configured on ACI. This is to ensure it is impossible by design to delete these objects by mistake</li>
-                     <li>vCenter/ESXi infrastructure needs to be configured and connected to ACI, VMM integration is supported but not requried</li>
+                     <li>AS override: The AS override function will replace the AS number from the originating router with the AS number of the sending BGP router in the AS Path of outbound routes.
+                     <li>Disable Peer AS Check—Disables the peer autonomous number check.
                   </ul>
-                  <br>
-                  <h4>vCenter</h4>
-                  {% include "_vc_requirements.html" %}
-                  <h2>Under the hood of AKB</h2>
-                  AKB is powered by the following technologies:
-                  <ul>
-                     <li>Terraform: It is used to provision the ACI configuration, clone the VMs, customized the VM OS with basic parameters (IP, hostname) and generate the ansible configuration</li>
-                     <li>Ansible: It is used to Bootstrap the K8s cluster and perform all the VMs customizations</li>
-                     <li>Packer: It is used to package AKB in a VM form Factor</li>
-                  </ul>
+                  With these two configuration options enabled ACI will advertise the POD Subnets between the Kubernetes nodes (even if learned from the same AS) ensuring all the PODs in the Cluster can communicate with each other.
+                  An added benefits of configuring all the Kuberneters nodes with the same AS is that it allows us to use BGP Dynamic Neighbours by using the Cluster Subnet as BGP neighbors greatly reducing the ACI config complexity.
               </div>
                <div class="col-md-6">
                   <img src="../static/images/connectivity.png" alt="High Level Connectivity">
@@ -150,7 +142,7 @@
 
             </p>
             <div class="container">
-               <input type="submit" value="Go" class="btn btn--wide" name="button">
+               <input type="submit" value="Next" class="btn btn--wide" name="button">
             </div>
             <br><br><br><br><br><br>
          </div>

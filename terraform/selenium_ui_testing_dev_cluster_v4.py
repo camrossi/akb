@@ -24,16 +24,13 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.click()
     sleep(0.5)
 
-def add_calico_ndoe(hostname, ip, local_as, rack_id):
+def add_calico_ndoe(hostname, ip, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
     elem.clear()
     elem.send_keys(hostname)
     elem = driver.find_element(By.NAME,"ip")
     elem.clear()
     elem.send_keys(ip)
-    elem = driver.find_element(By.NAME,"local_as")
-    elem.clear()
-    elem.send_keys(local_as)
     elem = driver.find_element(By.NAME,"rack_id")
     elem.clear()
     elem.send_keys(rack_id)
@@ -46,14 +43,7 @@ chrome_options = Options()
 driver = webdriver.Chrome(options=chrome_options)
 
 
-driver.get("http://10.67.185.120:5003/")
-assert "AKB" in driver.title
-
-current_url = driver.current_url
-elem = driver.find_element(By.NAME,"button")
-elem.click()
-#Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+driver.get("http://10.67.185.120:5003/login")
 
 assert "Apic Login" in driver.title
 elem = driver.find_element(By.NAME,"fabric")
@@ -100,6 +90,7 @@ elem.clear()
 elem.send_keys("9000")
 
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
+elem.clear()
 elem.send_keys("192.168.39.0/24")
 
 elem = driver.find_element(By.NAME,"dns_servers")
@@ -114,8 +105,8 @@ elem.click()
 elem = driver.find_element(By.ID,"shared-rtctrl-checkbox")
 elem.click()
 
-add_anchor_node("1","1","101","1.1.1.101","192.168.39.201")
-add_anchor_node("1","1","102","1.1.1.102","192.168.39.202/24")
+add_anchor_node("1","1","101","1.1.1.101","192.168.39.101")
+add_anchor_node("1","1","102","1.1.1.102","192.168.39.102/24")
 
 current_url = driver.current_url
 
@@ -165,10 +156,7 @@ elem.click()
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
-add_calico_ndoe('calico-1','192.168.39.11/24', '650011', '1')
-add_calico_ndoe('calico-2','192.168.39.12/24', '650011', '1')
-add_calico_ndoe('calico-3','192.168.39.13/24', '650011', '1')
-add_calico_ndoe('calico-4','192.168.39.14/24', '650011', '1')
+add_calico_ndoe('calico-4','192.168.39.4/24', '1')
 
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
@@ -179,8 +167,6 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Cluster" in driver.title
 elem = driver.find_element(By.ID,'kube_version')
 elem.send_keys("1.22.4-00")
-elem = driver.find_element(By.ID,'crio_os')
-elem.send_keys("xUbuntu_21.04")
 elem = driver.find_element(By.ID,'timezone')
 elem.send_keys("Australia/Sydney")
 elem = driver.find_element(By.ID,'docker_mirror')

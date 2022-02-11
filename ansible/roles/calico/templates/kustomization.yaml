@@ -3,4 +3,9 @@ kind: Kustomization
 resources:
   - calico-typha.yaml
 patchesStrategicMerge:
-  - calico-typha-patch.yaml
+{% if pod_subnet_v6 %}
+  - calico-typha-patch_v6.yaml
+  - config-map-patch.yaml
+{% else  %}
+- calico-typha-patch.yaml
+{% endif  %}

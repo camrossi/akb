@@ -92,8 +92,8 @@
                         {% endfor %}
                   </datalist>
                   <label 
-                     for="l3out_tenant">L3out Tenant name:
-                     <span data-title="The tenant where the L3OUT will be created. This must pre-exist in ACI">ⓘ</span>
+                     for="l3out_tenant">Tenant name:
+                     <span data-title="Name of the tenant where we AKB will create the floating L3OUT SVI">ⓘ</span>
                   </label>
                </div>
             </div>
@@ -204,7 +204,7 @@
                      for="bgp_pass">IPv4 Cluster Subnet:
                      <span data-title="The IPv4 subnet for you cluster. This subnet should be able to be routable and reach internt to pull the container images.">ⓘ</span>
                   </label>
-                  <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet">
+                  <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="192.168.0.0/24" onchange="updateAnchorNodeIPv4(this)">
                </div>
             </div>
          </div>
@@ -215,7 +215,7 @@
                      for="bgp_pass">IPv6 Cluster Subnet (Optional):
                      <span data-title="The IPv6 subnet for you cluster. Currently IPv4 is used for internet connectivity so this subnet does not need to be routable outside of ACI" >ⓘ</span>
                   </label>
-                  <input type="text" id="ipv6_cluster_subnet" name="ipv6_cluster_subnet">
+                  <input type="text" id="ipv6_cluster_subnet" name="ipv6_cluster_subnet" onchange="updateAnchorNodeIPv6(this)">
                </div>
             </div>
          </div>
@@ -256,7 +256,7 @@
                         </div>
                      </div>
                      <div class="form-group base-margin-bottom">
-                        <div class="form-group__text"><input type="text" name="rack_id" id="rack_id">
+                        <div class="form-group__text"><input type="text" name="rack_id" id="rack_id" value="1">
                            <label >Rack ID
                               <span data-title="Select a alphanumeric value to identify your rack ID. This Rack ID is matched against the K8s node Rack ID. eBGP peering is automatically configuerd between anchor nodes and K8s nodes with the same Rack ID. ">ⓘ</span>
                            </label>
@@ -268,8 +268,8 @@
                               {% for o in nodes_id %}
                               <option name="{{ o }}">{{ o }} </option>
                               {% endfor %}
-                           </select><label  for="node_id">Node ID
-                           <span data-title="Pick the switch ID">ⓘ</span>
+                           </select><label  for="node_id">Anchor Node ID
+                           <span data-title="This is the ACI leaf ID">ⓘ</span>
                         </label>
                         </div>
                      </div>
@@ -282,9 +282,9 @@
                         </div>
                      </div>
                      <div class="form-group base-margin-bottom">
-                        <div class="form-group__text"><input type="text" name="node_ipv4" id="node_ipv4">
+                        <div class="form-group__text"><input type="text" name="node_ipv4" id="node_ipv4" value="192.168.0.0">
                            <label >Primary IPv4
-                              <span data-title="The IP of the node, this must be in the same subnet as the Cluster Subnet">ⓘ</span>
+                              <span data-title="The IP of the Anchor Node, this must be in the same subnet as the Cluster Subnet">ⓘ</span>
                            </label>
                         </div>
                      </div>
@@ -292,7 +292,7 @@
                         <div class="form-group__text"><input type="text" name="node_ipv6" id="node_ipv6">
                            <label>
                               Primary IPv6
-                              <span data-title="The IPv6 of the node, this must be in the same subnet as the IPv6 Cluster Subnet">ⓘ</span>
+                              <span data-title="The IPv6 of the Anchor Node, this must be in the same subnet as the IPv6 Cluster Subnet">ⓘ</span>
                            </label>
                         </div>
                      </div>
@@ -340,6 +340,14 @@
 </main>
 <!-- End Main Content -->
 </div>
+<script>
+   function updateAnchorNodeIPv4(button) {
+    document.getElementById('node_ipv4').value = document.getElementById('ipv4_cluster_subnet').value
+   }
+   function updateAnchorNodeIPv6(button) {
+      document.getElementById('node_ipv6').value = document.getElementById('ipv6_cluster_subnet').value
+     }
+</script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>

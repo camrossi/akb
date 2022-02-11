@@ -65,19 +65,18 @@
             
          <div class="container bg-gray">
 
-            <h2>VCenter Details</h2>
+            <h2>vCenter Details</h2>
             <p> 
-               <br> Insert the vCenter details
-               <br> AKB will connect to vCenter and deploy a K8s cluster
-               <br> The k8s cluster will automatically be configured with Calico using non overlay mode and leveraging BGP to advertise routes to ACI leaves
-               <br> PreRequisite: A Ubuntu 21.01 VM template with Perl and a snapshot must exists. If you do not have one yuo can download it from <a href="{{ url_for('static',filename='vm_template/test') }}">here</a>: 
+               <br> Insert the vCenter details: AKB will connect to vCenter and deploy a K8s cluster.
+               <br> The k8s cluster will automatically be configured with Calico using non overlay mode and leveraging BGP to advertise routes to ACI leaves.
+               <br> PreRequisite: A Ubuntu 21.01 VM template with Perl and a snapshot must exists. You can download it from <a href="{{ url_for('static',filename='vm_template/test') }}">here</a> for simplicity and upload it to your vCenter as a VM template. 
             </p>
       
             </div>
             <div class="container">
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
-                  <label for="url">VCenter Hostname/IP:</label>
+                  <label for="url">vCenter Hostname/IP:</label>
                   <input type="text" id="url" name="url">
                </div>
             </div>       
@@ -85,7 +84,7 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
-                  <label for="username">VCenter User Name:</label>
+                  <label for="username">vCenter User Name:</label>
                   <input type="text" id="username" name="username">
                </div>
             </div>       
@@ -93,7 +92,7 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
-                  <label for="pass">VCenter Password:</label>
+                  <label for="pass">vCenter Password:</label>
                   <input type="password" id="pass" name="pass">
                </div>
             </div>       

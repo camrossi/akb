@@ -18,7 +18,6 @@ l3out = {}
 vc = {}
 apic = {}
 cluster = {}
-calico_nodes = ""
 
 
 # app = Flask(__name__)
@@ -97,7 +96,7 @@ def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, 
     return vc
 
 
-def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, kube_version, kubeadm_token, 
+def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, local_as, kube_version, kubeadm_token, 
                         crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror):
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0],
                 "vip_port": control_plane_vip.split(":")[1],
@@ -107,6 +106,7 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "cluster_svc_subnet_v6": ipv6_svc_sub,
                 "external_svc_subnet": external_svc_subnet,
                 "external_svc_subnet_v6": external_svc_subnet_v6,
+                "local_as" : local_as,
                 "ingress_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1),
                 "kubeadm_token": kubeadm_token,
                 "node_sub": node_sub,
@@ -176,11 +176,11 @@ def create():
 
 @app.route('/calico_nodes', methods=['GET', 'POST'])
 def calico_nodes():
+    global calico_nodes
+    calico_nodes =[]
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
-        global calico_nodes
-        calico_nodes = []
         if button == "Next":
             calico_nodes = json.loads(req.get("calico_nodes"))
             return redirect('/cluster')
@@ -197,7 +197,6 @@ def calico_nodes():
             ipv6 = req.get("ipv6")
             natip = req.get("natip")
             rack_id = req.get("rack_id")
-            local_as = req.get("local_as")
             if not is_valid_hostname(hostname):
                 return calico_nodes_error(calico_nodes, "Error: Ivalid Hostname")
 
@@ -251,10 +250,10 @@ def calico_nodes():
             if missing_rack:
                 return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack ID does not match the Rack ID of any anchor nodes " + rack_id)
 
-            if local_as == "":
-                return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS is mandatory")
-            if local_as == l3out['local_as']:
-                return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS can't be the same as the ACI fabric " + local_as)
+            #if local_as == "":
+            #    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS is mandatory")
+            #if local_as == l3out['local_as']:
+            #    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS can't be the same as the ACI fabric " + local_as)
 
             # check that we do not add duplicate calico nodes:
             for calico_node in calico_nodes:
@@ -266,19 +265,27 @@ def calico_nodes():
                 if ipv6_enabled:
                     if calico_node['ipv6'] == ipv6:
                         return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv6:" + ipv6)
-                if calico_node['local_as'] != local_as:
-                    return calico_nodes_error(req.get("calico_nodes"), "Node local AS must be the same:" + local_as)
 
             calico_nodes.append({"hostname": hostname, "ip": ip,
-                                "ipv6": ipv6,"natip": natip, "local_as": local_as, "rack_id": rack_id})
+                                "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
 
             if turbo.can_stream():
                 return turbo.stream(
                     turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
-                                 target='calico_nodes'))
+                                 target='tf_calico_nodes'))
 
     if request.method == 'GET':
-        return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"])
+        if calico_nodes == []:
+            i = 1
+            while i <= 3:
+                    hostname = 'akb-master-' + str(i)
+                    ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                    ipv6 = ""
+                    natip = ""
+                    rack_id = "1"
+                    calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
+                    i += 1
+        return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
 
 
 def is_valid_hostname(hostname):
@@ -297,7 +304,7 @@ def calico_nodes_error(calico_nodes, error):
     if turbo.can_stream():
         return turbo.stream(
             turbo.update(render_template('_calico_nodes.html', calico_nodes=calico_nodes, error=error),
-                         target='calico_nodes'))
+                         target='tf_calico_nodes'))
 
 
 def k8s_versions():
@@ -347,26 +354,19 @@ def cluster():
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
-        if button == None and req.get("kube_version"):
-            crio_versions = req.get("kube_version").split(
-                '.')[0] + '.' + req.get("kube_version").split('.')[1]
-            # Pick the crio version from the kubernetes version
-            if turbo.can_stream():
-                return turbo.stream(
-                    turbo.update(render_template('_crio_versions.html', crio_versions=crio_versions),
-                                 target='crio'))
         if button == "Next":
             global cluster
+            crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
             cluster = createClusterVars(req.get("control_plane_vip"), l3out['ipv4_cluster_subnet'], l3out['ipv6_cluster_subnet'], req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"),req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
-            req.get("kube_version"), req.get("kubeadm_token"), req.get("crio_version"), req.get("crio_os"), 
+            req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"), 
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"))
             return redirect('/create')
         elif button == "Previous":
             return redirect('/calico_nodes')
     if request.method == 'GET':
-        api_ip = str(ipaddress.IPv4Interface(
-            l3out['ipv4_cluster_subnet']).ip + 2)
+        ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+        api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
@@ -395,7 +395,7 @@ def cluster():
 
         return render_template('cluster.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
         ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
-        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub)
+        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
@@ -661,6 +661,9 @@ def l3out():
             if ipaddress.IPv4Interface(primary_ip).ip not in ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")):
                 return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet")
 
+            if ipaddress.IPv4Interface(primary_ip).ip == ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).network_address:
+                return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv4 is equal to the subnet address")
+
             if ipv6_enabled:
                 primary_ipv6 = req.get("node_ipv6")
                 try:
@@ -801,7 +804,7 @@ def login():
             else:
                 return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
         if button == "Previous":
-            return redirect('/intro')
+            return redirect('/prereqaci')
     return render_template('login.html')
 
 
@@ -828,14 +831,29 @@ def existing_cluster():
         
         return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=f.read())
 
+@app.route('/prereq', methods=['GET', 'POST'])
+def prereqvc():
+    return render_template('/prereq.html')
+
+@app.route('/prereqaci', methods=['GET', 'POST'])
+def prereqaci():
+    if request.method == "POST":
+        req = request.form
+        button = req.get("button")
+        if button == "Back":
+            return redirect('/')
+        if button == "Next":
+            return redirect('/login')
+    return render_template('/prereqaci.html')
+
 @app.route('/')
 @app.route('/intro', methods=['GET', 'POST'])
 def get_page():
     if request.method == "POST":
         req = request.form
         button = req.get("button")
-        if button == "Go":
-            return redirect('/login')
+        if button == "Next":
+            return redirect('/prereqaci')
     try:
         with open('terraform.tfstate', 'r') as f:
             state = json.load(f)

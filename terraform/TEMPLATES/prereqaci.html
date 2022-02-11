@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="en">
 
+
 <head>
    <meta charset="utf-8">
-   <title>AKB - Apic Login</title>
+   <title>AKB - Day0</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css"
@@ -38,10 +39,7 @@
    </style>
 </head>
 
-
-
-
-<form name="loginForm" method="post" action="/login">
+<form name="tenantForm" method="post" action="/prereqaci">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -69,64 +67,74 @@
             <div class="cell"> </div>
          </div>
          <div class="container bg-gray">
-            <h2>ACI Login details</h2>
-            <p>
-               <br> Specify the credentials to login your ACI fabric.
-               <br> Note: The Priovate Key needs to be uploaded to this server!
+            <h1>ACI Design and Prerequisite </h1>
+               In order to have a working Kubernetes cluster we need to meet the following requiremetns:
+               
+               <ul>
+                  <li>The Kubernetes cluster needs to have allocated the following subnets:</li>
+                  <ul>
+                     <li> Cluster Subnet: Use for the Kubernetes nodes. This subnet must have internete access </li>
+                     <li> POD Subnet: Does not requires internet access, advertised outside of ACI</li>
+                     <li> Cluster Service Subnet: Used to expose the Kubernetes services. Does not requires internet access, advertised outside of ACI </li>
+                     <li> Cluster External Service Subnet: Used to expose the Kubernetes services. Does not requires internet access, advertised outside of ACI</li>
+                  </ul>
+                  <li>The ACI fabric needs to be pre-configured with the following:</li>
+                  <ul>
+                     <li>A Tenand and A VRF: For simplicity is assumed these are dedicated for the cluster. This is not mandatory.</li>
+                     <li>A Physical Domain that provide connectivity towaers the Kubernetes Ndoes or the Hypervisor where they will be running</li>
+                     <li>A Contract to provide connectivity (and route leaking) from the L3OUT of the Kubernetes Cluster towards a pre-exising L3OUT that has internet connectivity. Please note: The contract needs to be manually applied to the pre-existing L3OUT and ensure the scope is correct for your needs. For examples if the L3OUTs are in different Tenant the contract scope must be set to Global.</li>
+                  </ul>
+               </ul>       
+               
+               A possible topology is show here:<br>
+               <img src="../static/images/tenant_connecticity.png" alt="Tenant Architecture">
+
+               <h1>Subnets</h1>
+               In order to simplify the deployment as much as possible the following is automated
+               <ul>
+                  <li>The user is asked to provide the Cluster Subnet. The POD Subnet, Cluster Service Subnet and Cluster External Service Subnet are automatically calculated as following: </li>
+                  <ul>
+                     <li> IPv4: We pick the next 3 subnets after the Cluster Subnet . For example if the Cluster Subnet is 192.168.0.0/24 the POD Subnet is 192.168.1.0/24 and so on</li>
+                     <li> IPv6: </li>
+                     <ul>
+                        <li> POD Subnet: Next subnet after Cluster Subnet. For example if the Cluster Subnet is "2001:db8:35::/56" the POD Subnet will be "2001:db8:35:100::/56"</li>
+                        <li> Service Subnet and External Service Subnet: K8s only supports up to a /108 subnet for services so we pick the POD Subnet + 1 and extract the 1st and 2nd /108 in it to allocato the the Service and External Service Subnet. 
+                             For example if the Cluster Subnet is "2001:db8:35::/56" the Service Subnet will be 2001:db8:35:200::/108 and the External Service Subnet will be "2001:db8:35:200::10:0/108" </li>
+                     </ul>
+                     <li> Floating SVI: </li>
+                     The same logic is appliwed for both IPv4 and IPv6
+                     <ul>
+                        <li> The Floating SVI IP is Cluster Subnet - 1: For example if the Cluster subnet is 192.168.35.0/24 the Floating IP is 192.168.35.254/24 </li>
+                        <li> The Secondary Floating SVI IP is Cluster Subnet - 2: For example if the Cluster subnet is 192.168.35.0/24 the Floating IP is 192.168.35.253/24 </li>
+                     </ul>
+                     <li> Kubernetes API Virtual IP: </li>
+                     The Kubernetes API Virtual IP is Cluster Subnet - 3. For example if the Cluster subnet is 192.168.35.0/24 the Floating IP is 192.168.35.252/24
+                     <li> Calico Nodes: </li>
+                     For simplicy I pre-populate the data for 3 master nodes. These nodes will use the first 3 IPs in the Cluster Subnet. For example if the Cluster subnet is 192.168.35.0/24 the fist node will be  192.168.35.1/24
+                     </ul>
+                  <li>A Physical Domain that provide connectivity towaers the Kubernetes Ndoes or the Hypervisor where they will be running</li>
+                  <li>A Contract to provide connectivity (and route leaking) from the L3OUT of the Kubernetes Cluster towards a pre-exising L3OUT that has internet connectivity. Please note: The contract needs to be manually applied to the pre-existing L3OUT and ensure the scope is correct for your needs. For examples if the L3OUTs are in different Tenant the contract scope must be set to Global.</li>
+               </ul>
+               <br>
+               <h1>VMWare Infrastructure</h1>
+               {% include "_vc_requirements.html" %}
+               <h2>Under the hood of AKB</h2>
+               AKB is powered by the following technologies:
+               <ul>
+                  <li>Terraform: It is used to provision the ACI configuration, clone the VMs, customized the VM OS with basic parameters (IP, hostname) and generate the ansible configuration</li>
+                  <li>Ansible: It is used to Bootstrap the K8s cluster and perform all the VMs customizations</li>
+                  <li>Packer: It is used to package AKB in a VM form Factor</li>
+               </ul>
+         </div>
+
             </p>
-         </div>
-         <div class="container">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-               <span>{{ message }}</span>
+            <div class="container">
+               <input type="submit" value="Back" class="btn btn--wide" name="button">
+               <input type="submit" value="Next" class="btn btn--wide" name="button">
             </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-
-            <table class="table table--compressed table--selectable table--wrap c1990" id="_uid829dc898">
-
-               <tbody>
-                  <tr>
-                     <td>Fabric IP or Host Name</td>
-                     <td><input type="text" size=25 name="fabric"></td>
-                  </tr>
-                  <tr>
-                     <td>Username (with Admin Privilege):</td>
-                     <td><input type="text" size=25 name="username" value="admin"></td>
-                  </tr>
-                  <tr>
-                     <td>Password:</td>
-                     <td><input type="password" size=25 name="password"></td>
-                  </tr>
-                  <tr>
-                     <td>AKB Username (Service Account):</td>
-                     <td><input type="text" size=25 name="akb_user" value="akb_user"></td>
-                  </tr>
-                  <tr>
-                  <td>AKB Password (default: 123Cisco123):</td>
-                  <td><input type="password" size=25 name="akb_pass" value="123Cisco123"></td>
-               </tr>
-                  <tr>
-                     <td>
-                        <div class="container">
-                           <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
-                        </div>
-                     </td>
-                  </tr>
-               </tbody>
-            </table>
+            <br><br><br><br><br><br>
          </div>
-         <table width="20%" bgcolor="0099CC" align="center">
 
-
-
-         </table>
-         <br><br><br><br><br><br>
-         <!--      
--->
 
          <div class="container">
             <footer class="footer footer--tertiary" id="_uidca388897">

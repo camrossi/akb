@@ -105,7 +105,18 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
-                  <label for="control_plane_vip">API LB IP:PORT for K8s (Defauls NodeSubnet.252):</label>
+                  <label for="local_as">Cluster BGP AS:
+                     <span data-title="This is pre-calculated as the ACI AS + 1">ⓘ</span>
+                  </label>
+                  <input type="text" id="local_as" name="local_as" value="{{ local_as }}">
+
+               </div>
+            </div>
+         </div>
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="control_plane_vip">API LB IP:PORT for K8s (Defaults NodeSubnet.252):</label>
                   <input type="text" id="control_plane_vip" name="control_plane_vip" value="{{ api_ip }}:8443">
                </div>
             </div>
@@ -113,7 +124,7 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
-                  <label for="ipv4_pod_sub">POD Subnet (Default Node Subnet + 1):</label>
+                  <label for="ipv4_pod_sub">POD Subnet (Defaults Node Subnet + 1):</label>
                   <input type="text" id="ipv4_pod_sub" name="ipv4_pod_sub" value="{{ ipv4_pod_sub }}">
 
                </div>
@@ -164,7 +175,7 @@
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="kube_version">Kubernetes Version:</label>
-                  <input list="kube_version_list" id="kube_version" name="kube_version" onchange="this.form.requestSubmit()">
+                  <input list="kube_version_list" id="kube_version" name="kube_version" value="1.22.4-00">
                   <datalist id="kube_version_list">
                      {% for o in k8s_ver %}
                      <option value="{{ o }}">
@@ -181,14 +192,12 @@
                </div>
             </div>
          </div>
-        
-         {% include "_crio_versions.html" %}
          
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="crio_os">Crios OS Version:</label>
-                  <input list="crio_os_list" id="crio_os" name="crio_os">
+                  <input list="crio_os_list" id="crio_os" name="crio_os" value="xUbuntu_21.04">
                   <datalist id="crio_os_list">
                      <option value='xUbuntu_21.04'>
                      <option value='xUbuntu_20.10'>

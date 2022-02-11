@@ -1,9 +1,13 @@
 <ul>
     <li>A working ESXi infrastructure connected to ACI</li>
-    <li>A port-group to carry the traffic between the K8s VMs and the border leaves. This must be manually created in vCenter. There is no requirement for vCetner to be integrated via a VMM domain</li>
+    <li>A port-group to carry the traffic between the K8s VMs and the ACI leaves. This must be manually created in vCenter. There is no requirement for vCenter to be integrated via a VMM domain</li>
     <li>A folder to store the K8s VMs, subfolders are not supported at the moment</li>
     <li>A data store, shared if the VMs are required to run on more than one host</li>
-    <li>Ubuntu VM temaplate, download it from <a
-          href="{{ url_for('static',filename='vm_templates/akb_ubuntu21_template.ova') }}">here</a> if you don't have one and upload it to your vCenter.
+    <li>Ubuntu VM temaplate with the VMWare provisiong tool installed. If you want you can:
+          <ul>
+            <li>download it from <a href="{{ url_for('static',filename='vm_templates/akb_ubuntu21_template.ova') }}">here</a></li>
+            <li> Deploy it to vCenter</li>
+            <li> Create a SnapShot, this is required as I use linked clones </li>
+          </ul>  
     </li>
  </ul>

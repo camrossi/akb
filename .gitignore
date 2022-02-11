@@ -2,3 +2,4 @@
 *.tfstate
 *.terraform
 .DS_Store
+terraform/cluster.tfvars

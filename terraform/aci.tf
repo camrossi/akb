@@ -55,6 +55,7 @@ resource "aci_logical_node_to_fabric_node" "nodes" {
   for_each = {for i, v in var.l3out.anchor_nodes:  i => v}
     tdn = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
     rtr_id = each.value.rtr_id
+    rtr_id_loop_back  = "no"
 }
 
 resource "aci_logical_interface_profile" "calico_interface_profile" {

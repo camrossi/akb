@@ -752,10 +752,10 @@ def login():
             apic['url'] = "https://" +  request.form['fabric']
             apic['username'] = request.form['username']
             apic['password'] = request.form['password']
-            apic['akb_user'] = request.form['akb_user']
-            apic['akb_pass'] = request.form['akb_pass']
+            apic['akb_user'] = "akb_user" #request.form['akb_user']
+            apic['akb_pass'] = "123Cisco123" #request.form['akb_pass']
             apic['private_key']= "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
-            apic['cert_name'] = request.form['akb_user']
+            apic['cert_name'] = "akb_user" #request.form['akb_user']
             apic['oob_ips'] = ""
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!

@@ -77,7 +77,7 @@
                   href="https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html">Cisco
                   Application Centric Infrastructure Calico Design White Paper</a>.
                <br> All the optimizations and best practices of the design are implemented automatically on ACI.
-               <br> AKB uses, under the hood, Terraform to push the ACI configuration and Deploy the VMs.
+               <br> AKB uses, under the hood, Terraform to push the ACI configuration and deploy the VMs.
                Ansible is used to configure the VMs, bootstrap and configure the Kubernetes Cluster.
 
             <h2> High Level Architecture</h2>
@@ -93,7 +93,7 @@
             top-of-rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy
             within the rack.
             <br>
-            This eBGP design does not require running any route reflector in the Calico infrastructure: ACI will be configured to send back to the nodes the routes leatned.
+            This eBGP design does not require running any route reflector in the Calico infrastructure: ACI will be configured to send back to the nodes the routes learned.
             <br> this results in a more scalable, simpler, and easier to maintain architecture.
 
             Once this design is implemented, the following connectivity is expected:
@@ -133,7 +133,7 @@
                      <li>Disable Peer AS Check—Disables the peer autonomous number check.
                   </ul>
                   With these two configuration options enabled ACI will advertise the POD Subnets between the Kubernetes nodes (even if learned from the same AS) ensuring all the PODs in the Cluster can communicate with each other.
-                  An added benefits of configuring all the Kuberneters nodes with the same AS is that it allows us to use BGP Dynamic Neighbours by using the Cluster Subnet as BGP neighbors greatly reducing the ACI config complexity.
+                  An added benefits of configuring all the Kubernetes nodes with the same AS is that it allows us to use BGP Dynamic Neighbors by using the Cluster Subnet as BGP neighbors greatly reducing the ACI config complexity.
               </div>
                <div class="col-md-6">
                   <img src="../static/images/connectivity.png" alt="High Level Connectivity">

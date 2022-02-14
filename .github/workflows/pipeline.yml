@@ -50,6 +50,9 @@ jobs:
       - name: Terraform destroy
         run: | 
           terraform destroy -auto-approve -var-file='cluster.tfvars'
+      - name: Delete APIC User
+        run: | 
+          ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'   
   
   akb-testing-v46:
     # The type of runner that the job will run on
@@ -88,3 +91,6 @@ jobs:
       - name: Terraform destroy
         run: | 
           terraform destroy -auto-approve -var-file='cluster.tfvars'
+      - name: Delete APIC User
+        run: | 
+          ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'

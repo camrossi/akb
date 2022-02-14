@@ -1,7 +1,7 @@
 import json
 import sys
 from logging import error
-from flask import Flask, Response, request, render_template, redirect, flash
+from flask import Flask, Response, request, render_template, redirect, flash, session
 from logging.config import dictConfig
 from turbo_flask import Turbo
 import requests
@@ -582,10 +582,10 @@ def vcenter():
         return render_template('vcenter.html', dcs=dcs.values(), )
 
 
-def anchor_node_error(anchor_nodes, error):
+def anchor_node_error(anchor_nodes, pod_ids, nodes_id , rtr_id,  error):
     if turbo.can_stream():
         return turbo.stream(
-            turbo.update(render_template('_anchor_nodes.html', anchor_nodes=anchor_nodes, error=error),
+            turbo.update(render_template('_anchor_nodes.html', pod_ids=pod_ids, nodes_id=nodes_id, anchor_nodes=anchor_nodes, rtr_id=rtr_id, error=error),
                          target='anchor_nodes'))
 
 
@@ -595,13 +595,12 @@ def l3out():
     tenants = []
     vrfs = ["Select a Tenant"]
     local_as = ""
-    pod_ids = []
-    nodes_id = []
     anchor_nodes = []
     contracts = ['select a tenant']
     home = os.path.expanduser("~")
     meta_path = home + '/.aci-meta/aci-meta.json'
     pyaci_apic = Node(apic['url'],aciMetaFilePath = meta_path)
+    rtr_id_counter = ipaddress.IPv4Address("1.1.1.1")
     global ipv6_enabled
     try:
         pyaci_apic.useX509CertAuth(apic['akb_user'],apic["akb_user"],apic['private_key'])
@@ -614,15 +613,15 @@ def l3out():
             global l3out
             mtu = int(req.get("mtu"))
             if mtu < 1280 or mtu > 9000:
-                return anchor_node_error(req.get("anchor_nodes"), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
             if req.get("anchor_nodes") == "":
-                return anchor_node_error(req.get("anchor_nodes"), "At least one anchor node is required")
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "At least one anchor node is required")
             try:
                 anchor_nodes = json.loads(req.get("anchor_nodes"))
             except ValueError as e:
-                return anchor_node_error(req.get("anchor_nodes"), "Invalid JSON:" + str(e))
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Invalid JSON:" + str(e))
             if "l3out_tenant" not in req:
-                return anchor_node_error(req.get("anchor_nodes"), "Please Select a Tenant from the First Drop Down at the top of the page")
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Please Select a Tenant from the First Drop Down at the top of the page")
             l3out = createl3outVars(req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("dns_servers"), req.get("dns_domain"), req.get("anchor_nodes"))
             return redirect('/vcenterlogin')
@@ -662,7 +661,7 @@ def l3out():
                 try:
                     anchor_nodes = json.loads(req.get("anchor_nodes"))
                 except ValueError as e:
-                    return anchor_node_error(req.get("anchor_nodes"), "Invalid JSON:" + str(e))
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Invalid JSON:" + str(e))
             if req.get("ipv6_cluster_subnet") == "":
                 ipv6_enabled = False
             else:
@@ -678,24 +677,24 @@ def l3out():
                     # Use the Netwrok to ensure that the mask is always present
                     ipaddress.IPv4Address(dns)
                 except ValueError as e:
-                    return anchor_node_error(req.get("anchor_nodes"), "Invalid DNS Server: " + str(e))
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Invalid DNS Server: " + str(e))
             try:
                 # Use the Netwrok to ensure that the mask is always present
                 ipaddress.IPv4Network(
                     req.get("ipv4_cluster_subnet"), strict=False)
             except ValueError as e:
-                return anchor_node_error(req.get("anchor_nodes"), "IPv4 Cluster Subnet Error: " + str(e))
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "IPv4 Cluster Subnet Error: " + str(e))
 
             try:
                 ipaddress.IPv4Address(rtr_id)
             except ValueError as e:
-                return anchor_node_error(req.get("anchor_nodes"), "Router ID Error: " + str(e))
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Router ID Error: " + str(e))
 
             if ipaddress.IPv4Interface(primary_ip).ip not in ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")):
-                return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet")
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet")
 
             if ipaddress.IPv4Interface(primary_ip).ip == ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).network_address:
-                return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv4 is equal to the subnet address")
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv4 is equal to the subnet address")
 
             if ipv6_enabled:
                 primary_ipv6 = req.get("node_ipv6")
@@ -704,10 +703,10 @@ def l3out():
                     ipaddress.IPv6Network(
                         req.get("ipv6_cluster_subnet"), strict=False)
                 except ValueError as e:
-                    return anchor_node_error(req.get("anchor_nodes"), "IPv6 Cluster Subnet Error: " + str(e))
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "IPv6 Cluster Subnet Error: " + str(e))
                 
                 if ipaddress.IPv6Interface(primary_ipv6).ip not in ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")):
-                    return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
                 
                 node_ipv6  = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
             else:
@@ -716,32 +715,32 @@ def l3out():
             
 
             if rack_id == "":
-                return anchor_node_error(req.get("anchor_nodes"), "Rack ID is required")
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Rack ID is required")
 
             # check that we do not add duplicate nodes:
             for anchor_node in anchor_nodes:
 
                 if anchor_node['node_id'] == req.get("node_id"):
-                    return anchor_node_error(req.get("anchor_nodes"), "Duplicated Node ID:" + req.get("node_id"))
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Node ID:" + req.get("node_id"))
                 if anchor_node['rtr_id'] == req.get("rtr_id"):
-                    return anchor_node_error(req.get("anchor_nodes"), "Duplicated Router ID:" + req.get("rtr_id"))
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Router ID:" + req.get("rtr_id"))
                 if anchor_node['primary_ip'] == node_ipv4:
-                    return anchor_node_error(req.get("anchor_nodes"), "Duplicated Node Primary IPv4:" + req.get("node_ipv4"))
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Node Primary IPv4:" + req.get("node_ipv4"))
                 if ipv6_enabled:
                     if anchor_node['primary_ipv6'] == node_ipv6:
-                        return anchor_node_error(req.get("anchor_nodes"), "Duplicated Node Primary IPv6:" + req.get("node_ipv6"))
+                        return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Node Primary IPv6:" + req.get("node_ipv6"))
 
             anchor_nodes.append({"pod_id": req.get("pod_id"), "rack_id": req.get("rack_id"), "node_id": req.get(
                 "node_id"), "rtr_id": req.get("rtr_id"), "primary_ip": node_ipv4, "primary_ipv6": node_ipv6})
-
             if turbo.can_stream():
                 return turbo.stream(
-                    turbo.update(render_template('_anchor_nodes.html', anchor_nodes=json.dumps(anchor_nodes, indent=4)),
+                    turbo.update(render_template('_anchor_nodes.html', pod_ids=session['pod_ids'], nodes_id=session['nodes_id'], rtr_id=str(rtr_id_counter+1), anchor_nodes=json.dumps(anchor_nodes, indent=4)),
                                  target='anchor_nodes'))
         if button == "Previous":
             return redirect('/login')
     if request.method == 'GET':
-       
+        pod_ids = []
+        nodes_id = []
         # Get required data from APIC:
         try:
             physDomPs = pyaci_apic.methods.ResolveClass('physDomP').GET()
@@ -768,9 +767,9 @@ def l3out():
         apic['oob_ips'] = apic['oob_ips'][:-1]
         phys_dom = sorted(phys_dom, key=str.lower)
         tenants = sorted(tenants, key=str.lower)
-        nodes_id = sorted(nodes_id, key=int)
-        pod_ids = sorted(pod_ids, key=int)
-        return render_template('l3out.html', phys_dom=phys_dom, tenants=tenants, vrfs=vrfs, local_as=local_as, pod_ids=pod_ids, nodes_id=nodes_id)
+        session['nodes_id'] = sorted(nodes_id, key=int)
+        session['pod_ids'] = sorted(pod_ids, key=int)
+        return render_template('l3out.html', phys_dom=phys_dom, tenants=tenants, vrfs=vrfs, local_as=local_as, pod_ids=session['pod_ids'], nodes_id=session['nodes_id'], rtr_id =str(rtr_id_counter))
 
 
 @app.route('/login', methods=['GET', 'POST'])

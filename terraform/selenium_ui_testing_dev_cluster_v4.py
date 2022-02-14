@@ -22,7 +22,7 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.send_keys(node_ipv4)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(0.5)
+    sleep(1)
 
 def add_calico_ndoe(hostname, ip, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
@@ -36,7 +36,7 @@ def add_calico_ndoe(hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(0.5)
+    sleep(1)
 
 chrome_options = Options()
 if len(sys.argv)>=2:

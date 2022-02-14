@@ -71,7 +71,15 @@
                <br> The k8s cluster will automatically be configured with Calico using non overlay mode and leveraging BGP to advertise routes to ACI leaves.
                <br> PreRequisite: A Ubuntu 21.01 VM template with Perl and a snapshot must exists. You can download it from <a href="{{ url_for('static',filename='vm_template/test') }}">here</a> for simplicity and upload it to your vCenter as a VM template. 
             </p>
-      
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+               <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
             </div>
             <div class="container">
             <div class="form-group base-margin-bottom">

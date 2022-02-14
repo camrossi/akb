@@ -14,6 +14,8 @@ import re
 from shelljob import proc
 from distutils.version import LooseVersion
 from time import sleep
+import random
+import string
 l3out = {}
 vc = {}
 apic = {}
@@ -25,6 +27,11 @@ app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
+def get_random_string(length):
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
 
 def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, dns_servers, dns_domain, anchor_nodes):
     def_ext_epg_scope = []
@@ -170,7 +177,7 @@ def create():
         try: 
             tf_apic = {}
             tf_apic['username'] = apic["akb_user"]
-            tf_apic['cert_name'] = apic["cert_name"]
+            tf_apic['cert_name'] = apic["akb_user"]
             tf_apic['private_key'] = apic["private_key"]
             tf_apic['url'] = apic["url"]
             tf_apic['oob_ips'] = apic["oob_ips"]
@@ -562,8 +569,13 @@ def vcenter():
                                   target='vc'))
 
     if request.method == 'GET':
-        si = connect.SmartConnectNoSSL(
-            host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
+        try:
+            si = connect.SmartConnectNoSSL(
+                host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
+        except Exception:
+            flash(u'Incorrect Username Or Password', 'error')
+            return redirect('/vcenterlogin')
+
         content = si.RetrieveContent()
         dcs = get_all_objs(content, [vim.Datacenter])
         connect.Disconnect(si)
@@ -592,9 +604,8 @@ def l3out():
     pyaci_apic = Node(apic['url'],aciMetaFilePath = meta_path)
     global ipv6_enabled
     try:
-        pyaci_apic.useX509CertAuth(apic['akb_user'],apic['cert_name'],apic['private_key'])
+        pyaci_apic.useX509CertAuth(apic['akb_user'],apic["akb_user"],apic['private_key'])
     except FileNotFoundError as e:
-        flash(u'Private Key Not Found', 'error')
         return redirect('/login')
     if request.method == 'POST':
         req = request.form
@@ -621,7 +632,7 @@ def l3out():
             contracts = []
             tenant = req.get("l3out_tenant")
             if tenant != "common":
-                regex = ".*tn-common|tn-" + tenant + ".*"
+                regex = ".*tn-common|tn-" + tenant + "/.*"
             else:
                 regex = ".*tn-common.*"
 
@@ -781,10 +792,9 @@ def login():
             print(apic['url'])
             apic['username'] = request.form['username']
             apic['password'] = request.form['password']
-            apic['akb_user'] = "akb_user" #request.form['akb_user']
-            apic['akb_pass'] = "123Cisco123" #request.form['akb_pass']
+            apic['akb_user'] = "akb_user_" + get_random_string(6) #request.form['akb_user']
+            apic['akb_pass'] = get_random_string(20)
             apic['private_key']= "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
-            apic['cert_name'] = "akb_user" #request.form['akb_user']
             apic['oob_ips'] = ""
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
@@ -818,7 +828,7 @@ def login():
                 f.write(config)      
             # Generate temporary user and certificate
             g = proc.Group()
-            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml"])
+            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
             #Just wait for terraform to finish
             for s in read_process(g):
                 ansible_output += str(s, 'utf-8')
@@ -827,7 +837,7 @@ def login():
             # This for some reason does not work on Alpine so I do a hacky thing:
             #if g.get_exit_codes()[0][1] == 0 :
             #    return redirect('/l3out')
-            # If something failed then the user creaation failed. 
+            # If something failed then the user creation failed. 
             if "failed=0" in ansible_output:
                 return redirect('/l3out')
             else:
@@ -847,8 +857,9 @@ def read_process(g):
 def existing_cluster():
     if request.method == "POST":
         g = proc.Group()
-        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars'" ])
-
+        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
+            ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
+        
         #p = g.run("ls")
         return Response( read_process(g), mimetype= 'text/event-stream' )
     else:

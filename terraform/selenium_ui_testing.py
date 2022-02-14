@@ -26,7 +26,7 @@ def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem.click()
     sleep(0.5)
 
-def add_calico_ndoe(hostname, ip, ipv6, local_as, rack_id):
+def add_calico_ndoe(hostname, ip, ipv6, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
     elem.clear()
     elem.send_keys(hostname)
@@ -36,9 +36,6 @@ def add_calico_ndoe(hostname, ip, ipv6, local_as, rack_id):
     elem = driver.find_element(By.NAME,"ipv6")
     elem.clear()
     elem.send_keys(ipv6)
-    elem = driver.find_element(By.NAME,"local_as")
-    elem.clear()
-    elem.send_keys(local_as)
     elem = driver.find_element(By.NAME,"rack_id")
     elem.clear()
     elem.send_keys(rack_id)
@@ -166,10 +163,10 @@ elem.click()
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
-add_calico_ndoe('calico-1','192.168.12.11/24','2001:db8:12::11/56', '650011', '1')
-add_calico_ndoe('calico-2','192.168.12.12/24','2001:db8:12::12/56', '650011', '1')
-add_calico_ndoe('calico-3','192.168.12.13/24','2001:db8:12::13/56', '650011', '2')
-add_calico_ndoe('calico-4','192.168.12.14/24','2001:db8:12::14/56', '650011', '2')
+add_calico_ndoe('calico-1','192.168.12.11/24','2001:db8:12::11/56', '1')
+add_calico_ndoe('calico-2','192.168.12.12/24','2001:db8:12::12/56', '1')
+add_calico_ndoe('calico-3','192.168.12.13/24','2001:db8:12::13/56', '2')
+add_calico_ndoe('calico-4','192.168.12.14/24','2001:db8:12::14/56', '2')
 
 
 elem = driver.find_element(By.ID,"submit")

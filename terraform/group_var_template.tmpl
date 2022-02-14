@@ -29,6 +29,7 @@ time_zone: "${k8s_cluster.time_zone}"
 kubeadm_token: ${k8s_cluster.kubeadm_token}
 
 aci_as: ${as}
+calico_as:  ${k8s_cluster.local_as}
 apic_username : ${apic.username}
 apic_cert_name : ${apic.cert_name}
 apic_private_key: ${apic.private_key}

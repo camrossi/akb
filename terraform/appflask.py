@@ -14,11 +14,12 @@ import re
 from shelljob import proc
 from distutils.version import LooseVersion
 from time import sleep
+import random
+import string
 l3out = {}
 vc = {}
 apic = {}
 cluster = {}
-calico_nodes = ""
 
 
 # app = Flask(__name__)
@@ -26,6 +27,11 @@ app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
+def get_random_string(length):
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
 
 def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, dns_servers, dns_domain, anchor_nodes):
     def_ext_epg_scope = []
@@ -97,7 +103,7 @@ def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, 
     return vc
 
 
-def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, kube_version, kubeadm_token, 
+def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, local_as, kube_version, kubeadm_token, 
                         crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror):
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0],
                 "vip_port": control_plane_vip.split(":")[1],
@@ -107,6 +113,7 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "cluster_svc_subnet_v6": ipv6_svc_sub,
                 "external_svc_subnet": external_svc_subnet,
                 "external_svc_subnet_v6": external_svc_subnet_v6,
+                "local_as" : local_as,
                 "ingress_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1),
                 "kubeadm_token": kubeadm_token,
                 "node_sub": node_sub,
@@ -125,6 +132,28 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "ubuntu_apt_mirror" : ubuntu_apt_mirror
                 }
     return cluster
+
+##### DOCUMENTATION START #####
+
+@app.route('/docs/doc', methods=['GET', 'POST'])
+def docs():
+    if request.method == 'POST':
+        return redirect('/docs/prereqaci')
+    return render_template('docs/doc.html')
+    
+
+@app.route('/docs/prereqaci', methods=['GET', 'POST'])
+def prereqaci():
+    if request.method == "POST":
+        req = request.form
+        button = req.get("button")
+        if button == "Back":
+            return redirect('/docs/doc')
+        if button == "Next":
+            return redirect('/docs/prereqvc')
+    return render_template('docs/prereqaci.html')
+
+##### DOCUMENTATION END #####
 
 #These two methods create a stream that is then fed to an iFrame to auto populate the content on the fly
 @app.route('/tf_plan', methods=['GET', 'POST'])
@@ -148,7 +177,7 @@ def create():
         try: 
             tf_apic = {}
             tf_apic['username'] = apic["akb_user"]
-            tf_apic['cert_name'] = apic["cert_name"]
+            tf_apic['cert_name'] = apic["akb_user"]
             tf_apic['private_key'] = apic["private_key"]
             tf_apic['url'] = apic["url"]
             tf_apic['oob_ips'] = apic["oob_ips"]
@@ -176,11 +205,11 @@ def create():
 
 @app.route('/calico_nodes', methods=['GET', 'POST'])
 def calico_nodes():
+    global calico_nodes
+    calico_nodes =[]
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
-        global calico_nodes
-        calico_nodes = []
         if button == "Next":
             calico_nodes = json.loads(req.get("calico_nodes"))
             return redirect('/cluster')
@@ -197,7 +226,6 @@ def calico_nodes():
             ipv6 = req.get("ipv6")
             natip = req.get("natip")
             rack_id = req.get("rack_id")
-            local_as = req.get("local_as")
             if not is_valid_hostname(hostname):
                 return calico_nodes_error(calico_nodes, "Error: Ivalid Hostname")
 
@@ -251,10 +279,10 @@ def calico_nodes():
             if missing_rack:
                 return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack ID does not match the Rack ID of any anchor nodes " + rack_id)
 
-            if local_as == "":
-                return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS is mandatory")
-            if local_as == l3out['local_as']:
-                return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS can't be the same as the ACI fabric " + local_as)
+            #if local_as == "":
+            #    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS is mandatory")
+            #if local_as == l3out['local_as']:
+            #    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS can't be the same as the ACI fabric " + local_as)
 
             # check that we do not add duplicate calico nodes:
             for calico_node in calico_nodes:
@@ -266,19 +294,27 @@ def calico_nodes():
                 if ipv6_enabled:
                     if calico_node['ipv6'] == ipv6:
                         return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv6:" + ipv6)
-                if calico_node['local_as'] != local_as:
-                    return calico_nodes_error(req.get("calico_nodes"), "Node local AS must be the same:" + local_as)
 
             calico_nodes.append({"hostname": hostname, "ip": ip,
-                                "ipv6": ipv6,"natip": natip, "local_as": local_as, "rack_id": rack_id})
+                                "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
 
             if turbo.can_stream():
                 return turbo.stream(
                     turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
-                                 target='calico_nodes'))
+                                 target='tf_calico_nodes'))
 
     if request.method == 'GET':
-        return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"])
+        if calico_nodes == []:
+            i = 1
+            while i <= 3:
+                    hostname = 'akb-master-' + str(i)
+                    ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                    ipv6 = ""
+                    natip = ""
+                    rack_id = "1"
+                    calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
+                    i += 1
+        return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
 
 
 def is_valid_hostname(hostname):
@@ -297,7 +333,7 @@ def calico_nodes_error(calico_nodes, error):
     if turbo.can_stream():
         return turbo.stream(
             turbo.update(render_template('_calico_nodes.html', calico_nodes=calico_nodes, error=error),
-                         target='calico_nodes'))
+                         target='tf_calico_nodes'))
 
 
 def k8s_versions():
@@ -347,26 +383,19 @@ def cluster():
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
-        if button == None and req.get("kube_version"):
-            crio_versions = req.get("kube_version").split(
-                '.')[0] + '.' + req.get("kube_version").split('.')[1]
-            # Pick the crio version from the kubernetes version
-            if turbo.can_stream():
-                return turbo.stream(
-                    turbo.update(render_template('_crio_versions.html', crio_versions=crio_versions),
-                                 target='crio'))
         if button == "Next":
             global cluster
+            crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
             cluster = createClusterVars(req.get("control_plane_vip"), l3out['ipv4_cluster_subnet'], l3out['ipv6_cluster_subnet'], req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"),req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
-            req.get("kube_version"), req.get("kubeadm_token"), req.get("crio_version"), req.get("crio_os"), 
+            req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"), 
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"))
             return redirect('/create')
         elif button == "Previous":
             return redirect('/calico_nodes')
     if request.method == 'GET':
-        api_ip = str(ipaddress.IPv4Interface(
-            l3out['ipv4_cluster_subnet']).ip + 2)
+        ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+        api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
@@ -395,7 +424,7 @@ def cluster():
 
         return render_template('cluster.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
         ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
-        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub)
+        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
@@ -540,8 +569,13 @@ def vcenter():
                                   target='vc'))
 
     if request.method == 'GET':
-        si = connect.SmartConnectNoSSL(
-            host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
+        try:
+            si = connect.SmartConnectNoSSL(
+                host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
+        except Exception:
+            flash(u'Incorrect Username Or Password', 'error')
+            return redirect('/vcenterlogin')
+
         content = si.RetrieveContent()
         dcs = get_all_objs(content, [vim.Datacenter])
         connect.Disconnect(si)
@@ -570,9 +604,8 @@ def l3out():
     pyaci_apic = Node(apic['url'],aciMetaFilePath = meta_path)
     global ipv6_enabled
     try:
-        pyaci_apic.useX509CertAuth(apic['akb_user'],apic['cert_name'],apic['private_key'])
+        pyaci_apic.useX509CertAuth(apic['akb_user'],apic["akb_user"],apic['private_key'])
     except FileNotFoundError as e:
-        flash(u'Private Key Not Found', 'error')
         return redirect('/login')
     if request.method == 'POST':
         req = request.form
@@ -599,7 +632,7 @@ def l3out():
             contracts = []
             tenant = req.get("l3out_tenant")
             if tenant != "common":
-                regex = ".*tn-common|tn-" + tenant + ".*"
+                regex = ".*tn-common|tn-" + tenant + "/.*"
             else:
                 regex = ".*tn-common.*"
 
@@ -660,6 +693,9 @@ def l3out():
 
             if ipaddress.IPv4Interface(primary_ip).ip not in ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")):
                 return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet")
+
+            if ipaddress.IPv4Interface(primary_ip).ip == ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).network_address:
+                return anchor_node_error(req.get("anchor_nodes"), "The Primary IPv4 is equal to the subnet address")
 
             if ipv6_enabled:
                 primary_ipv6 = req.get("node_ipv6")
@@ -746,13 +782,19 @@ def login():
         req = request.form
         button = req.get("button")
         if button == "Login":
-            apic['url'] = "https://" +  request.form['fabric']
+            if request.form['fabric'].startswith('http://'):
+                apic['url'] = request.form['fabric'].replace("http://", "https://")
+            else:
+                apic['url'] = "https://" +  request.form['fabric']
+            if apic['url'].endswith('/'):
+                apic['url'] = apic['url'][:-1]
+
+            print(apic['url'])
             apic['username'] = request.form['username']
             apic['password'] = request.form['password']
-            apic['akb_user'] = request.form['akb_user']
-            apic['akb_pass'] = request.form['akb_pass']
+            apic['akb_user'] = "akb_user_" + get_random_string(6) #request.form['akb_user']
+            apic['akb_pass'] = get_random_string(20)
             apic['private_key']= "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
-            apic['cert_name'] = request.form['akb_user']
             apic['oob_ips'] = ""
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
@@ -771,7 +813,7 @@ def login():
     ## Generate the inventory file for the APIC, this looks ugly might want to clean up
             config = f"""apic: #You ACI Fabric Name
   hosts:
-    {request.form['fabric']}:
+    {apic['url'].replace("https://",'')}:
       validate_certs: no
       # APIC HTTPs Port 
       port: 443
@@ -786,7 +828,7 @@ def login():
                 f.write(config)      
             # Generate temporary user and certificate
             g = proc.Group()
-            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml"])
+            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
             #Just wait for terraform to finish
             for s in read_process(g):
                 ansible_output += str(s, 'utf-8')
@@ -795,13 +837,13 @@ def login():
             # This for some reason does not work on Alpine so I do a hacky thing:
             #if g.get_exit_codes()[0][1] == 0 :
             #    return redirect('/l3out')
-            # If something failed then the user creaation failed. 
+            # If something failed then the user creation failed. 
             if "failed=0" in ansible_output:
                 return redirect('/l3out')
             else:
                 return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
         if button == "Previous":
-            return redirect('/intro')
+            return redirect('/prereqaci')
     return render_template('login.html')
 
 
@@ -815,8 +857,9 @@ def read_process(g):
 def existing_cluster():
     if request.method == "POST":
         g = proc.Group()
-        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars'" ])
-
+        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
+            ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
+        
         #p = g.run("ls")
         return Response( read_process(g), mimetype= 'text/event-stream' )
     else:
@@ -834,7 +877,7 @@ def get_page():
     if request.method == "POST":
         req = request.form
         button = req.get("button")
-        if button == "Go":
+        if button == "Next":
             return redirect('/login')
     try:
         with open('terraform.tfstate', 'r') as f:

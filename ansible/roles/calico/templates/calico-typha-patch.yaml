@@ -1,8 +1,0 @@
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: calico-typha
-  namespace: kube-system
-spec:
-  replicas: 3

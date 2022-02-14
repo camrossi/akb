@@ -1,5 +1,20 @@
 <!doctype html>
 <html lang="en">
+   <script>
+      function DoCheckUncheckDisplay(d,dchecked,dunchecked)
+      {
+         if( d.checked == true )
+         {
+            document.getElementById(dchecked).style.display = "block";
+            document.getElementById(dunchecked).style.display = "none";
+         }
+         else
+         {
+            document.getElementById(dchecked).style.display = "none";
+            document.getElementById(dunchecked).style.display = "block";
+         }
+      }
+      </script>
 
 
 <head>
@@ -72,7 +87,7 @@
             <h2>L3out Details</h2>
             <p>
                <br> AKB will configure a Floating L3out in the ACI fabric.
-               <br> The Floating L3out will be used to peer the K8s Node with ACI vie eBGP.
+               <br> The Floating L3out will be used to peer the K8s Nodes with ACI via eBGP.
                <br> Calico BGP nodes will advertise to ACI the node, pod and services subnets.
                <br> <b>Note</b>: The Tenant, VRF and Physical Domain needs to be pre-configured on ACI.
                <br> This is done to ensure you can re-use pre-existing infrastructure and minimize the risk of
@@ -92,23 +107,14 @@
                         {% endfor %}
                   </datalist>
                   <label 
-                     for="l3out_tenant">L3out Tenant name:
-                     <span data-title="The tenant where the L3OUT will be created. This must pre-exist in ACI">ⓘ</span>
+                     for="l3out_tenant">Tenant name:
+                     <span data-title="Name of the tenant where we AKB will create the floating L3OUT SVI">ⓘ</span>
                   </label>
                </div>
             </div>
          </div>
 
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <label for="name">L3out name:
-                     <span data-title="The name of the L3OUT that is going to be created">ⓘ</span>
-                  </label>
-                  <input type="text" id="name" name="name" value="CalicoL3OUT">
-               </div>
-            </div>
-         </div>
+         
 
          {% include "_vrf.html" %}
 
@@ -120,102 +126,24 @@
                      <option name="{{ o }}">{{ o }} </option>
                      {% endfor %}
                   </select><label for="physical_dom">Physical Domain for Floating SVI:
-                     <span data-title="The phisical domain that will be associated to the Floating SVI.">ⓘ</span>
+                     <span data-title="The physical domain that will be associated to the Floating SVI.">ⓘ</span>
                   </label>
                </div>
             </div>
          </div>
 
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <input  id="mtu" name="mtu" value=9000 type="number">
-                  <label for="mtu"> Floating SVIs MTU
-                     <span data-title="This is the MTU configured on ACI and K8s Nodes, ensure the MTU matches on the vCenter and any devices placed between ACI and the ESXi host (i.e. UCS FI)">ⓘ</span>
-                  </label>
-               </div>
-            </div>
-         </div>
+
          
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <input type="text" id="local_as" name="local_as" value="{{ local_as }}" readonly class="bg-gray-200">
-                  <label for="local_as">Detected ACI Local AS
-                     <span data-title="This is the BGP AS number that the K8s nodes will peer to">ⓘ</span>
-                  </label>
-               </div>
-            </div>
-         </div>
 
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <label for="def_ext_epg">External EPG Name (Catch All):
-                     <span data-title="For simplicity a single external EPG is created for all the subnets that belongs to the cluster. It is possible however to manually more external EPG and apply more specific contracts to btter secure the cluster/pod/service networking">ⓘ</span>
-                  </label>
-                  <input type="text" id="def_ext_epg" name="def_ext_epg" value="catch_all">
-               </div>
-            </div>
-         </div>
 
-         <div class="container">
-
-            <label data-cubexswitch="container" notcomponent="" class="switch">
-               <span class="switch__label">Scope for Ext EPG Subnets</span>
-            </label>
-            <div class="container"></div>
-            <div class="checkbox form-group form-group--inline c1793">
-               <label class="checkbox"><input type="checkbox" id="import-security" name="import-security"
-                     value="import-security">
-                  <span id="import-security-checkbox" class="checkbox__input" checked></span>
-                  <span class="checkbox__label hidden-xs">External Subnets for External EPG</span>
-               </label>
-            </div>
-            <div class="checkbox form-group form-group--inline c1793">
-               <label class="checkbox"><input type="checkbox" id="shared-security" name="shared-security"
-                     value="shared-security">
-                  <span id="shared-security-checkbox" class="checkbox__input"></span>
-                  <span class="checkbox__label hidden-xs">Shared Security Import Subnet</span>
-               </label>
-            </div>
-            <div class="checkbox form-group form-group--inline c1793">
-               <label class="checkbox">
-                  <input type="checkbox" id="shared-rtctrl" name="shared-rtctrl" value="shared-rtctrl">
-                  <span id="shared-rtctrl-checkbox" class="checkbox__input"></span>
-                  <span class="checkbox__label hidden-xs">Shared Route Control Subnet</span>
-               </label>
-            </div>
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <label for="bgp_pass" >Password for BGP neighbors:
-                     <span data-title="Default 123Cisco123">ⓘ</span>
-                  </label>
-                  <input type="password" id="bgp_pass" name="bgp_pass" value="123Cisco123">
-               </div>
-            </div>
-         </div>
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label
                      for="bgp_pass">IPv4 Cluster Subnet:
-                     <span data-title="The IPv4 subnet for you cluster. This subnet should be able to be routable and reach internt to pull the container images.">ⓘ</span>
+                     <span data-title="The IPv4 subnet for you cluster. This subnet should be able to be routable and reach internet to pull the container images.">ⓘ</span>
                   </label>
-                  <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet">
-               </div>
-            </div>
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <label  
-                     for="bgp_pass">IPv6 Cluster Subnet (Optional):
-                     <span data-title="The IPv6 subnet for you cluster. Currently IPv4 is used for internet connectivity so this subnet does not need to be routable outside of ACI" >ⓘ</span>
-                  </label>
-                  <input type="text" id="ipv6_cluster_subnet" name="ipv6_cluster_subnet">
+                  <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="192.168.0.0/24" onchange="updateAnchorNodeIPv4(this)">
                </div>
             </div>
          </div>
@@ -227,6 +155,7 @@
                </div>
             </div>
          </div>
+         
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
@@ -237,72 +166,178 @@
                </div>
             </div>
          </div>
-         <div class="container">
-            <div class="form-group__text">
-               <div class="row">
-                  <div class="col-md-6">
-                     <div class="form-group base-margin-bottom">
-                        {% include "_anchor_nodes.html" %}
-                     </div>
+                  <!--advanced tab for L3out-->
+                  <div class="form-group base-margin-bottom">
+                     <div class="form-group__text"></div>
                   </div>
-                  <div class="col-md-6">
-                     <div class="form-group base-margin-bottom">
-                        <div class="form-group__text">
-                           <select id="pod_id" name="pod_id">
-                              {% for o in pod_ids %}
-                              <option name="{{ o }}">{{ o }} </option>
-                              {% endfor %}
-                           </select><label for="pod_id">ACI POD ID:</label>
-                        </div>
-                     </div>
-                     <div class="form-group base-margin-bottom">
-                        <div class="form-group__text"><input type="text" name="rack_id" id="rack_id">
-                           <label >Rack ID
-                              <span data-title="Select a alphanumeric value to identify your rack ID. This Rack ID is matched against the K8s node Rack ID. eBGP peering is automatically configuerd between anchor nodes and K8s nodes with the same Rack ID. ">ⓘ</span>
-                           </label>
-                        </div>
-                     </div>
-                     <div class="form-group base-margin-bottom">
-                        <div class="form-group__text">
-                           <select id="node_id" name="node_id">
-                              {% for o in nodes_id %}
-                              <option name="{{ o }}">{{ o }} </option>
-                              {% endfor %}
-                           </select><label  for="node_id">Node ID
-                           <span data-title="Pick the switch ID">ⓘ</span>
+                  <div class="container">
+                     <div class="checkbox form-group form-group--inline c8041">
+                        <label class="checkbox">
+                        <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'checkbox-checked','checkbox-unchecked')" style="margin:0;">
+                        <span id='advanced' class="checkbox__input"></span>
+                        <span class="checkbox__label hidden-xs">Advanced L3out Settings</span>
                         </label>
-                        </div>
                      </div>
-
-                     <div class="form-group base-margin-bottom">
-                        <div class="form-group__text"><input type="text" name="rtr_id" id="rtr_id">
-                           <label>
-                              Router ID (IPv4)
-                           </label>
-                        </div>
-                     </div>
-                     <div class="form-group base-margin-bottom">
-                        <div class="form-group__text"><input type="text" name="node_ipv4" id="node_ipv4">
-                           <label >Primary IPv4
-                              <span data-title="The IP of the node, this must be in the same subnet as the Cluster Subnet">ⓘ</span>
-                           </label>
-                        </div>
-                     </div>
-                     <div class="form-group base-margin-bottom">
-                        <div class="form-group__text"><input type="text" name="node_ipv6" id="node_ipv6">
-                           <label>
-                              Primary IPv6
-                              <span data-title="The IPv6 of the node, this must be in the same subnet as the IPv6 Cluster Subnet">ⓘ</span>
-                           </label>
-                        </div>
-                     </div>
-                     <input type="submit" value="Add Node" id="add_node" class="btn btn--wide" name="button">
-
                   </div>
+                  <div id="checkbox-checked" style="display:none;" >     
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="name">L3out name:
+                                 <span data-title="The name of the L3OUT that is going to be created">ⓘ</span>
+                              </label>
+                              <input type="text" id="name" name="name" value="CalicoL3OUT">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <input  id="mtu" name="mtu" value=9000 type="number">
+                              <label for="mtu"> Floating SVIs MTU
+                                 <span data-title="This is the MTU configured on ACI and K8s Nodes, ensure the MTU matches on the vCenter and any devices placed between ACI and the ESXi host (i.e. UCS FI)">ⓘ</span>
+                              </label>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <input type="text" id="local_as" name="local_as" value="{{ local_as }}" readonly class="bg-gray-200">
+                              <label for="local_as">Detected ACI Local AS
+                                 <span data-title="This is the BGP AS number that the K8s nodes will peer to">ⓘ</span>
+                              </label>
+                           </div>
+                        </div>
+                     </div>
+            
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="def_ext_epg">External EPG Name (Catch All):
+                                 <span data-title="For simplicity a single external EPG is created for all the subnets that belongs to the cluster. It is possible however to manually more external EPG and apply more specific contracts to btter secure the cluster/pod/service networking">ⓘ</span>
+                              </label>
+                              <input type="text" id="def_ext_epg" name="def_ext_epg" value="catch_all">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="bgp_pass" >Password for BGP neighbors:
+                                 <span data-title="Default 123Cisco123">ⓘ</span>
+                              </label>
+                              <input type="password" id="bgp_pass" name="bgp_pass" value="123Cisco123">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label  
+                                 for="bgp_pass">IPv6 Cluster Subnet (Optional):
+                                 <span data-title="The IPv6 subnet for you cluster. Currently IPv4 is used for internet connectivity so this subnet does not need to be routable outside of ACI" >ⓘ</span>
+                              </label>
+                              <input type="text" id="ipv6_cluster_subnet" name="ipv6_cluster_subnet" onchange="updateAnchorNodeIPv6(this)">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+
+                        <label data-cubexswitch="container" notcomponent="" class="switch">
+                           <span class="switch__label">Scope for Ext EPG Subnets</span>
+                        </label>
+                        <div class="container"></div>
+                        <div class="checkbox form-group form-group--inline c1793">
+                           <label class="checkbox"><input type="checkbox" id="import-security" name="import-security"
+                                 value="import-security" checked>
+                              <span id="import-security-checkbox" class="checkbox__input" checked></span>
+                              <span class="checkbox__label hidden-xs">External Subnets for External EPG</span>
+                           </label>
+                        </div>
+                        <div class="checkbox form-group form-group--inline c1793">
+                           <label class="checkbox"><input type="checkbox" id="shared-security" name="shared-security"
+                                 value="shared-security" checked>
+                              <span id="shared-security-checkbox" class="checkbox__input"></span>
+                              <span class="checkbox__label hidden-xs">Shared Security Import Subnet</span>
+                           </label>
+                        </div>
+                        <div class="checkbox form-group form-group--inline c1793">
+                           <label class="checkbox">
+                              <input type="checkbox" id="shared-rtctrl" name="shared-rtctrl" value="shared-rtctrl" checked>
+                              <span id="shared-rtctrl-checkbox" class="checkbox__input"></span>
+                              <span class="checkbox__label hidden-xs">Shared Route Control Subnet</span>
+                           </label>
+                        </div>
+                     </div>         
+                  </div>
+
+         <p></p><p></p>     
+      <div class="container">
+         <div class="form-group__text">
+            <div class="row">
+               <div class="col-md-6">
+                  <div class="form-group base-margin-bottom">
+                     {% include "_anchor_nodes.html" %}
+                  </div>
+               </div>
+               <div class="col-md-6">
+                  <div class="form-group base-margin-bottom">
+                     <div class="form-group__text">
+                        <select id="pod_id" name="pod_id">
+                           {% for o in pod_ids %}
+                           <option name="{{ o }}">{{ o }} </option>
+                           {% endfor %}
+                        </select><label for="pod_id">ACI POD ID:</label>
+                     </div>
+                  </div>
+                  <div class="form-group base-margin-bottom">
+                     <div class="form-group__text"><input type="text" name="rack_id" id="rack_id" value=1>
+                        <label >Rack ID
+                           <span data-title="Select a alphanumeric value to identify your rack ID. This Rack ID is matched against the K8s node Rack ID. eBGP peering is automatically configuerd between anchor nodes and K8s nodes with the same Rack ID. ">ⓘ</span>
+                        </label>
+                     </div>
+                  </div>
+                  <div class="form-group base-margin-bottom">
+                     <div class="form-group__text">
+                        <select id="node_id" name="node_id">
+                           {% for o in nodes_id %}
+                           <option name="{{ o }}">{{ o }} </option>
+                           {% endfor %}
+                        </select><label  for="node_id">Node ID
+                        <span data-title="Pick the switch ID">ⓘ</span>
+                     </label>
+                     </div>
+                  </div>
+
+                  <div class="form-group base-margin-bottom">
+                     <div class="form-group__text"><input type="text" name="rtr_id" id="rtr_id">
+                        <label>
+                           Router ID (IPv4)
+                        </label>
+                     </div>
+                  </div>
+                  <div class="form-group base-margin-bottom">
+                     <div class="form-group__text"><input type="text" name="node_ipv4" id="node_ipv4" value="192.168.0.0/24">
+                        <label >Primary IPv4
+                           <span data-title="The IP of the node, this must be in the same subnet as the Cluster Subnet">ⓘ</span>
+                        </label>
+                     </div>
+                  </div>
+                  <div class="form-group base-margin-bottom">
+                     <div class="form-group__text"><input type="text" name="node_ipv6" id="node_ipv6" readonly class="bg-gray-200">
+                        <label>
+                           Primary IPv6
+                           <span data-title="The IPv6 of the node, this must be in the same subnet as the IPv6 Cluster Subnet">ⓘ</span>
+                        </label>
+                     </div>
+                  </div>
+                  <input type="submit" value="Add Node" id="add_node" class="btn btn--wide" name="button">
+
                </div>
             </div>
          </div>
-
+      </div>         
          <div class="container">
             <input type="submit" value="Previous" class="btn btn--wide" name="button">
             <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button">
@@ -340,6 +375,21 @@
 </main>
 <!-- End Main Content -->
 </div>
+<script>
+   function updateAnchorNodeIPv4(button) {
+    document.getElementById('node_ipv4').value = document.getElementById('ipv4_cluster_subnet').value
+   }
+
+   function updateAnchorNodeIPv6(button) {
+      if (document.getElementById('node_ipv6').hasAttribute('readonly')) {
+         document.getElementById('node_ipv6').removeAttribute('readonly')
+         document.getElementById('node_ipv6').removeAttribute('class')
+         
+      }
+
+      document.getElementById('node_ipv6').value = document.getElementById('ipv6_cluster_subnet').value
+     }
+</script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>

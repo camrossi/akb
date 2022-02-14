@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="en">
 
+
 <head>
    <meta charset="utf-8">
-   <title>AKB - Apic Login</title>
+   <title>AKB - Day0</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css"
@@ -38,10 +39,7 @@
    </style>
 </head>
 
-
-
-
-<form name="loginForm" method="post" action="/login">
+<form name="tenantForm" method="post" action="/docs/doc">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -69,65 +67,83 @@
             <div class="cell"> </div>
          </div>
          <div class="container bg-gray">
-            <h2>ACI Login details</h2>
-            <p>
-               <br> Specify the credentials to login your ACI fabric.
-            </p>
-         </div>
-         <div class="container">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-               <span>{{ message }}</span>
+            <h1>ACI and Kubernetes Architecture</h1>
+            Both the ACI and Kubernetes Architecture are following the Floating SVI design as described in the
+            <a
+               href="https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html">Cisco
+               Application Centric Infrastructure Calico Design White Paper</a>.
+            <br> All the optimizations and best practices of the design are implemented automatically on ACI.
+            <br> AKB uses, under the hood, Terraform to push the ACI configuration and deploy the VMs.
+            Ansible is used to configure the VMs, bootstrap and configure the Kubernetes Cluster.
+
+         <h2> High Level Architecture</h2>
+         For details Refer to: <a
+            href="https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html">Cisco
+            Application Centric Infrastructure Calico Design White Paper</a>
+
+         <br> Calico supports two main network modes: direct container routing (no overlay transport protocol) or
+         network overlay using VXLAN or IPinIP (default) encapsulations to exchange traffic between workloads.
+         <br> AKB will deploying Calico in direct routing mode.
+         <br>
+         <br>All the nodes in the Kubernetes cluster will have the same AS number and will peer via eBGP with a pair of ACI.
+         top-of-rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy
+         within the rack.
+         <br>
+         This eBGP design does not require running any route reflector in the Calico infrastructure: ACI will be configured to send back to the nodes the routes learned.
+         <br> this results in a more scalable, simpler, and easier to maintain architecture.
+
+         Once this design is implemented, the following connectivity is expected:
+         <ul>
+            <li> Pods running on the Kubernetes cluster can be directly accessed from inside ACI or outside through
+               transit routing.</li>
+            <li> Pod-to-pod and node-to-node connectivity will happen over the same L3Out and external end point
+               group (EPG).</li>
+            <li> Exposed Services can be directly accessed from inside or outside ACI. Those services will be load
+               balanced by ACI through ECMP 64-way provided by BGP.</li>
+         </ul>
+         <br>
+         <div class="row">
+            <div class="col-md-6">
+               <h3>Network Architecture - Floating SVI</h3>
+               The floating SVI feature enables you to configure an L3Out without specifying logical interfaces. The
+               feature saves you from having to configure multiple L3Out logical interfaces to maintain routing when
+               virtual machines (VMs) move from one host to another. Floating SVI is supported for VMware vSphere
+               Distributed Switch (VDS) as of ACI Release 4.2(1) and on physical domains as of ACI Release 5.0(1). It
+               is
+               recommended using the physical domains approach for the following reasons:
+               <ul>
+                  <li>Can support any hypervisor</li>
+                  <li> Can support mixed mode clusters (VMs and bare-metal)</li>
+               </ul>
+               <ul>Using floating SVI also relaxes the requirement of not having any Layer-2 communications between
+                  the routing nodes; this allows the design to use:
+                  <li>A single subnet for the whole cluster</li>
+                  <li>A single encapsulation (VLAN) for the whole cluster</li>
+               </ul>
+               <h3>Network Architecture - eBGP Design</h3>
+               Each Kubernetes node will have the same AS number and will peer via eBGP with a pair of ACI Top-of-Rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy within the rack.
+               This eBGP design does not require running any route reflector nor full mesh peering (iBGP) in the Calico infrastructure; this results in a more scalable, simpler, and easier to maintain architecture.
+               In order to remove the need of running iBGP in the cluster the ACI BGP configuration will need to enable the following features:
+               <ul>
+                  <li>AS override: The AS override function will replace the AS number from the originating router with the AS number of the sending BGP router in the AS Path of outbound routes.
+                  <li>Disable Peer AS Check—Disables the peer autonomous number check.
+               </ul>
+               With these two configuration options enabled ACI will advertise the POD Subnets between the Kubernetes nodes (even if learned from the same AS) ensuring all the PODs in the Cluster can communicate with each other.
+               An added benefits of configuring all the Kubernetes nodes with the same AS is that it allows us to use BGP Dynamic Neighbors by using the Cluster Subnet as BGP neighbors greatly reducing the ACI config complexity.
+           </div>
+            <div class="col-md-6">
+               <img src="../static/images/connectivity.png" alt="High Level Connectivity">
             </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-
-            <table class="table table--compressed table--selectable table--wrap c1990" id="_uid829dc898">
-
-               <tbody>
-                  <tr>
-                     <td>Fabric IP or Host Name:</td>
-                     <td><input type="text" size=25 name="fabric"></td>
-                  </tr>
-                  <tr>
-                     <td>Username (with Admin Privilege):</td>
-                     <td><input type="text" size=25 name="username" value="admin"></td>
-                  </tr>
-                  <tr>
-                     <td>Password:</td>
-                     <td><input type="password" size=25 name="password"></td>
-                  </tr>
-                  <!--              
-                  <tr>
-                     <td>AKB Username (Service Account):</td>
-                     <td><input type="text" size=25 name="akb_user" value="akb_user"></td>
-                  </tr>
-                  <tr>
-                   <td>AKB Password (default: 123Cisco123):</td>
-                     <td><input type="password" size=25 name="akb_pass" value="123Cisco123"></td>
-                  </tr>
-                  -->
-                  <tr>
-                     <td>
-                        <div class="container">
-                           <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
-                        </div>
-                     </td>
-                  </tr>
-               </tbody>
-            </table>
          </div>
-         <table width="20%" bgcolor="0099CC" align="center">
+         </div>
 
+            </p>
+            <div class="container">
+               <input type="submit" value="Next" class="btn btn--wide" name="button">
+            </div>
+            <br><br><br><br><br><br>
+         </div>
 
-
-         </table>
-         <br><br><br><br><br><br>
-         <!--      
--->
 
          <div class="container">
             <footer class="footer footer--tertiary" id="_uidca388897">

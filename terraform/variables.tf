@@ -68,7 +68,6 @@ variable "calico_nodes" {
     ip              = string
     ipv6            = string
     natip           = string
-    local_as        = number
     rack_id         = string
      }))
 }
@@ -80,6 +79,7 @@ variable "k8s_cluster" {
     OS_Version          = string
     control_plane_vip   = string
     vip_port            = number
+    local_as            = number
     haproxy_image       = string
     keepalived_image    = string
     keepalived_router_id= string

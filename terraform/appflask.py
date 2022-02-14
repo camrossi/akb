@@ -126,6 +126,28 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 }
     return cluster
 
+##### DOCUMENTATION START #####
+
+@app.route('/docs/doc', methods=['GET', 'POST'])
+def docs():
+    if request.method == 'POST':
+        return redirect('/docs/prereqaci')
+    return render_template('docs/doc.html')
+    
+
+@app.route('/docs/prereqaci', methods=['GET', 'POST'])
+def prereqaci():
+    if request.method == "POST":
+        req = request.form
+        button = req.get("button")
+        if button == "Back":
+            return redirect('/docs/doc')
+        if button == "Next":
+            return redirect('/docs/prereqvc')
+    return render_template('docs/prereqaci.html')
+
+##### DOCUMENTATION END #####
+
 #These two methods create a stream that is then fed to an iFrame to auto populate the content on the fly
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
@@ -749,7 +771,14 @@ def login():
         req = request.form
         button = req.get("button")
         if button == "Login":
-            apic['url'] = "https://" +  request.form['fabric']
+            if request.form['fabric'].startswith('http://'):
+                apic['url'] = request.form['fabric'].replace("http://", "https://")
+            else:
+                apic['url'] = "https://" +  request.form['fabric']
+            if apic['url'].endswith('/'):
+                apic['url'] = apic['url'][:-1]
+
+            print(apic['url'])
             apic['username'] = request.form['username']
             apic['password'] = request.form['password']
             apic['akb_user'] = "akb_user" #request.form['akb_user']
@@ -774,7 +803,7 @@ def login():
     ## Generate the inventory file for the APIC, this looks ugly might want to clean up
             config = f"""apic: #You ACI Fabric Name
   hosts:
-    {request.form['fabric']}:
+    {apic['url'].replace("https://",'')}:
       validate_certs: no
       # APIC HTTPs Port 
       port: 443
@@ -831,21 +860,6 @@ def existing_cluster():
         
         return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=f.read())
 
-@app.route('/prereq', methods=['GET', 'POST'])
-def prereqvc():
-    return render_template('/prereq.html')
-
-@app.route('/prereqaci', methods=['GET', 'POST'])
-def prereqaci():
-    if request.method == "POST":
-        req = request.form
-        button = req.get("button")
-        if button == "Back":
-            return redirect('/')
-        if button == "Next":
-            return redirect('/login')
-    return render_template('/prereqaci.html')
-
 @app.route('/')
 @app.route('/intro', methods=['GET', 'POST'])
 def get_page():
@@ -853,7 +867,7 @@ def get_page():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            return redirect('/prereqaci')
+            return redirect('/login')
     try:
         with open('terraform.tfstate', 'r') as f:
             state = json.load(f)

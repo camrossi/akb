@@ -166,6 +166,7 @@ elem.click()
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Cluster" in driver.title
 elem = driver.find_element(By.ID,'kube_version')
+elem.clear()
 elem.send_keys("1.22.4-00")
 elem = driver.find_element(By.ID,'timezone')
 elem.send_keys("Australia/Sydney")

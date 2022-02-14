@@ -6,6 +6,6 @@ metadata:
   name: {{ node }}
 spec:
   bgp:
-    asNumber: {{ hostvars[node].as }}
+    asNumber: {{ calico_as }}
     ipv4Address: {{ hostvars[node]['ansible_host'] }}
 {% endfor %}

@@ -31,7 +31,7 @@ jobs:
           python3 appflask.py 5003 &
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium_ui_testing_dev_cluster_v4.py
+          python3 selenium_ui_testing_dev_cluster_v4.py --headless
       - name: Terraform init
         run: | 
           terraform init
@@ -69,7 +69,7 @@ jobs:
           python3 appflask.py 5004 &
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium_ui_testing_dev_cluster_v46.py
+          python3 selenium_ui_testing_dev_cluster_v46.py --headless
       - name: Terraform init
         run: | 
           terraform init

@@ -11,9 +11,8 @@
     - BGPConfiguration.yaml
     - BGPPeer.j2
     - Node.j2
-    - kustomization.yaml
-    - calico-typha-patch.yaml
-    - calico-typha-patch_v6.yaml
+    - calico-typha.yaml
+    - calico-typha-v46.yaml
   tags:
     - calico
 
@@ -30,44 +29,6 @@
   tags:
     - calico
 
-- name: download latest calico
-  get_url:
-    url: https://projectcalico.docs.tigera.io/manifests/calico-typha.yaml
-    dest: /tmp/calico-typha.yaml
-    force: yes
-    mode: '0755'
-  retries: 10
-  until: res is success
-  any_errors_fatal: true
-  tags:
-    - calico
-
-- name: Dual Stack - Extract and update calico Config Map 
-  shell: |
-    data=$(yq '. | select(.metadata.name=="calico-config") | .data.cni_network_config' /tmp/calico-typha.yaml)
-    updateddata=$(echo $data | yq -o json '.plugins[0].ipam.assign_ipv4 = "true" | .plugins[0].ipam.assign_ipv6 = "true"')
-    myenv=$updateddata  yq  'select(.metadata.name=="calico-config") |= .data.cni_network_config=strenv(myenv)' /tmp/calico-typha.yaml > /tmp/config-map-patch.yaml
-  any_errors_fatal: true
-  when: pod_subnet and pod_subnet_v6
-  tags:
-    - calico
-
-- name: Dual Stack - Kustomize the Calico config and apply it
-  shell: |
-    kubectl kustomize /tmp/ > /tmp/calico-typha-custom.yaml
-  any_errors_fatal: true
-  when: pod_subnet and pod_subnet_v6
-  tags:
-    - calico
-
-- name: IPv4 - Kustomize the Calico config and apply it
-  shell: |
-    kubectl kustomize /tmp/ > /tmp/calico-typha-custom.yaml
-  any_errors_fatal: true
-  when: pod_subnet and not pod_subnet_v6
-  tags:
-    - calico
-
 #Labels the node with the rack_id
 - name: Labels Nodes with rack_id
   shell: |
@@ -81,10 +42,21 @@
     - calico
 
 - name: Apply Calico CNI
-  shell: kubectl apply -f /tmp/calico-typha-custom.yaml
+  shell: kubectl apply -f /tmp/calico-typha.yaml
   register: res
   retries: 10
   until: res is success
+  when: pod_subnet and not pod_subnet_v6
+  any_errors_fatal: true
+  tags:
+    - calico
+
+- name: Apply Calico CNI Dual Stack
+  shell: kubectl apply -f /tmp/calico-typha-v46.yaml
+  register: res
+  retries: 10
+  until: res is success
+  when: pod_subnet and pod_subnet_v6
   any_errors_fatal: true
   tags:
     - calico

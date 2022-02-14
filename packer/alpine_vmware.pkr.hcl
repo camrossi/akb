@@ -56,7 +56,7 @@ build {
       "unzip terraform_1.1.3_linux_amd64.zip  -d /bin",
       "rm terraform_1.1.3_linux_amd64.zip",
       "rc-update add local default",
-      "echo 'cd /root/akb-main/terraform && python3 appflask.py &' > /etc/local.d/akb.start",
+      "echo 'cd /root/akb-main/terraform && python3 appflask.py 80 &' > /etc/local.d/akb.start",
       "chmod +x /etc/local.d/akb.start",
       "echo 'auto lo' > /etc/network/interfaces",
       "echo 'iface lo inet loopback' >> /etc/network/interfaces",

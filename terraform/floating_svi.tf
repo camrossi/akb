@@ -94,7 +94,7 @@ resource "aci_bgp_peer_connectivity_profile" "bgp_peer" {
   parent_dn           = each.value.id
   addr                = var.l3out.ipv4_cluster_subnet
   ctrl                = ["as-override" ,"dis-peer-as-check"]
-  as_number           = var.calico_nodes[0].local_as
+  as_number           = var.k8s_cluster.local_as 
   relation_bgp_rs_peer_pfx_pol = aci_bgp_peer_prefix.bgp_peer_prefix.id
   password = var.l3out.bgp_pass
 }

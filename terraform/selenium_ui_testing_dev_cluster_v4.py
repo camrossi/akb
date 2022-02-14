@@ -151,4 +151,4 @@ elem.click()
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Cluster" in driver.title
 elem = driver.find_element(By.ID,'advanced')
-elem.click()4
+elem.click()

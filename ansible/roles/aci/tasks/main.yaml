@@ -95,3 +95,16 @@
     validate_certs: "{{ validate_certs }}"
   tags:
     - apic_user
+
+- name: Delete temporary user
+  cisco.aci.aci_aaa_user:
+    host: "{{ inventory_hostname }}"
+    username: "{{ admin_user }}"
+    password: "{{ admin_pass }}"
+    aaa_user: "{{ aci_temp_username }}"
+    aaa_password: "{{ aci_temp_pass }}"
+    validate_certs: "{{ validate_certs }}"
+    clear_password_history: yes
+    state: absent
+  tags:
+    - apic_user_del

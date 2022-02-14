@@ -4,7 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-
+import sys
 from time import sleep
 def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem = driver.find_element(By.NAME,"pod_id")
@@ -39,11 +39,16 @@ def add_calico_ndoe(hostname, ip, rack_id):
     sleep(0.5)
 
 chrome_options = Options()
-#chrome_options.add_argument("--headless")
+if len(sys.argv)>=2:
+    port= sys.argv[1]
+    chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
 
 
-driver.get("http://10.67.185.120:5003/login")
+driver.get("http://10.67.185.120:5003")
+assert "AKB" in driver.title
+elem = driver.find_element(By.NAME,"button")
+elem.click()
 
 assert "Apic Login" in driver.title
 elem = driver.find_element(By.NAME,"fabric")
@@ -55,9 +60,6 @@ elem.send_keys("admin")
 elem = driver.find_element(By.NAME,"password")
 elem.clear()
 elem.send_keys("123Cisco123")
-elem = driver.find_element(By.NAME,"akb_user")
-elem.clear()
-elem.send_keys("akb_user_v4")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
@@ -67,10 +69,13 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
 elem.send_keys("calico_dev_v4")
-elem = driver.find_element(By.ID,'name')
+elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
 elem.clear()
-elem.send_keys("calico_l3out")
-
+elem.send_keys("192.168.39.0/24")
+elem = driver.find_element(By.NAME,"dns_servers")
+elem.send_keys("10.67.185.100")
+elem = driver.find_element(By.NAME,"dns_domain")
+elem.send_keys("cam.ciscolabs.com")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
@@ -84,26 +89,6 @@ elem = driver.find_element(By.ID,'contract')
 elem.send_keys("common/calico_dev")
 elem = driver.find_element(By.ID,'physical_dom')
 elem.send_keys("Fab1")
-
-elem = driver.find_element(By.ID,'mtu')
-elem.clear()
-elem.send_keys("9000")
-
-elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
-elem.clear()
-elem.send_keys("192.168.39.0/24")
-
-elem = driver.find_element(By.NAME,"dns_servers")
-elem.send_keys("10.67.185.100")
-elem = driver.find_element(By.NAME,"dns_domain")
-elem.send_keys("cam.ciscolabs.com")
-
-elem = driver.find_element(By.ID,"import-security-checkbox")
-elem.click()
-elem = driver.find_element(By.ID,"shared-security-checkbox")
-elem.click()
-elem = driver.find_element(By.ID,"shared-rtctrl-checkbox")
-elem.click()
 
 add_anchor_node("1","1","101","1.1.1.101","192.168.39.101")
 add_anchor_node("1","1","102","1.1.1.102","192.168.39.102/24")
@@ -165,18 +150,5 @@ elem.click()
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Cluster" in driver.title
-elem = driver.find_element(By.ID,'kube_version')
-elem.clear()
-elem.send_keys("1.22.4-00")
-elem = driver.find_element(By.ID,'timezone')
-elem.send_keys("Australia/Sydney")
-elem = driver.find_element(By.ID,'docker_mirror')
-elem.send_keys("10.67.185.120:5000")
-elem = driver.find_element(By.ID,'ntp_server')
-elem.send_keys("72.163.32.44")
-elem = driver.find_element(By.ID,'ubuntu_apt_mirror')
-elem.send_keys("ubuntu.mirror.digitalpacific.com.au/archive/")
-elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
-elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+elem = driver.find_element(By.ID,'advanced')
+elem.click()4

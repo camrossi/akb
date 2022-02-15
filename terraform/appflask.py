@@ -689,6 +689,11 @@ def l3out():
                 ipaddress.IPv4Address(rtr_id)
             except ValueError as e:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Router ID Error: " + str(e))
+           
+            try:
+                ipaddress.IPv4Interface(primary_ip)
+            except ValueError as e:
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Primary IPv4: " + str(e))
 
             if ipaddress.IPv4Interface(primary_ip).ip not in ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")):
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet")
@@ -705,6 +710,11 @@ def l3out():
                 except ValueError as e:
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "IPv6 Cluster Subnet Error: " + str(e))
                 
+                try:
+                    ipaddress.IPv6Interface(primary_ipv6)
+                except ValueError as e:
+                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Primary IPv6: " + str(e))
+
                 if ipaddress.IPv6Interface(primary_ipv6).ip not in ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")):
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
                 

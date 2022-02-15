@@ -35,38 +35,39 @@
   template: src=./templates/proxy.conf dest=/etc/apt/apt.conf.d/proxy.conf
   tags:
     - k8s_nodes
-  when: http_proxy_status == "on"    
+  when: http_proxy_status == true
     
-- name: populate /etc/environment 1
-  lineinfile:
-    dest: "/etc/environment"
-    state: present
-    line: HTTP_PROXY="http://{{ http_proxy }}"
-  when: http_proxy_status == "on"  
-  tags:
-    - k8s_nodes
+#- name: populate /etc/environment 1
+  #lineinfile:
+    #dest: "/etc/environment"
+    #state: present
+    #line: HTTP_PROXY="http://{{ http_proxy }}"
+  #when: http_proxy_status == "on"  
+  #tags:
+    #- k8s_nodes
 
-- name: populate /etc/environment 2
-  lineinfile:
-    dest: "/etc/environment"
-    state: present
-    line: HTTPS_PROXY="http://{{ http_proxy }}"
-  when: http_proxy_status == "on"  
-  tags:
-    - k8s_nodes
+#- name: populate /etc/environment 2
+  #lineinfile:
+    #dest: "/etc/environment"
+    #state: present
+    #line: HTTPS_PROXY="http://{{ http_proxy }}"
+  #when: http_proxy_status == "on"  
+  #tags:
+    #- k8s_nodes
 
-- name: populate /etc/environment 3
-  lineinfile:
-    dest: "/etc/environment"
-    state: present
-    line: NO_PROXY=".{{ dns_domain }},localhost,172.30.0.1,.svc,.cluster.local,apiserver.kube-service-catalog.svc{% for host in groups ['k8s_nodes'] %},{{ hostvars[host]['real_ip'] }},{{ hostvars[host]['ipv6'] }},{{ host }}.{{ dns_domain }},{{ host }}{% endfor %},{{ pod_subnet }},{{ cluster_svc_subnet }},{{ external_svc_subnet }},{{ pod_subnet_v6 }},{{ cluster_svc_subnet_v6 }},::1,{{ control_plane_vip }}"
-  when: http_proxy_status == "on"
-  tags:
-    - k8s_nodes
+#- name: populate /etc/environment 3
+  #lineinfile:
+    #dest: "/etc/environment"
+    #state: present
+    #line: NO_PROXY=".{{ dns_domain }},localhost,172.30.0.1,.svc,.cluster.local,apiserver.kube-service-catalog.svc{% for host in groups ['k8s_nodes'] %},{{ hostvars[host]['real_ip'] }},{{ hostvars[host]['ipv6'] }},{{ host }}.{{ dns_domain }},{{ host }}{% endfor %},{{ pod_subnet }},{{ cluster_svc_subnet }},{{ external_svc_subnet }},{{ pod_subnet_v6 }},{{ cluster_svc_subnet_v6 }},::1,{{ control_plane_vip }}"
+  #when: http_proxy_status == "on"
+  #tags:
+    #- k8s_nodes
 
 - name: Test http internet connectivity get http://www.google.com
   uri:
     url: http://www.google.com
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
@@ -77,6 +78,7 @@
 - name: Test https internet connectivity get https://www.google.com
   uri:
     url: https://www.google.com
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
@@ -97,6 +99,7 @@
 - name: add apt-key for Kubeadm
   apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
@@ -109,6 +112,7 @@
     content: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
     dest: /etc/apt/sources.list.d/kubernetes.list
     force: yes
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
@@ -119,6 +123,7 @@
 - name: add apt-key for cri-o-runc
   apt_key:
     url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS_Version }}/Release.key
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
@@ -129,6 +134,7 @@
 - name: add apt-key for cri-o
   apt_key:
     url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:/{{ crio_version }}/{{ OS_Version }}/Release.key
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
@@ -142,6 +148,7 @@
     content: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS_Version }}/  /"
     dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
     force: no
+  environment: "{{ proxy_env }}"
   tags:
     - k8s_nodes
 
@@ -150,6 +157,7 @@
     content: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ OS_Version }}/ /"
     dest: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}.list
     force: no
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
@@ -306,17 +314,28 @@
     path: /etc/systemd/system/crio.service.d
     state: directory
     mode: '0755'
+  tags:
+    - k8s_nodes
 
 - name: Copy over the proxy configuration
   template: src=./templates/crioproxy.conf dest=/etc/systemd/system/crio.service.d/http-proxy.conf
   tags:
     - k8s_nodes
-  when: http_proxy_status == "on"    
+  when: http_proxy_status
+
+
+- name: Copy registries.conf to optionally enable registry mirror 
+  template: 
+    src=./templates/registries.conf
+    dest=/etc/containers/registries.conf
+  when: docker_mirror != "" 
+  tags:
+    - k8s_nodes
 
 - name: Just force systemd to reread configs (2.4 and above)
   ansible.builtin.systemd:
     daemon_reload: yes
-  when: http_proxy_status == "on"        
+  when: http_proxy_status
   tags:
     - k8s_nodes
 
@@ -324,15 +343,8 @@
   ansible.builtin.systemd:
     name: crio.service
     state: reloaded
-  when: http_proxy_status == "on"    
+  when: http_proxy_status
   any_errors_fatal: true
-  tags:
-    - k8s_nodes
-
-- name: Copy registries.conf to optionally enable registry mirror 
-  template: 
-    src=./templates/registries.conf
-    dest=/etc/containers/registries.conf
   tags:
     - k8s_nodes
 

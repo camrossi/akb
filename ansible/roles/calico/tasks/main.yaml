@@ -22,6 +22,7 @@
     dest: /bin/calicoctl
     force: yes
     mode: '0755'
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success

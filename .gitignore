@@ -3,3 +3,6 @@
 *.terraform
 .DS_Store
 terraform/cluster.tfvars
+*.crt
+*.key
+*.csr 

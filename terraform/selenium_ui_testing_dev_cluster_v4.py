@@ -41,7 +41,7 @@ def add_calico_ndoe(hostname, ip, rack_id):
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
-   chrome_options.add_argument(sys.argv[1])
+    chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
 
 

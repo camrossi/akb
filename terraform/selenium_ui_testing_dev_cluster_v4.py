@@ -136,7 +136,7 @@ elem = driver.find_element(By.ID,'port_group')
 elem.send_keys("ACI/calico_dev_v4/vlan-11")
 elem = driver.find_element(By.ID,'vm_templates')
 elem.send_keys("Ubuntu21-Template")
-elem = driver.find_element(By.id,'vm_folder')
+elem = driver.find_element(By.ID,'vm_folder')
 elem.send_keys("CalicoDev_v4")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
@@ -145,7 +145,7 @@ elem.click()
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
-elem = driver.find_element(by.id,'calico_nodes')
+elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
 add_calico_ndoe('akb-master-{}-1'.format(run_id),'192.168.39.1/24', '1')
 add_calico_ndoe('akb-master-{}-2'.format(run_id),'192.168.39.2/24', '1')

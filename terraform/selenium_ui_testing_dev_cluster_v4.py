@@ -136,7 +136,7 @@ elem = driver.find_element(By.ID,'port_group')
 elem.send_keys("ACI/calico_dev_v4/vlan-11")
 elem = driver.find_element(By.ID,'vm_templates')
 elem.send_keys("Ubuntu21-Template")
-elem = driver.find_element(by.id,'vm_folder')
+elem = driver.find_element(By.id,'vm_folder')
 elem.send_keys("CalicoDev_v4")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url

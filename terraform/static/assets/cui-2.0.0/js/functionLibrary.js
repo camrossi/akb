@@ -1,4 +1,4 @@
-const tags = [["input", "text"], ["textarea"]];
+const tags = [["input", "text"], ["textarea"], ["input", "list"], ["select"]];
 function saveInput() {
   var inputs, index;
   

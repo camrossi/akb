@@ -130,7 +130,7 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "http_proxy_status": http_proxy_status if http_proxy_status else "", 
                 "http_proxy": http_proxy,
                 "ubuntu_apt_mirror" : ubuntu_apt_mirror,
-                "sandbox_status" : True if sandbox_status == "on" else False
+                "sandbox_status" : False if sandbox_status == "on" else True #I ask if there is internet access so on means there is internet
                 }
     return cluster
 

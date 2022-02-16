@@ -29,7 +29,7 @@ jobs:
       - name: Start AKB
         run: | 
           python3 appflask.py 5003 &
-      - uses: get run_id
+      - name: get run_id
         run: |
           echo ${{ github.run_id }}
       - name: Run headless chrome to generate the config

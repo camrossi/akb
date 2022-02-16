@@ -1,0 +1,23 @@
+### TO DO: This should be fixed with SSH KEY Autnentication
+ansible_ssh_pass: 123Cisco123
+ansible_user: cisco
+ansible_sudo_pass: 123Cisco123
+
+#K8S an Crio Version
+kube_version: 1.23.3-00            # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
+OS_Version: "xUbuntu_21.04"
+crio_version: "1.23"
+
+#HA-Proxy and Keepalied Config
+haproxy_image: haproxy:latest
+control_plane_vip: 192.168.39.252
+vip_port: 8443
+keepalived_image: osixia/keepalived:latest
+keepalived_router_id: 51
+
+ntp_server: "72.163.32.44"
+time_zone: "Australia/Sydney"
+http_proxy_status: "off"
+dns_domain : cam.ciscolabs.com
+ubuntu_apt_mirror : ubuntu.mirror.digitalpacific.com.au/archive/
+docker_mirror: "10.67.185.120:5000"

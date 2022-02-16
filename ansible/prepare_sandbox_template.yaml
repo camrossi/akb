@@ -1,0 +1,14 @@
+- hosts: sandbox
+  gather_facts: False
+  roles:
+    - k8s_nodes
+
+- hosts: sandbox
+  gather_facts: False
+  roles:
+    - helm
+
+- hosts: sandbox
+  gather_facts: False
+  roles:
+    - sandbox

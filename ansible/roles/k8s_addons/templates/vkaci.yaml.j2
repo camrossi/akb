@@ -53,6 +53,7 @@ spec:
        containers:
        - name: vkaci
          image: quay.io/camillo/vkaci
+         imagePullPolicy: IfNotPresent
          ports:
          - containerPort: 50000
          command: ['sh', '-c', "python3 visibility_ui.py" ]
@@ -77,6 +78,7 @@ spec:
        initContainers:
        - name: init-vkaci
          image: quay.io/camillo/vkaci-init
+         imagePullPolicy: IfNotPresent
          command: ['sh', '-c', "python3 init.py"]
          env:
            - name: APIC_IPS

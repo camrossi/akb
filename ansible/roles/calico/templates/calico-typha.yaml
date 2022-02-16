@@ -4103,6 +4103,7 @@ spec:
         fsGroup: 65534
       containers:
       - image: docker.io/calico/typha:v3.22.0
+        imagePullPolicy: IfNotPresent
         name: calico-typha
         ports:
         - containerPort: 5473
@@ -4219,6 +4220,7 @@ spec:
         # upgraded to use calico-ipam.
         - name: upgrade-ipam
           image: docker.io/calico/cni:v3.22.0
+          imagePullPolicy: IfNotPresent
           command: ["/opt/cni/bin/calico-ipam", "-upgrade"]
           envFrom:
           - configMapRef:
@@ -4246,6 +4248,7 @@ spec:
         # and CNI network config file on each node.
         - name: install-cni
           image: docker.io/calico/cni:v3.22.0
+          imagePullPolicy: IfNotPresent
           command: ["/opt/cni/bin/install"]
           envFrom:
           - configMapRef:
@@ -4287,6 +4290,7 @@ spec:
         # to communicate with Felix over the Policy Sync API.
         - name: flexvol-driver
           image: docker.io/calico/pod2daemon-flexvol:v3.22.0
+          imagePullPolicy: IfNotPresent
           volumeMounts:
           - name: flexvol-driver-host
             mountPath: /host/driver
@@ -4298,6 +4302,7 @@ spec:
         # host.
         - name: calico-node
           image: docker.io/calico/node:v3.22.0
+          imagePullPolicy: IfNotPresent
           envFrom:
           - configMapRef:
               # Allow KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT to be overridden for eBPF mode.
@@ -4523,6 +4528,7 @@ spec:
       containers:
         - name: calico-kube-controllers
           image: docker.io/calico/kube-controllers:v3.22.0
+          imagePullPolicy: IfNotPresent
           env:
             # Choose which controllers to run.
             - name: ENABLED_CONTROLLERS

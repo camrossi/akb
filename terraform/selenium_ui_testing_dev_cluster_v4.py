@@ -45,7 +45,7 @@ if len(sys.argv)>=2:
 driver = webdriver.Chrome(options=chrome_options)
 
 
-driver.get("http://10.67.185.120:5003")
+driver.get("http://10.67.185.120:5001")
 assert "AKB" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
@@ -164,4 +164,4 @@ elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-driver.quit()
+#driver.quit()

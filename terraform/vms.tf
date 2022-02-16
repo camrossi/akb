@@ -83,10 +83,20 @@ resource "vsphere_virtual_machine" "vm" {
   }
 }
 
-resource "null_resource" "start_ansible" {
+resource "null_resource" "cluster" {
+    count = var.k8s_cluster.sandbox_status ? 0 : 1
     depends_on = [ local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm  ]
     provisioner "local-exec" {
         command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/cluster.yml"
+    }
+    
+}
+
+resource "null_resource" "sandbox_cluster" {
+    count = var.k8s_cluster.sandbox_status ? 1 : 0
+    depends_on = [ local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm  ]
+    provisioner "local-exec" {
+        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/sandbox_cluster.yml"
     }
     
 }

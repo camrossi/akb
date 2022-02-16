@@ -104,7 +104,7 @@ def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, 
 
 
 def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, local_as, kube_version, kubeadm_token, 
-                        crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror):
+                        crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror, sandbox_status):
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0],
                 "vip_port": control_plane_vip.split(":")[1],
                 "pod_subnet": ipv4_pod_sub, 
@@ -129,7 +129,8 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "docker_mirror": docker_mirror, 
                 "http_proxy_status": http_proxy_status if http_proxy_status else "", 
                 "http_proxy": http_proxy,
-                "ubuntu_apt_mirror" : ubuntu_apt_mirror
+                "ubuntu_apt_mirror" : ubuntu_apt_mirror,
+                "sandbox_status" : True if sandbox_status == "on" else False
                 }
     return cluster
 
@@ -159,7 +160,11 @@ def prereqaci():
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
         g = proc.Group()
-        g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
+        cwd = os.getcwd
+        if not os.path.exists('.terraform'):     
+            g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
+        else:
+            g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         #p = g.run("ls")
         return Response( read_process(g), mimetype='text/event-stream' )
 
@@ -389,7 +394,7 @@ def cluster():
             cluster = createClusterVars(req.get("control_plane_vip"), l3out['ipv4_cluster_subnet'], l3out['ipv6_cluster_subnet'], req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"),req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
             req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"), 
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
-            req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"))
+            req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
             return redirect('/create')
         elif button == "Previous":
             return redirect('/calico_nodes')

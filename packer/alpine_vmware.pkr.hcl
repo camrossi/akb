@@ -55,6 +55,8 @@ build {
       "wget https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip",
       "unzip terraform_1.1.3_linux_amd64.zip  -d /bin",
       "rm terraform_1.1.3_linux_amd64.zip",
+      "cd /root/akb-main/terraform",
+      "terraform init",
       "rc-update add local default",
       "echo 'cd /root/akb-main/terraform && python3 appflask.py 80 &' > /etc/local.d/akb.start",
       "chmod +x /etc/local.d/akb.start",

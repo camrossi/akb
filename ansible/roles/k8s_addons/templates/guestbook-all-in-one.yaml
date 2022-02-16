@@ -36,6 +36,7 @@ spec:
       containers:
       - name: master
         image: k8s.gcr.io/redis:e2e  # or just image: redis
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 6379
 ---
@@ -76,6 +77,7 @@ spec:
       containers:
       - name: slave
         image: gcr.io/google_samples/gb-redisslave:v1
+        imagePullPolicy: IfNotPresent
         env:
         - name: GET_HOSTS_FROM
           value: dns
@@ -128,6 +130,7 @@ spec:
       containers:
       - name: php-redis
         image: gcr.io/google-samples/gb-frontend:v4
+        imagePullPolicy: IfNotPresent
         env:
         - name: GET_HOSTS_FROM
           value: dns

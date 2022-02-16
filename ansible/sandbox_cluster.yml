@@ -1,0 +1,33 @@
+- hosts: k8s_nodes
+  gather_facts: False
+  tasks:
+  - name: Wait for the nodes to be reachable
+    wait_for_connection:
+      connect_timeout: 10
+      sleep: 5
+      delay: 5
+      timeout: 5000
+    tags:
+      - k8s_nodes
+
+- hosts: k8s_primary_master
+  gather_facts: True
+  roles:
+    - primary_master
+
+- hosts: k8s_master_replicas
+  gather_facts: True
+  roles:
+    - master_replicas
+
+- hosts: k8s_workers
+  gather_facts: false
+  roles:
+    - workers    
+
+- hosts: k8s_primary_master
+  gather_facts: false
+  roles:
+    - calico
+    - k8s_addons
+    - ingress-nginx

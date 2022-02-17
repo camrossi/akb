@@ -229,23 +229,3 @@
               status: {}
   tags:
     - master_replicas
-
-- name: configure keepalived check_apiserver script
-  copy:
-    dest: /etc/keepalived/check_apiserver.sh
-    mode: u+rwx
-    force: yes
-    content: |
-              #!/bin/sh
-
-              errorExit() {
-                  echo "*** $*" 1>&2
-                  exit 1
-              }
-
-              curl --silent --max-time 2 --insecure https://localhost:{{ vip_port }}/ -o /dev/null || errorExit "Error GET https://localhost:{{ vip_port }}/"
-              if ip addr | grep -q {{ control_plane_vip }}; then
-                  curl --silent --max-time 2 --insecure https://{{ control_plane_vip }}:{{ vip_port }}/ -o /dev/null || errorExit "Error GET https://{{ control_plane_vip }}:{{ vip_port }}/"
-              fi
-  tags:
-    - master_replicas

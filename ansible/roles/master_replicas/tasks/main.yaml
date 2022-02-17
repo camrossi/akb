@@ -230,7 +230,6 @@
   tags:
     - master_replicas
 
-
 - name: configure keepalived check_apiserver script
   copy:
     dest: /etc/keepalived/check_apiserver.sh
@@ -250,4 +249,3 @@
               fi
   tags:
     - master_replicas
-

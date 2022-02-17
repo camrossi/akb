@@ -13,9 +13,16 @@ function saveInput() {
         inputs = document.getElementsByTagName(tag[0]);
         for (index = 0; index < inputs.length; ++index) {
           currentElem = inputs[index];
-          if (tag.length === 1 || !(tag[0] === "input" && tag[1] === "checkbox" && currentElem.tagName === "INPUT" && currentElem.type === "checkbox")) {
+            if (tag.length === 1
+                || (!(tag[0] === "input"
+                && tag[1] === "checkbox"
+                && currentElem.tagName === "INPUT"
+                && currentElem.type === "checkbox")
+                    // && tag[1] === currentElem.type
+                )) {
             // console.log(currentElem)
-            sessionStorage.setItem(currentElem.id, currentElem.value);
+                if (tag.length === 1 || (tag.length > 1 && tag[1] === currentElem.type))
+                  sessionStorage.setItem(currentElem.id, currentElem.value);
           }
           else if (
             tag[0] === "input" &&
@@ -51,7 +58,7 @@ function loadInput() {
               )
           ) {
               console.log(currentElem);
-              if (sessionStorage.getItem(currentElem.id) !== null) {
+              if (sessionStorage.getItem(currentElem.id) !== null && (tag.length === 1 || (tag.length > 1 && tag[1] === currentElem.type))) {
                   currentElem.value = sessionStorage.getItem(currentElem.id);
               }
           }

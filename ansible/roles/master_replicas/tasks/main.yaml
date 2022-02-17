@@ -15,7 +15,7 @@
     - master_replicas
 
 - name: "Push Kubernetes Master PKI files to master replicas"
-  copy: 
+  copy:
     src: ./roles/primary_master/files/
     dest: /etc/kubernetes/
     owner: root
@@ -47,10 +47,10 @@
   tags:
     - master_replicas
 
-# I create the static pods after or Kubeadm will complain. 
+# I create the static pods after or Kubeadm will complain.
 
 - name: Ensures haproxy dir exists
-  file: 
+  file:
     path: /etc/haproxy/
     state: directory
   tags:
@@ -109,7 +109,7 @@
                 option ssl-hello-chk
                 balance     roundrobin
             {% for host in groups ['k8s_masters'] %}
-                {% if   http_proxy_status == "enabled" %} server {{ host }} {{ hostvars[host]['real_ip'] }}:6443 check {% else %} server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check {% endif %} 
+                {% if   http_proxy_status  %} server {{ host }} {{ hostvars[host]['real_ip'] }}:6443 check {% else %} server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check {% endif %}
             {% endfor %}
   tags:
     - master_replicas
@@ -151,7 +151,7 @@
     - master_replicas
 
 - name: Ensures keepalived dir exists
-  file: 
+  file:
     path: /etc/keepalived
     state: directory
   tags:

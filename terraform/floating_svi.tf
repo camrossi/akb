@@ -1,10 +1,10 @@
 # Configure Floating SVI for every Anchor Node
 data "aci_physical_domain" "dom" {
-  name  = var.l3out.physical_dom
-} 
+  name = var.l3out.physical_dom
+}
 resource "aci_l3out_floating_svi" "floating_svi" {
   logical_interface_profile_dn = aci_logical_interface_profile.calico_interface_profile.id
-  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
+  for_each                     = { for v in var.l3out.anchor_nodes : v.node_id => v }
   node_dn                      = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
   encap                        = "vlan-${var.l3out.vlan_id}"
   addr                         = each.value.primary_ip
@@ -13,10 +13,10 @@ resource "aci_l3out_floating_svi" "floating_svi" {
   if_inst_t                    = "ext-svi"
   mtu                          = var.l3out.mtu
   relation_l3ext_rs_dyn_path_att {
-    tdn = data.aci_physical_domain.dom.id
+    tdn              = data.aci_physical_domain.dom.id
     floating_address = var.l3out.floating_ip
-    forged_transmit = "Disabled"
-    mac_change = "Disabled"
+    forged_transmit  = "Disabled"
+    mac_change       = "Disabled"
     promiscuous_mode = "Disabled"
   }
 }
@@ -24,10 +24,10 @@ resource "aci_l3out_floating_svi" "floating_svi" {
 
 
 resource "aci_l3out_path_attachment_secondary_ip" "floating_svi_sec_ip" {
-  depends_on = [ aci_l3out_floating_svi.floating_svi ]
-  for_each = {for v in var.l3out.anchor_nodes:  v.node_id => v}
-  l3out_path_attachment_dn  = "uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]"
-  addr  = var.l3out.secondary_ip
+  depends_on               = [aci_l3out_floating_svi.floating_svi]
+  for_each                 = { for v in var.l3out.anchor_nodes : v.node_id => v }
+  l3out_path_attachment_dn = "uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]"
+  addr                     = var.l3out.secondary_ip
 }
 
 ###### OLD WAY OF ADDING ONE PEER PER NODE WITH DIFFERENT NODE PER AS ######
@@ -90,12 +90,12 @@ resource "aci_l3out_path_attachment_secondary_ip" "floating_svi_sec_ip" {
 
 ###### NEW WAY ALL NODE WITH THE SAME AS AND PEERING WITH THE SUBNET ######
 resource "aci_bgp_peer_connectivity_profile" "bgp_peer" {
-  for_each = aci_l3out_floating_svi.floating_svi
-  parent_dn           = each.value.id
-  addr                = var.l3out.ipv4_cluster_subnet
-  ctrl                = ["as-override" ,"dis-peer-as-check"]
-  as_number           = var.k8s_cluster.local_as 
+  for_each                     = aci_l3out_floating_svi.floating_svi
+  parent_dn                    = each.value.id
+  addr                         = var.l3out.ipv4_cluster_subnet
+  ctrl                         = ["as-override", "dis-peer-as-check"]
+  as_number                    = var.k8s_cluster.local_as
   relation_bgp_rs_peer_pfx_pol = aci_bgp_peer_prefix.bgp_peer_prefix.id
-  password = var.l3out.bgp_pass
+  password                     = var.l3out.bgp_pass
 }
 

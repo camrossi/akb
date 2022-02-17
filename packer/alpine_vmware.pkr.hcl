@@ -58,8 +58,6 @@ build {
       "cd /root/akb-main/terraform",
       "terraform init",
       "rc-update add local default",
-      "echo '[defaults]' > .ansible.cfg",
-      "echo 'host_key_checking = False' >> .ansible.cfg",
       "echo 'cd /root/akb-main/terraform && python3 appflask.py 80 &' > /etc/local.d/akb.start",
       "chmod +x /etc/local.d/akb.start",
       "echo 'auto lo' > /etc/network/interfaces",

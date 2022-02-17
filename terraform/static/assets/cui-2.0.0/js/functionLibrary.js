@@ -1,4 +1,11 @@
-const tags = [["input", "text"], ["textarea"], ["input", "list"], ["select"]];
+const tags = [
+  ["input", "text"],
+  ["textarea"],
+  ["input", "list"],
+  ["select"],
+    // ["span", "checkbox__input"],
+  ["input", "checkbox"]
+];
 function saveInput() {
   var inputs, index;
   
@@ -6,9 +13,22 @@ function saveInput() {
         inputs = document.getElementsByTagName(tag[0]);
         for (index = 0; index < inputs.length; ++index) {
           currentElem = inputs[index];
-          if (tag.length == 1 || currentElem.type === tag[1]) {
-            console.log(currentElem)
+          if (tag.length === 1 || !(tag[0] === "input" && tag[1] === "checkbox" && currentElem.tagName === "INPUT" && currentElem.type === "checkbox")) {
+            // console.log(currentElem)
             sessionStorage.setItem(currentElem.id, currentElem.value);
+          }
+          else if (
+            tag[0] === "input" &&
+            tag[1] === "checkbox" &&
+            currentElem.tagName === "INPUT" &&
+            currentElem.type === "checkbox"
+          ) {
+            // if (currentElem.
+              console.log(currentElem);
+              console.log(currentElem.checked);
+                sessionStorage.setItem(currentElem.id, currentElem.checked);
+
+            //   console.log(currentElem.tagName)
           }
         }
   }
@@ -21,12 +41,30 @@ function loadInput() {
       inputs = document.getElementsByTagName(tag[0]);
       for (index = 0; index < inputs.length; ++index) {
         currentElem = inputs[index];
-        if (tag.length == 1 || currentElem.type === tag[1]) {
-          console.log(currentElem)
-            if (sessionStorage.getItem(currentElem.id) !== null) {
-                currentElem.value = sessionStorage.getItem(currentElem.id);
-            }
-        }
+          if (
+              tag.length === 1 ||
+              !(
+                  tag[0] === "input" &&
+                  tag[1] === "checkbox" &&
+                  currentElem.tagName === "INPUT" &&
+                  currentElem.type === "checkbox"
+              )
+          ) {
+              console.log(currentElem);
+              if (sessionStorage.getItem(currentElem.id) !== null) {
+                  currentElem.value = sessionStorage.getItem(currentElem.id);
+              }
+          }
+          else if (
+              tag[0] === "input" &&
+              tag[1] === "checkbox" &&
+              currentElem.tagName === "INPUT" &&
+              currentElem.type === "checkbox"
+          ) {
+              if (sessionStorage.getItem(currentElem.id) === "true")
+                currentElem.click();
+          }
+
       }
     }
   console.log("loaded");

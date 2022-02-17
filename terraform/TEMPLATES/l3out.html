@@ -310,11 +310,15 @@
 <script>
    function updateAnchorNodeIPv4(button) {
     document.getElementById('node_ipv4').value = document.getElementById('ipv4_cluster_subnet').value
+    console.log("ipv4")
    }
 
    function updateAnchorNodeIPv6(button) {
       document.getElementById('node_ipv6').value = document.getElementById('ipv6_cluster_subnet').value
+      console.log("ipv6")
    }
+   updateAnchorNodeIPv4();
+   updateAnchorNodeIPv6();
 </script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>

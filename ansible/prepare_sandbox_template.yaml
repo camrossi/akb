@@ -12,3 +12,5 @@
   gather_facts: False
   roles:
     - sandbox
+  vars:
+    ubuntu_apt_mirror: "us.archive.ubuntu.com/ubuntu"

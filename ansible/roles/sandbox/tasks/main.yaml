@@ -59,3 +59,11 @@
   shell: helm pull ingress-nginx/ingress-nginx --version 4.0.17
   tags:
     - sandbox
+
+- name: Restore default apt mirror on ubuntu
+  template:
+    src: ../k8s_nodes/templates/sources.list.j2
+    dest: /etc/apt/sources.list
+    backup: yes
+  tags:
+    - k8s_nodes

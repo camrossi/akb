@@ -90,7 +90,7 @@
     backup: yes
   tags:
     - k8s_nodes
-  when: ubuntu_apt_mirror != ""    
+  when: ubuntu_apt_mirror
 
 
 - name: add apt-key for Kubeadm

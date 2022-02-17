@@ -1,6 +1,7 @@
 ---
 - name: Add ingress-nginx helm Repo
   shell: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+  environment: "{{ proxy_env }}"
   when: not sandbox_status
   tags:
     - ingress-nginx
@@ -8,6 +9,7 @@
 - name: helm repo update
   shell: helm repo update
   when: not sandbox_status
+  environment: "{{ proxy_env }}"
   tags:
     - ingress-nginx
 
@@ -21,6 +23,7 @@
 
 - name: helm install ingress-nginx 
   shell: helm install -n kube-system ingress-nginx ingress-nginx/ingress-nginx -f /tmp/ingress-nginx-values.yaml
+  environment: "{{ proxy_env }}"
   when: not sandbox_status
   tags:
     - ingress-nginx

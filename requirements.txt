@@ -12,4 +12,3 @@ ansible
 python-dateutil
 turbo_flask
 pyVmomi
-netaddr

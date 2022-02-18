@@ -204,41 +204,60 @@ def create():
     global apic
     global l3out
     global vc
-    if request.method == 'GET':
-        try:
-            
-            tf_apic = {}
-            tf_apic['username'] = apic["nkt_user"]
-            tf_apic['cert_name'] = apic["nkt_user"]
-            tf_apic['private_key'] = apic["private_key"]
-            tf_apic['url'] = apic["url"]
-            tf_apic['oob_ips'] = apic["oob_ips"]
-            config = "apic =" + json.dumps(tf_apic, indent=4)
-            config += "\nl3out =" + json.dumps(l3out, indent=4)
-            if vc['vm_deploy']:
-                config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
-            else:
-                config += "\ncalico_nodes = null"
-            config += "\nvc =" + json.dumps(vc, indent=4)
-            config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
-            with open('cluster.tfvars', 'w') as f:
+    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    if request.method == 'GET' :
+        if fabric_type.lower() == "aci":
+            try: 
+                tf_apic = {}
+                tf_apic['username'] = apic["nkt_user"]
+                tf_apic['cert_name'] = apic["nkt_user"]
+                tf_apic['private_key'] = apic["private_key"]
+                tf_apic['url'] = apic["url"]
+                tf_apic['oob_ips'] = apic["oob_ips"]
+                config = "apic =" + json.dumps(tf_apic, indent=4)
+                config += "\nl3out =" + json.dumps(l3out, indent=4)
+                if vc['vm_deploy']:
+                    config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
+                else:
+                    config += "\ncalico_nodes = null"
+                config += "\nvc =" + json.dumps(vc, indent=4)
+                config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
+                with open('cluster.tfvars', 'w') as f:
                     f.write(config) 
-        # If not all the config parameters are there I expect the user to provide the full JSON config
-        except:
+            # If not all the config parameters are there I expect the user to provide the full JSON config
+            except:
+                config = []
+        elif fabric_type.lower() == "vxlan_evpn":
             config = []
-        
-        return render_template('create.html', config=config)           
-          
+        else:
+            config = json.dumps({
+                "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"
+            })
+        return render_template('create.html', config=config)
     elif request.method == 'POST':
         req = request.form
         button = req.get("button")
         if button == "Previous":
-            return redirect('/cluster_network')
+            return redirect('/cluster?fabric_type=' + fabric_type)
         if button == "Update Config":
             config = req.get('config')
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
             return render_template('create.html', config=config)
+
+@app.route('/update_config', methods=['GET', 'POST'])
+def update_config():
+    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    if request.method == "POST":
+        if fabric_type.lower() == "aci":
+            config = request.json.get("config", "[]")
+            with open('cluster.tfvars', 'w') as f:
+                f.write(config)
+            return "OK", 200
+        elif fabric_type.lower() == "vxlan_evpn":
+            pass
+        else:
+            return json.dumps({ "error": "invalid fabric type"}), 400
 
 @app.route('/calico_nodes', methods=['GET', 'POST'])
 def calico_nodes():

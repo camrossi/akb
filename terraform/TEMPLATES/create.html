@@ -12,6 +12,13 @@
       href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
    <style>
       .chevron ul.tabs li.active a {
          background-color: #017cad !important;
@@ -100,7 +107,7 @@
 
          <div class="container">
             <input type="submit" value="Previous" class="btn btn--wide" name="button">
-            <input type="submit" value="Update Config" class="btn btn--wide" name="button">
+            <input type="button" id="btn_update_config" value="Update Config" class="btn btn--wide" name="button">
             <br><br>
             <input type="button" value="Plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
             <input type="button" value="Apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
@@ -143,26 +150,55 @@
 <!-- End Main Content -->
 </div>
 <script>
-   function updateiFrame(button) {
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
 
-      if (button.value === 'Plan') {
-         document.getElementById('iframe').src = "{{ url_for("tf_plan") }}"
-      }
-      if (button.value === 'Apply') {
-         document.getElementById('iframe').src = "{{ url_for("tf_apply") }}"
-      }
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+        return false;
+    };
+</script>
+<script>
+   function updateiFrame(button) {
+       if (button.value === 'Plan') {
+           document.getElementById('iframe').src = "{{ url_for("tf_plan") }}"
+       }
+       if (button.value === 'Apply') {
+           document.getElementById('iframe').src = "{{ url_for("tf_apply") }}"
+       }
    }
    function autoscrollDown() {
       document.querySelector()
    }
 </script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+<script>
+    $(document).ready(function () {
+        $("#btn_update_config").click(function (e) {
+            var update_url = "{{ url_for("update_config")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+            $.ajax({
+                url: update_url,  
+                dataType: 'json',
+                type: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify({ config: $("#config").val()}),
+                success: function (result, status, xhr) {
+                    $("#returnedData").html(result);
+                },
+                error: function (xhr, status, error) {
+                    $("#returnedData").html("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                }
+            });
+        });
+    })
+</script>
 <div id="canvas"></div>
 
 </body>

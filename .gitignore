@@ -3,3 +3,4 @@
 *.terraform
 .DS_Store
 terraform/cluster.tfvars
+ansible/roles/calico/files/calicoctl

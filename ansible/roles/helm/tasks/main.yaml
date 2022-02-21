@@ -2,6 +2,7 @@
 - name: add apt-key for helm
   apt_key:
     url: https://baltocdn.com/helm/signing.asc
+  environment: "{{ proxy_env }}"
   tags:
     - helm
 

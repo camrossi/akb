@@ -51,7 +51,7 @@ spec:
                 fieldRef:
                   fieldPath: status.podIP
           image: "docker.io/bloomberg/goldpinger:v3.3.0"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

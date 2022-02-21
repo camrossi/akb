@@ -107,13 +107,24 @@
             <h2>K8s Cluster Details</h2>
             <p>
                <br> Here you should insert the K8s cluster details. </br>
-               <br>
-               <br><br><br>
+               <b>Internet Access:</b> If you do not have internet access you <b>MUST</b> use the provided VM template.<br>
+               No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. <br>
+               This only works for the default image versions and result in a faster cluster bring up.<br>
+               If you want to use your own template or specific image version then Internet access is required.<br>
 
             </p>
          </div>
 
-
+         <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+                  <span class="checkbox__label hidden-xs">Does your K8s cluster have internet access?</span>
+                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;">
+                  <span id="sandbox_status" class="checkbox__input"></span>
+               </label>
+            </div>
+         </div>
+         <br>
 
          <div class="container">
             <div class="form-group base-margin-bottom">
@@ -143,10 +154,6 @@
                </div>
             </div>
          </div>   
-
-
-         <div class="container">
-      </div>
 
                         <!--advanced tab for proxy-->
                         <div class="form-group base-margin-bottom">
@@ -279,7 +286,7 @@
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="kube_version">Kubernetes Version:</label>
-                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.22.4-00">
+                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.23.3-00">
                               <datalist id="kube_version_list">
                                  {% for o in k8s_ver %}
                                  <option value="{{ o }}">

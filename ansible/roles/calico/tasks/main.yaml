@@ -16,12 +16,23 @@
   tags:
     - calico
 
-- name: Install calicoctl
-  get_url:
+- name: Download Calicoctl on the installer VM if missing
+  run_once: true
+  delegate_to: localhost
+  get_url:          
     url: https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64
+    dest: ./roles/calico/files/calicoctl
+    force: no
+  tags:
+    - calico
+
+- name: Install calicoctl
+  copy:
+    src: ./roles/calico/files/calicoctl
     dest: /bin/calicoctl
-    force: yes
+    force: no
     mode: '0755'
+  environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success

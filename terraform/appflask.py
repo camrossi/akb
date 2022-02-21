@@ -2,14 +2,13 @@ import json
 import sys
 from logging import error
 from flask import Flask, Response, request, render_template, redirect, flash, session
+import vc_utils
 from logging.config import dictConfig
 from turbo_flask import Turbo
 import requests
 import os
 from pyaci import Node, options, filters
 import ipaddress
-from pyVmomi import vim
-from pyVim import connect
 import re
 from shelljob import proc
 from distutils.version import LooseVersion
@@ -306,7 +305,7 @@ def calico_nodes():
             if turbo.can_stream():
                 return turbo.stream(
                     turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
-                                 target='tf_calico_nodes'))
+                                target='tf_calico_nodes'))
 
     if request.method == 'GET':
         if calico_nodes == []:
@@ -320,7 +319,6 @@ def calico_nodes():
                     calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                     i += 1
         return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
-
 
 def is_valid_hostname(hostname):
     if hostname == "":
@@ -460,57 +458,6 @@ def vcenterlogin():
         return render_template('vcenter-login.html')
 
 
-def get_all_objs(content, vimtype):
-    obj = {}
-    container = content.viewManager.CreateContainerView(
-        content.rootFolder, vimtype, True)
-    for managed_object_ref in container.view:
-        obj.update({managed_object_ref: managed_object_ref.name})
-    return obj
-
-
-def find_pgs(obj, pgs):
-    if isinstance(obj, vim.Datacenter):
-        for child in obj.networkFolder.childEntity:
-            if (isinstance(child, vim.DistributedVirtualSwitch)):
-                pg_dvs = child.summary.name + "/"
-                for pg in child.portgroup:
-                    # Only accept access ports
-                    if isinstance(pg.config.defaultPortConfig.vlan, vim.dvs.VmwareDistributedVirtualSwitch.VlanIdSpec):
-                        vlan = "vlan-" + \
-                            str(pg.config.defaultPortConfig.vlan.vlanId)
-                        pgs.append(pg_dvs + pg.summary.name + "/" + vlan)
-            elif(isinstance(child, vim.Folder)):
-                find_pgs(child, pgs)
-    elif isinstance(obj, vim.Folder):
-        for child in obj.childEntity:
-            if (isinstance(child, vim.DistributedVirtualSwitch)):
-                pg_dvs = child.summary.name + "/"
-                for pg in child.portgroup:
-                    # Only accept access ports
-                    if isinstance(pg.config.defaultPortConfig.vlan, vim.dvs.VmwareDistributedVirtualSwitch.VlanIdSpec):
-                        vlan = "vlan-" + \
-                            str(pg.config.defaultPortConfig.vlan.vlanId)
-                        pgs.append(pg_dvs + pg.summary.name + "/" + vlan)
-            elif(isinstance(child, vim.Folder)):
-                find_pgs(child, pgs)
-
-
-def find_vms(obj, vms):
-    if isinstance(obj, vim.Datacenter):
-        for child in obj.vmFolder.childEntity:
-            if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child.name)
-            elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
-    elif isinstance(obj, vim.Folder):
-        for child in obj.childEntity:
-            if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child.name)
-            elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
-
-
 @app.route('/vcenter', methods=['GET', 'POST'])
 def vcenter():
     dss = []
@@ -537,29 +484,27 @@ def vcenter():
             return redirect('/vcenterlogin')
 
         elif button == None and req.get("dc"):
-            si = connect.SmartConnectNoSSL(
-                host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
-            content = si.RetrieveContent()
-            dcs = get_all_objs(content, [vim.Datacenter])
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            dcs = vc_utils.get_all_objs(si)
             dc_name = req.get('dc')
             for dc in dcs:
                 if dc.name == dc_name:
                     for ds in dc.datastore:
                         dss.append(ds.name)
-                    find_pgs(dc, pgs)
+                    vc_utils.find_pgs(dc, pgs)
 
                     for child in dc.hostFolder.childEntity:
-                        if (isinstance(child, vim.ClusterComputeResource)):
+                        if (vc_utils.find_compute_cluster(child)):
                             clusters.append(child.name)
 
-                    find_vms(dc, vm_templates)
+                    vc_utils.find_vms(dc, vm_templates)
 
                     # Get only 1st level folder
                     for child in dc.vmFolder.childEntity:
-                        if (isinstance(child, vim.Folder)):
+                        if vc_utils.find_folder(child):
                             vc_folders.append(child.name)
 
-            connect.Disconnect(si)
+            vc_utils.disconnect(si)
             vc_folders = sorted(vc_folders, key=str.lower)
             dss = sorted(dss, key=str.lower)
             dvss = sorted(dvss, key=str.lower)
@@ -575,15 +520,13 @@ def vcenter():
 
     if request.method == 'GET':
         try:
-            si = connect.SmartConnectNoSSL(
-                host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
-        except Exception:
-            flash(u'Incorrect Username Or Password', 'error')
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except Exception as e:
+            flash(e.msg, 'error')
             return redirect('/vcenterlogin')
 
-        content = si.RetrieveContent()
-        dcs = get_all_objs(content, [vim.Datacenter])
-        connect.Disconnect(si)
+        dcs = vc_utils.get_all_objs(si)
+        vc_utils.disconnect(si)
         return render_template('vcenter.html', dcs=dcs.values(), )
 
 

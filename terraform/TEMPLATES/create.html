@@ -91,7 +91,7 @@
                            <label>Terraform Output:
                               <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
                            </label>
-                           <iframe id='iframe' src=""></iframe>
+                           <iframe id='iframe' src=""                                                         ></iframe>
                   </div>
                </div>
             </div>
@@ -151,6 +151,9 @@
       if (button.value === 'Apply') {
          document.getElementById('iframe').src = "{{ url_for("tf_apply") }}"
       }
+   }
+   function autoscrollDown() {
+      document.querySelector()
    }
 </script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>

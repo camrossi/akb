@@ -85,7 +85,7 @@
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
                   <label for="url">vCenter Hostname/IP:</label>
-                  <input type="text" id="url" name="url">
+                  <input type="text" id="url" name="url" value="vc1.cam.ciscolabs.com">
                </div>
             </div>       
          </div>
@@ -93,7 +93,7 @@
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
                   <label for="username">vCenter User Name:</label>
-                  <input type="text" id="username" name="username">
+                  <input type="text" id="username" name="username" value="administrator@vsphere.local">
                </div>
             </div>       
          </div>
@@ -101,14 +101,26 @@
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
                   <label for="pass">vCenter Password:</label>
-                  <input type="password" id="pass" name="pass">
+                  <input type="password" id="pass" name="pass" value="123Cisco123!">
                </div>
             </div>       
          </div>
          <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+                  <input type="checkbox" id="template" name="template" style="margin:0;" checked>
+                  <span id="template_checkbox" class="checkbox__input"></span>
+                  <span class="checkbox__label hidden-xs">Upload VM Template?</span>
+                  <span data-title="If selected the default template for the K8s nodes is uploaded to vCenter.">ⓘ</span>
+               </label>
+            </div>
+         </div>
+   
+         <div class="container">
             <input type="submit" value="Previous" class="btn btn--wide" name="button">
             <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button">
          </div>
+
    </form>
 
          <div class="container">

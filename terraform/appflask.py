@@ -15,6 +15,9 @@ from distutils.version import LooseVersion
 from time import sleep
 import random
 import string
+from datetime import datetime
+import concurrent.futures
+
 l3out = {}
 vc = {}
 apic = {}
@@ -451,12 +454,98 @@ def vcenterlogin():
             vc["url"] = req.get("url")
             vc["username"] = req.get("username")
             vc["pass"] = req.get("pass")
+            if req.get("template"):
+                return redirect('/vctemplate')
             return redirect('/vcenter')
         if button == "Previous":
             return redirect('/l3out')
     if request.method == 'GET':
         return render_template('vcenter-login.html')
 
+@app.route('/vctemplate', methods=['GET', 'POST'])
+def vctemplate():
+    vc_folders = []
+    dss = []
+    if request.method == 'POST':
+        req = request.form
+        button = req.get("button")
+        if button == "Previous":
+            return redirect('/vcenterlogin')
+        if button == None and req.get("dc"):
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            dcs = vc_utils.get_all_dcs(si)
+            dc_name = req.get('dc')
+            for dc in dcs:
+                if dc.name == dc_name:
+                    for ds in dc.datastore:
+                        dss.append(ds.name)
+                    for child in dc.vmFolder.childEntity:
+                        if vc_utils.find_folders(child):
+                            vc_folders.append(child.name)
+            
+            vc_utils.disconnect(si)
+            vc_folders = sorted(vc_folders, key=str.lower)
+            dss = sorted(dss, key=str.lower)
+
+            if turbo.can_stream():
+                return turbo.stream(
+                    turbo.update(render_template('_template_folder.html', vc_folders=vc_folders, dcs=dcs.values(),dss=dss),
+                                  target='template-upload-folder'))
+
+        if button == "Upload":
+            template_name = "AKB-Ubuntu-Template"
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            datacenter = vc_utils.get_dc(si, req.get('dc'))
+            datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
+            resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
+            ovf_handle = vc_utils.OvfHandler("/nfs-share/www/akb/test.ova")
+            ovf_manager = si.content.ovfManager
+            cisp = vc_utils.import_spec_params(entityName=template_name)
+
+            cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(), resource_pool, datastore, cisp)
+            if cisr.error:
+                print("The following errors will prevent import of this OVA:")
+                for error in cisr.error:
+                    print("%s" % error)
+
+            ovf_handle.set_spec(cisr)
+
+
+            #Start upload as a new thread
+            #Find Folder
+            # Get only 1st level folder
+            for child in datacenter.vmFolder.childEntity:
+                if vc_utils.find_folders(child):
+                    if child.name == req.get('vm_folder'):
+                        folder = child
+
+            # If the template already exists, delete it!
+            vm = vc_utils.find_by_name(si,folder,template_name)
+            if vm:
+                task = vm.Destroy_Task()
+                task.vc_utils.wait_for_tasks(si, [task])
+            upload = concurrent.futures.ThreadPoolExecutor()
+            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
+            upload.shutdown(wait=True)
+            vm = vc_utils.find_by_name(si,folder,template_name)
+            vm.CreateSnapshot_Task(name=str(datetime.now()),
+                                        description="Snapshot",
+                                        memory=False,
+                                        quiesce=False)
+
+            return redirect('/vcenter')
+            
+            
+    if request.method == 'GET':
+        try:
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except Exception as e:
+            flash(e.msg, 'error')
+            return redirect('/vcenterlogin')
+
+        dcs = vc_utils.get_all_dcs(si)
+        vc_utils.disconnect(si)
+        return render_template('vc_template_upload.html', dcs=dcs.values(), progress=0)
 
 @app.route('/vcenter', methods=['GET', 'POST'])
 def vcenter():
@@ -475,8 +564,7 @@ def vcenter():
             vc["cluster"] = req.get('cluster')
             vc["dvs"] = req.get('port_group').split('/')[0]
             vc["port_group"] = req.get('port_group').split('/')[1]
-            l3out['vlan_id'] = req.get(
-                'port_group').split('/')[2].split('-')[1]
+            l3out['vlan_id'] = req.get('port_group').split('/')[2].split('-')[1]
             vc["vm_template"] = req.get('vm_templates')
             vc["vm_folder"] = req.get('vm_folder')
             return redirect('/calico_nodes')
@@ -485,14 +573,14 @@ def vcenter():
 
         elif button == None and req.get("dc"):
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
-            dcs = vc_utils.get_all_objs(si)
+            dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
                 if dc.name == dc_name:
                     for ds in dc.datastore:
                         dss.append(ds.name)
+                    
                     vc_utils.find_pgs(dc, pgs)
-
                     for child in dc.hostFolder.childEntity:
                         if (vc_utils.find_compute_cluster(child)):
                             clusters.append(child.name)
@@ -501,7 +589,7 @@ def vcenter():
 
                     # Get only 1st level folder
                     for child in dc.vmFolder.childEntity:
-                        if vc_utils.find_folder(child):
+                        if vc_utils.find_folders(child):
                             vc_folders.append(child.name)
 
             vc_utils.disconnect(si)
@@ -525,7 +613,7 @@ def vcenter():
             flash(e.msg, 'error')
             return redirect('/vcenterlogin')
 
-        dcs = vc_utils.get_all_objs(si)
+        dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
         return render_template('vcenter.html', dcs=dcs.values(), )
 

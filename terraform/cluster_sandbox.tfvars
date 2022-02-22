@@ -1,7 +1,7 @@
 apic ={
-    "username": "akb_user_lbuzdb",
-    "cert_name": "akb_user_lbuzdb",
-    "private_key": "../ansible/roles/aci/files/akb_user_lbuzdb-user.key",
+    "username": "nkt_user_lbuzdb",
+    "cert_name": "nkt_user_lbuzdb",
+    "private_key": "../ansible/roles/aci/files/nkt_user_lbuzdb-user.key",
     "url": "https://fab1-apic1.cam.ciscolabs.com",
     "oob_ips": "10.67.185.106"
 }
@@ -71,21 +71,21 @@ l3out ={
 }
 calico_nodes =[
     {
-        "hostname": "akb-master-1",
+        "hostname": "nkt-master-1",
         "ip": "192.168.39.1/24",
         "ipv6": "",
         "natip": "",
         "rack_id": "1"
     },
     {
-        "hostname": "akb-master-2",
+        "hostname": "nkt-master-2",
         "ip": "192.168.39.2/24",
         "ipv6": "",
         "natip": "",
         "rack_id": "1"
     },
     {
-        "hostname": "akb-master-3",
+        "hostname": "nkt-master-3",
         "ip": "192.168.39.3/24",
         "ipv6": "",
         "natip": "",

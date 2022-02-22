@@ -9,7 +9,7 @@ si = vc_utils.connect(url,username,pwd,"443")
 datacenter = vc_utils.get_dc(si, "STLD")
 datastore = vc_utils.get_ds(datacenter, "ESX1i-RAID5_1")
 resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
-ovf_handle = vc_utils.OvfHandler("/nfs-share/www/akb/test.ova")
+ovf_handle = vc_utils.OvfHandler("/nfs-share/www/nkt/test.ova")
 ovf_manager = si.content.ovfManager
 cisp = vc_utils.import_spec_params()
 

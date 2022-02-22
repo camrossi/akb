@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
 import sys
 import random
 from time import sleep
@@ -50,7 +51,7 @@ if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
 driver.get("http://10.67.185.120:5001")
-assert "AKB" in driver.title
+assert "NKT" in driver.title
 
 input("Press Enter to continue...")
 
@@ -81,6 +82,27 @@ input("Press Enter to continue...")
 
 elem = driver.find_element(By.ID,'l3out_tenant')
 elem.send_keys("calico_dev_v4")
+elem.send_keys(Keys.TAB)
+input("Press Enter to continue...")
+
+# WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
+# THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
+try:
+    elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
+except ValueError as e:
+    print("Loading took too much time!")
+
+elem = driver.find_element(By.ID,'vrf_name')
+elem.send_keys("calico_dev_v4/vrf")
+
+input("Press Enter to continue...")
+
+elem = driver.find_element(By.ID,'contract')
+elem.send_keys("common/calico_dev")
+input("Press Enter to continue...")
+
+elem = driver.find_element(By.ID,'physical_dom')
+elem.send_keys("Fab1")
 
 input("Press Enter to continue...")
 
@@ -96,27 +118,6 @@ input("Press Enter to continue...")
 elem = driver.find_element(By.NAME,"dns_domain")
 elem.send_keys("cam.ciscolabs.com")
 input("Press Enter to continue...")
-
-# WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
-# THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
-try:
-    elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
-except ValueError as e:
-    print("Loading took too much time!")
-
-elem = driver.find_element(By.ID,'vrf_name')
-elem.send_keys("calico_dev_v4/vrf")
-input("Press Enter to continue...")
-
-elem = driver.find_element(By.ID,'contract')
-elem.send_keys("common/calico_dev")
-input("Press Enter to continue...")
-
-elem = driver.find_element(By.ID,'physical_dom')
-elem.send_keys("Fab1")
-
-input("Press Enter to continue...")
-
 
 add_anchor_node("1","1","101","1.1.1.101","192.168.39.101")
 
@@ -212,9 +213,9 @@ assert "Calico Nodes" in driver.title
 
 input("Press Enter to continue...")
 
-add_calico_ndoe('akb-worker-{}-1'.format(run_id),'192.168.39.4/24', '1')
-add_calico_ndoe('akb-worker-{}-2'.format(run_id),'192.168.39.5/24', '1')
-add_calico_ndoe('akb-worker-{}-3'.format(run_id),'192.168.39.6/24', '1')
+add_calico_ndoe('nkt-worker-{}-1'.format(run_id),'192.168.39.4/24', '1')
+add_calico_ndoe('nkt-worker-{}-2'.format(run_id),'192.168.39.5/24', '1')
+add_calico_ndoe('nkt-worker-{}-3'.format(run_id),'192.168.39.6/24', '1')
 
 input("Press Enter to continue...")
 

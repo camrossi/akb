@@ -7,7 +7,7 @@
 <head>
      {{ turbo() }}
    <meta charset="utf-8">
-   <title>AKB - vCenter Details</title>
+   <title>NKT - vCenter Details</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
@@ -50,7 +50,7 @@
          <div class="container">
             <div class="header-panels">
                <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                  <div class="header__title">ACI Kubernetes Bootstrapper</div>
+                  <div class="header__title">Nexus Kubernetes Tools</div>
                </div>
                <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
             </div>
@@ -71,10 +71,8 @@
 
             <h2>vCenter Details</h2>
             <p> 
-               <br> Insert the vCenter details: AKB will connect to a vCenter and deploy a K8s cluster.
+               <br> Insert the vCenter details: NKT will connect to a vCenter and deploy a K8s cluster.
                <br> The k8s cluster will automatically be configured with Calico using non overlay mode and leveraging BGP to advertise routes to ACI leaves.
-               <br><br> Requirements: 
-               {% include "docs/_vc_requirements.html" %}
                <br> Note: After selecting the vCenter Name it will take a couple of seconds to populate all the elements in the drop down menus.
 
             </p>

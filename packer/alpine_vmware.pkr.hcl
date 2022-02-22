@@ -28,7 +28,7 @@ source "vsphere-clone" "clone" {
   username       = "administrator@vsphere.local"
   password     = "123Cisco123!"
   vcenter_server = "vc2.cam.ciscolabs.com"
-  vm_name        = "akb-${local.timestamp}"
+  vm_name        = "nkt-${local.timestamp}"
   ssh_username = "root"
   ssh_password = "123Cisco123"
 }
@@ -46,20 +46,20 @@ build {
       "apk update",
       "apk upgrade",
       "apk add sshpass bash python3 py3-pip gcc python3-dev libressl-dev musl-dev libffi-dev libxml2-dev libxslt-dev make openssl-dev cargo",
-      "wget https://github.com/camrossi/akb/archive/refs/heads/main.zip",
+      "wget https://github.com/camrossi/nkt/archive/refs/heads/main.zip",
       "unzip main.zip",
       "rm main.zip",
-      "pip3 install -Ur akb-main/requirements.txt",
+      "pip3 install -Ur nkt-main/requirements.txt",
       "ansible-galaxy collection install cisco.aci",
-      "wget http://192.168.66.120/akb/akb_ubuntu21_template.ova -O akb-main/terraform/static/vm_templates/akb_ubuntu21_template.ova",
+      "wget http://192.168.66.120/nkt/nkt_ubuntu21_template.ova -O nkt-main/terraform/static/vm_templates/nkt_ubuntu21_template.ova",
       "wget https://releases.hashicorp.com/terraform/1.1.3/terraform_1.1.3_linux_amd64.zip",
       "unzip terraform_1.1.3_linux_amd64.zip  -d /bin",
       "rm terraform_1.1.3_linux_amd64.zip",
-      "cd /root/akb-main/terraform",
+      "cd /root/nkt-main/terraform",
       "terraform init",
       "rc-update add local default",
-      "echo 'cd /root/akb-main/terraform && python3 appflask.py 80 &' > /etc/local.d/akb.start",
-      "chmod +x /etc/local.d/akb.start",
+      "echo 'cd /root/nkt-main/terraform && python3 appflask.py 80 &' > /etc/local.d/nkt.start",
+      "chmod +x /etc/local.d/nkt.start",
       "echo 'auto lo' > /etc/network/interfaces",
       "echo 'iface lo inet loopback' >> /etc/network/interfaces",
       "echo 'auto eth0' >> /etc/network/interfaces",

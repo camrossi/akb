@@ -50,7 +50,7 @@ if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
 driver.get("http://10.67.185.120:5001")
-assert "AKB" in driver.title
+assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
 
@@ -147,12 +147,12 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('akb-master-{}-1'.format(run_id),'192.168.39.1/24', '1')
-add_calico_ndoe('akb-master-{}-2'.format(run_id),'192.168.39.2/24', '1')
-add_calico_ndoe('akb-master-{}-3'.format(run_id),'192.168.39.3/24', '1')
-add_calico_ndoe('akb-worker-{}-1'.format(run_id),'192.168.39.4/24', '1')
-add_calico_ndoe('akb-worker-{}-2'.format(run_id),'192.168.39.5/24', '1')
-add_calico_ndoe('akb-worker-{}-3'.format(run_id),'192.168.39.6/24', '1')
+add_calico_ndoe('nkt-master-{}-1'.format(run_id),'192.168.39.1/24', '1')
+add_calico_ndoe('nkt-master-{}-2'.format(run_id),'192.168.39.2/24', '1')
+add_calico_ndoe('nkt-master-{}-3'.format(run_id),'192.168.39.3/24', '1')
+add_calico_ndoe('nkt-worker-{}-1'.format(run_id),'192.168.39.4/24', '1')
+add_calico_ndoe('nkt-worker-{}-2'.format(run_id),'192.168.39.5/24', '1')
+add_calico_ndoe('nkt-worker-{}-3'.format(run_id),'192.168.39.6/24', '1')
 
 
 elem = driver.find_element(By.ID,"submit")

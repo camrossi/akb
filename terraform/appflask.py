@@ -183,8 +183,8 @@ def create():
     if request.method == 'GET':
         try: 
             tf_apic = {}
-            tf_apic['username'] = apic["akb_user"]
-            tf_apic['cert_name'] = apic["akb_user"]
+            tf_apic['username'] = apic["nkt_user"]
+            tf_apic['cert_name'] = apic["nkt_user"]
             tf_apic['private_key'] = apic["private_key"]
             tf_apic['url'] = apic["url"]
             tf_apic['oob_ips'] = apic["oob_ips"]
@@ -314,7 +314,7 @@ def calico_nodes():
         if calico_nodes == []:
             i = 1
             while i <= 3:
-                    hostname = 'akb-master-' + str(i)
+                    hostname = 'nkt-master-' + str(i)
                     ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
                     ipv6 = ""
                     natip = ""
@@ -493,12 +493,12 @@ def vctemplate():
                                   target='template-upload-folder'))
 
         if button == "Upload":
-            template_name = "AKB-Ubuntu-Template"
+            template_name = "NKT-Ubuntu-Template"
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
-            ovf_handle = vc_utils.OvfHandler("/nfs-share/www/akb/test.ova")
+            ovf_handle = vc_utils.OvfHandler("/nfs-share/www/nkt/test.ova")
             ovf_manager = si.content.ovfManager
             cisp = vc_utils.import_spec_params(entityName=template_name)
 
@@ -639,7 +639,7 @@ def l3out():
     rtr_id_counter = ipaddress.IPv4Address("1.1.1.1")
     global ipv6_enabled
     try:
-        pyaci_apic.useX509CertAuth(apic['akb_user'],apic["akb_user"],apic['private_key'])
+        pyaci_apic.useX509CertAuth(apic['nkt_user'],apic["nkt_user"],apic['private_key'])
     except FileNotFoundError as e:
         return redirect('/login')
     if request.method == 'POST':
@@ -843,9 +843,9 @@ def login():
             print(apic['url'])
             apic['username'] = request.form['username']
             apic['password'] = request.form['password']
-            apic['akb_user'] = "akb_user_" + get_random_string(6) #request.form['akb_user']
-            apic['akb_pass'] = get_random_string(20)
-            apic['private_key']= "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
+            apic['nkt_user'] = "nkt_user_" + get_random_string(6) #request.form['nkt_user']
+            apic['nkt_pass'] = get_random_string(20)
+            apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
             apic['oob_ips'] = ""
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
@@ -873,8 +873,8 @@ def login():
       admin_pass: {apic['password']}
       # APIC User that we create only for the duration of this playbook
       # We also create certificates for this user name to use cert based authentication
-      aci_temp_username: {apic['akb_user']}
-      aci_temp_pass: {apic['akb_pass']}"""
+      aci_temp_username: {apic['nkt_user']}
+      aci_temp_pass: {apic['nkt_pass']}"""
             with open('../ansible/inventory/apic.yaml', 'w') as f:
                 f.write(config)      
             # Generate temporary user and certificate
@@ -892,7 +892,7 @@ def login():
             if "failed=0" in ansible_output:
                 return redirect('/l3out')
             else:
-                return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
+                return (Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
         if button == "Previous":
             return redirect('/prereqaci')
     return render_template('login.html')

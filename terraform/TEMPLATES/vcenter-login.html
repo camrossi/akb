@@ -85,7 +85,7 @@
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
                   <label for="url">vCenter Hostname/IP:</label>
-                  <input type="text" id="url" name="url" value="vc1.cam.ciscolabs.com">
+                  <input type="text" id="url" name="url">
                </div>
             </div>       
          </div>
@@ -93,7 +93,7 @@
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
                   <label for="username">vCenter User Name:</label>
-                  <input type="text" id="username" name="username" value="administrator@vsphere.local">
+                  <input type="text" id="username" name="username">
                </div>
             </div>       
          </div>
@@ -101,7 +101,7 @@
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
                   <label for="pass">vCenter Password:</label>
-                  <input type="password" id="pass" name="pass" value="123Cisco123!">
+                  <input type="password" id="pass" name="pass">
                </div>
             </div>       
          </div>
@@ -111,7 +111,18 @@
                   <input type="checkbox" id="template" name="template" style="margin:0;" checked>
                   <span id="template_checkbox" class="checkbox__input"></span>
                   <span class="checkbox__label hidden-xs">Upload VM Template?</span>
-                  <span data-title="If selected the default template for the K8s nodes is uploaded to vCenter.">ⓘ</span>
+                  <span 
+                  data-title1="If selected the default template for the K8s nodes is uploaded to vCenter.">ⓘ</span>
+                  <style>
+                     span[data-title1]:hover::after 
+                        {
+                           content: attr(data-title1);
+                           padding: 5px;
+                           border: 1px solid #000;
+                           background: #311bf3;
+                           color: white;
+                        }
+                  </style>
                </label>
             </div>
          </div>

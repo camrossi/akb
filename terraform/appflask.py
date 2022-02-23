@@ -162,7 +162,6 @@ def prereqaci():
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
         g = proc.Group()
-        cwd = os.getcwd
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
@@ -498,7 +497,8 @@ def vctemplate():
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
-            ovf_handle = vc_utils.OvfHandler("/nfs-share/www/nkt/test.ova")
+            ova_path = str(os.getcwd()) + "/static/vm_templates/nkt_template.ova"
+            ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
             cisp = vc_utils.import_spec_params(entityName=template_name)
 

@@ -57,7 +57,7 @@ if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
 driver.get("http://10.67.185.120:5004")
-assert "AKB" in driver.title
+assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
 

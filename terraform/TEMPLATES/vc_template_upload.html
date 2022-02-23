@@ -1,9 +1,13 @@
 <!doctype html>
 <html lang="en">
 
+
+      
+
 <head>
+     {{ turbo() }}
    <meta charset="utf-8">
-   <title>NKT - vCenter Login</title>
+   <title>NKT - vCenter Template Upload</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
@@ -37,7 +41,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/vcenterlogin">
+<form name="tenantForm" method="post" action="/vctemplate">
 
   <body class="cui cui--animated cui--compressed" data-theme="">
    <div id="oneui">
@@ -56,7 +60,7 @@
          <div class="cell"></div>
          <div class="cell"> </div>
       </div>
-   <!--  VCenter Settings   -->       
+   <!--  vCenter Settings   -->       
 
          <div class="form-group base-margin-bottom">
             <div class="form-group__text"></div>
@@ -65,74 +69,36 @@
             
          <div class="container bg-gray">
 
-            <h2>vCenter Details</h2>
-            <p> 
-               <br> Insert the vCenter details: NKT will connect to vCenter and deploy a K8s cluster.
-               <br> The k8s cluster will automatically be configured with Calico using non overlay mode and leveraging BGP to advertise routes to ACI leaves.
-               <br> PreRequisite: A Ubuntu 21.01 VM template with Perl and a snapshot must exists. You can download it from <a href="{{ url_for('static',filename='vm_template/test') }}">here</a> for simplicity and upload it to your vCenter as a VM template. 
-            </p>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-               <span>{{ message }}</span>
+            <h2>Template Upload</h2>
+            <br>
             </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
+
+            <div class="container">
+               <div class="form-group__text">
+                        <div class="container">
+                           <div class="form-group base-margin-bottom">
+                              <div  class="form-group__text">
+                                 <select id="dc" name="dc" onchange="this.form.requestSubmit()">
+                                    <option disabled selected value> -- select a DC -- </option>
+                                    {% for o in dcs %}
+                                    <option name="{{ o }}">{{ o }} </option>
+                                    {% endfor %}
+                                 </select>
+                                 <label for="dc">vCenter DC Name:
+                                    <span data-title="Select the DataCenter name in vCenter">ⓘ</span> 
+                                 </label>
+                              </div>
+                           </div>       
+                        </div>
+                           {% include '_template_folder.html' %}
+                           {% include '_template_upload_progress.html' %}
+                     </div>
             </div>
             <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="url">vCenter Hostname/IP:</label>
-                  <input type="text" id="url" name="url">
-               </div>
-            </div>       
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="username">vCenter User Name:</label>
-                  <input type="text" id="username" name="username">
-               </div>
-            </div>       
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div  class="form-group__text">
-                  <label for="pass">vCenter Password:</label>
-                  <input type="password" id="pass" name="pass">
-               </div>
-            </div>       
-         </div>
-         <div class="container">
-            <div class="checkbox form-group form-group--inline c8041">
-               <label class="checkbox">
-                  <input type="checkbox" id="template" name="template" style="margin:0;" checked>
-                  <span id="template_checkbox" class="checkbox__input"></span>
-                  <span class="checkbox__label hidden-xs">Upload VM Template?</span>
-                  <span 
-                  data-title1="If selected the default template for the K8s nodes is uploaded to vCenter.">ⓘ</span>
-                  <style>
-                     span[data-title1]:hover::after 
-                        {
-                           content: attr(data-title1);
-                           padding: 5px;
-                           border: 1px solid #000;
-                           background: #311bf3;
-                           color: white;
-                        }
-                  </style>
-               </label>
+               <input type="submit" value="Previous" class="btn btn--wide" name="button">
+               <input id="submit" type="submit" value="Upload" class="btn btn--wide" name="button" onclick="clicked(event)">
             </div>
-         </div>
-   
-         <div class="container">
-            <input type="submit" value="Previous" class="btn btn--wide" name="button">
-            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button">
-         </div>
-
-   </form>
+         </form>
 
          <div class="container">
          <footer class="footer footer--tertiary" id="_uidca388897">
@@ -166,6 +132,18 @@
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+   <script>
+      var source = new EventSource("/vctemplate");
+      source.onmessage = function(event) {
+      document.getElementById("cluster").innerHTML += event.data
+      }
+      function clicked(e)
+      {
+            if(!confirm('Press OK to start the Upload. If the template already exists it will be replaced. The UI will freeze till the upload it complete. You can check the upload progress from vCenter')) {
+               e.preventDefault();
+            }
+      }
+   </script>
    <div id="canvas"></div>
 </body>
 

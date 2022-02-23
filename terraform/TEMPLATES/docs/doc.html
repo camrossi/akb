@@ -4,7 +4,7 @@
 
 <head>
    <meta charset="utf-8">
-   <title>AKB - Day0</title>
+   <title>NKT - Day0</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css"
@@ -49,7 +49,7 @@
                <div class="header-panels">
                   <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
                         id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">ACI Kubernetes Bootstrapper</div>
+                     <div class="header__title">Nexus Kubernetes Tools</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
                         data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
@@ -73,7 +73,7 @@
                href="https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html">Cisco
                Application Centric Infrastructure Calico Design White Paper</a>.
             <br> All the optimizations and best practices of the design are implemented automatically on ACI.
-            <br> AKB uses, under the hood, Terraform to push the ACI configuration and deploy the VMs.
+            <br> NKT uses, under the hood, Terraform to push the ACI configuration and deploy the VMs.
             Ansible is used to configure the VMs, bootstrap and configure the Kubernetes Cluster.
 
          <h2> High Level Architecture</h2>
@@ -83,7 +83,7 @@
 
          <br> Calico supports two main network modes: direct container routing (no overlay transport protocol) or
          network overlay using VXLAN or IPinIP (default) encapsulations to exchange traffic between workloads.
-         <br> AKB will deploying Calico in direct routing mode.
+         <br> NKT will deploying Calico in direct routing mode.
          <br>
          <br>All the nodes in the Kubernetes cluster will have the same AS number and will peer via eBGP with a pair of ACI.
          top-of-rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy

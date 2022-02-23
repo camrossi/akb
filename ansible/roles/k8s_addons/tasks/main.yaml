@@ -1,6 +1,6 @@
 ---
 
-- name: Copy addons manifests
+- name: Copy common addons manifests
   template:
     src: "{{ item }}"
     dest: /tmp/{{ item }}
@@ -11,9 +11,19 @@
     - ingress.yaml
     - metric_server.yaml
     - goldpinger.yaml
+  tags:
+    - k8s_addons
+
+- name: Copy ACI addons manifests
+  template:
+    src: "{{ item }}"
+    dest: /tmp/{{ item }}
+    force: yes
+  with_items:
     - vkaci.yaml.j2
     - neo4j-values.yaml
     - local-storage.yaml
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
@@ -110,6 +120,7 @@
 ####
 - name: Install vkaci
   shell: kubectl apply -f /tmp/vkaci.yaml.j2
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
@@ -128,6 +139,7 @@
     state: present
   tags:
     - k8s_addons
+<<<<<<< HEAD
 
 - name: add local DNS entry for Neo4j
   lineinfile:
@@ -148,3 +160,5 @@
   delegate_to: localhost
   tags:
     - k8s_addons
+=======
+>>>>>>> add modules for k8s node,etc

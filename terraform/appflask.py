@@ -379,12 +379,19 @@ def update_config():
             config = request.json.get("config", "[]")
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
+<<<<<<< HEAD
             return json.dumps({"msg": "Config update success!"}), 200
         elif fabric_type == "vxlan_evpn":
             config = request.json.get("config", "[]")
             with open('./ndfc/cluster.tfvars', 'w') as f:
                 f.write(config)
             return json.dumps({"msg": "Config update success!"}), 200
+=======
+            return "OK", 200
+        elif fabric_type.lower() == "vxlan_evpn":
+            # TODO update NDFC terraform tfvars
+            pass
+>>>>>>> add modules for k8s node,etc
         else:
             return json.dumps({"error": "invalid fabric type"}), 400
 
@@ -1046,10 +1053,18 @@ def l3out():
                 if ipaddress.IPv6Interface(primary_ipv6).ip not in ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")):
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
 
+<<<<<<< HEAD
                 node_ipv6 = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
             else:
                 node_ipv6 = ""
             node_ipv4 = str(ipaddress.IPv4Interface(primary_ip).ip) + "/" + str(ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).prefixlen)
+=======
+                node_ipv6  = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
+            else:
+                node_ipv6 = ""
+            node_ipv4  = str(ipaddress.IPv4Interface(primary_ip).ip) + "/" + str(ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).prefixlen)
+
+>>>>>>> add modules for k8s node,etc
 
             if rack_id == "":
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Rack ID is required")

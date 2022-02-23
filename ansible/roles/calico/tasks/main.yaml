@@ -23,6 +23,7 @@
     url: https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64
     dest: ./roles/calico/files/calicoctl
     force: no
+  environment: "{{ proxy_env }}"
   tags:
     - calico
 

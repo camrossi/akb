@@ -48,7 +48,7 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
     try:
         floating_ip = str(ipaddress.IPv4Network(
             ipv4_cluster_subnet, strict=False).broadcast_address - 1)+ "/" + str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).prefixlen)
-        secondary_ip = str(ipaddress.IPv4Network( 
+        secondary_ip = str(ipaddress.IPv4Network(
             ipv4_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).prefixlen)
     except:
         pass
@@ -57,7 +57,7 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
             floating_ipv6 = str(ipaddress.IPv6Network(
                 ipv6_cluster_subnet, strict=False).broadcast_address - 1) + "/" + str(ipaddress.IPv6Network(
                 ipv6_cluster_subnet, strict=False).prefixlen)
-            
+
             secondary_ipv6 = str(ipaddress.IPv6Network(
                 ipv6_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv6Network(
                 ipv6_cluster_subnet, strict=False).prefixlen)
@@ -68,30 +68,30 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
     dns_servers = list(dns_servers.split(","))
     anchor_nodes = json.loads(anchor_nodes)
     l3out = {
-            "name": name, 
-            "l3out_tenant": l3out_tenant, 
-            "vrf_tenant": vrf_name.split('/')[0], 
-            "vrf_name": vrf_name.split('/')[1], 
-            "node_profile_name": "node_profile_FL3out", 
-            "int_prof_name": "int_profile_FL3out", 
-            "int_prof_name_v6": "int_profile_v6_FL3out", 
-            "physical_dom": physical_dom, 
-            "floating_ipv6": floating_ipv6, 
-            "secondary_ipv6": secondary_ipv6, 
+            "name": name,
+            "l3out_tenant": l3out_tenant,
+            "vrf_tenant": vrf_name.split('/')[0],
+            "vrf_name": vrf_name.split('/')[1],
+            "node_profile_name": "node_profile_FL3out",
+            "int_prof_name": "int_profile_FL3out",
+            "int_prof_name_v6": "int_profile_v6_FL3out",
+            "physical_dom": physical_dom,
+            "floating_ipv6": floating_ipv6,
+            "secondary_ipv6": secondary_ipv6,
             "floating_ip": floating_ip,
-             "secondary_ip": secondary_ip, 
-             "def_ext_epg": def_ext_epg, 
-             "def_ext_epg_scope": def_ext_epg_scope, 
-             "local_as": local_as, 
-             "mtu": mtu, 
-             "bgp_pass": bgp_pass, 
-             "max_node_prefixes": "500", 
-             'contract': contract.split('/')[1], 
-             'contract_tenant': contract.split('/')[0], 
-             "dns_servers": dns_servers, 
-             "dns_domain": dns_domain, 
-             "anchor_nodes": anchor_nodes, 
-             "ipv4_cluster_subnet": ipv4_cluster_subnet, 
+             "secondary_ip": secondary_ip,
+             "def_ext_epg": def_ext_epg,
+             "def_ext_epg_scope": def_ext_epg_scope,
+             "local_as": local_as,
+             "mtu": mtu,
+             "bgp_pass": bgp_pass,
+             "max_node_prefixes": "500",
+             'contract': contract.split('/')[1],
+             'contract_tenant': contract.split('/')[0],
+             "dns_servers": dns_servers,
+             "dns_domain": dns_domain,
+             "anchor_nodes": anchor_nodes,
+             "ipv4_cluster_subnet": ipv4_cluster_subnet,
              "ipv6_cluster_subnet": ipv6_cluster_subnet,
              "ipv6_enabled": ipv6_enabled
              }
@@ -104,10 +104,10 @@ def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, 
 
 
 def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, local_as, kube_version, kubeadm_token, 
-                        crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror, sandbox_status):
+                      crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror, sandbox_status):
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0],
                 "vip_port": control_plane_vip.split(":")[1],
-                "pod_subnet": ipv4_pod_sub, 
+                "pod_subnet": ipv4_pod_sub,
                 "pod_subnet_v6": ipv6_pod_sub,
                 "cluster_svc_subnet": ipv4_svc_sub,
                 "cluster_svc_subnet_v6": ipv6_svc_sub,
@@ -120,14 +120,14 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "node_sub_v6": node_sub_v6,
                 "ntp_server": ntp_server,
                 "kube_version": kube_version,
-                "crio_version": crio_version, 
-                "OS_Version": crio_os, 
-                "haproxy_image": haproxy_image, 
-                "keepalived_image": keepalived_image, 
+                "crio_version": crio_version,
+                "OS_Version": crio_os,
+                "haproxy_image": haproxy_image,
+                "keepalived_image": keepalived_image,
                 "keepalived_router_id": keepalived_router_id,
-                "time_zone": timezone, 
-                "docker_mirror": docker_mirror, 
-                "http_proxy_status": http_proxy_status if http_proxy_status else "", 
+                "time_zone": timezone,
+                "docker_mirror": docker_mirror,
+                "http_proxy_status": http_proxy_status if http_proxy_status else "",
                 "http_proxy": http_proxy,
                 "ubuntu_apt_mirror" : ubuntu_apt_mirror,
                 "sandbox_status" : False if sandbox_status == "on" else True #I ask if there is internet access so on means there is internet
@@ -141,7 +141,7 @@ def docs():
     if request.method == 'POST':
         return redirect('/docs/prereqaci')
     return render_template('docs/doc.html')
-    
+
 
 @app.route('/docs/prereqaci', methods=['GET', 'POST'])
 def prereqaci():
@@ -159,21 +159,31 @@ def prereqaci():
 #These two methods create a stream that is then fed to an iFrame to auto populate the content on the fly
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
-        g = proc.Group()
-        cwd = os.getcwd
-        if not os.path.exists('.terraform'):     
+    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    g = proc.Group()
+    cwd = os.getcwd
+    if fabric_type == "aci":
+        if not os.path.exists('.terraform'):
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
             g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
-        #p = g.run("ls")
-        return Response( read_process(g), mimetype='text/event-stream' )
+    elif fabric_type == "vxlan_evpn":
+        # TODO add terraform plan for NDFC
+        pass
+    #p = g.run("ls")
+    return Response( read_process(g), mimetype='text/event-stream' )
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
 def tf_apply():
-        g = proc.Group()
+    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    g = proc.Group()
+    if fabric_type == "aci":
         g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
-        #p = g.run("ls")
-        return Response( read_process(g), mimetype='text/event-stream' )
+    elif fabric_type == "vxlan_evpn":
+        # TODO add terraform apply for NDFC
+        pass
+    #p = g.run("ls")
+    return Response( read_process(g), mimetype='text/event-stream' )
 
 
 @app.route('/create', methods=['GET', 'POST'])
@@ -181,7 +191,7 @@ def create():
     fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
     if request.method == 'GET' :
         if fabric_type.lower() == "aci":
-            try: 
+            try:
                 tf_apic = {}
                 tf_apic['username'] = apic["akb_user"]
                 tf_apic['cert_name'] = apic["akb_user"]
@@ -194,7 +204,7 @@ def create():
                 config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
                 with open('cluster.tfvars', 'w') as f:
-                    f.write(config)      
+                    f.write(config)
             except:
                 config = []
         elif fabric_type.lower() == "vxlan_evpn":
@@ -226,6 +236,7 @@ def update_config():
                 f.write(config)
             return "OK", 200
         elif fabric_type.lower() == "vxlan_evpn":
+            # TODO update NDFC terraform tfvars
             pass
         else:
             return json.dumps({ "error": "invalid fabric type"}), 400
@@ -414,15 +425,15 @@ def cluster():
             global cluster
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
             cluster = createClusterVars(req.get("control_plane_vip"), l3out['ipv4_cluster_subnet'], l3out['ipv6_cluster_subnet'], req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"),req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
-            req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"), 
-            req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
+            req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
+            req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"),
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
             return redirect('/create')
         elif button == "Previous":
             return redirect('/calico_nodes')
     if request.method == 'GET':
         ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
-        api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
+        api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
@@ -430,8 +441,8 @@ def cluster():
         # Calculate POD Subnets
         ipv4_pod_sub = (ipv4_cluster_subnet + 1 * ipv4_cluster_subnet.size())
 
-        # Calculate SVC Subnets (Cluster_IP) and 
-        # make them smaller as K8s only accepts up to 108 for services 
+        # Calculate SVC Subnets (Cluster_IP) and
+        # make them smaller as K8s only accepts up to 108 for services
         ipv4_svc_sub = (ipv4_cluster_subnet + 2 * ipv4_cluster_subnet.size())
 
         # Calculate External SVC Subnets (Cluster_IP)
@@ -442,7 +453,7 @@ def cluster():
         ipv6_pod_sub = ""
         ipv6_svc_sub = ""
         ipv6_ext_svc_sub = ""
-        if ipv6_enabled: 
+        if ipv6_enabled:
             ipv6_cluster_subnet = BetterIPv6Network(l3out['ipv6_cluster_subnet'], strict=False)
             ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
             ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
@@ -696,7 +707,7 @@ def l3out():
             rack_id = req.get("rack_id")
             rtr_id = req.get("rtr_id")
             primary_ip = req.get("node_ipv4")
-            
+
             # I check here also the other parameters
 
             for dns in req.get("dns_servers").split(','):
@@ -716,7 +727,7 @@ def l3out():
                 ipaddress.IPv4Address(rtr_id)
             except ValueError as e:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Router ID Error: " + str(e))
-           
+
             try:
                 ipaddress.IPv4Interface(primary_ip)
             except ValueError as e:
@@ -744,12 +755,12 @@ def l3out():
 
                 if ipaddress.IPv6Interface(primary_ipv6).ip not in ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")):
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
-                
+
                 node_ipv6  = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
             else:
                 node_ipv6 = ""
             node_ipv4  = str(ipaddress.IPv4Interface(primary_ip).ip) + "/" + str(ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).prefixlen)
-            
+
 
             if rack_id == "":
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Rack ID is required")
@@ -845,13 +856,13 @@ def login():
             meta_path = home + '/.aci-meta'
             if not os.path.exists(meta_path):
                 os.makedirs(meta_path)
-            open(meta_path + '/aci-meta.json', 'wb').write(r.content) 
+            open(meta_path + '/aci-meta.json', 'wb').write(r.content)
     ## Generate the inventory file for the APIC, this looks ugly might want to clean up
             config = f"""apic: #You ACI Fabric Name
   hosts:
     {apic['url'].replace("https://",'')}:
       validate_certs: no
-      # APIC HTTPs Port 
+      # APIC HTTPs Port
       port: 443
       # APIC user with admin credential
       admin_user: {apic['username']}
@@ -861,7 +872,7 @@ def login():
       aci_temp_username: {apic['akb_user']}
       aci_temp_pass: {apic['akb_pass']}"""
             with open('../ansible/inventory/apic.yaml', 'w') as f:
-                f.write(config)      
+                f.write(config)
             # Generate temporary user and certificate
             g = proc.Group()
             g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
@@ -869,11 +880,11 @@ def login():
             for s in read_process(g):
                 ansible_output += str(s, 'utf-8')
 
-            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error. 
+            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
             # This for some reason does not work on Alpine so I do a hacky thing:
             #if g.get_exit_codes()[0][1] == 0 :
             #    return redirect('/l3out')
-            # If something failed then the user creation failed. 
+            # If something failed then the user creation failed.
             if "failed=0" in ansible_output:
                 return redirect('/l3out')
             else:
@@ -887,7 +898,7 @@ def read_process(g):
     while g.is_pending():
         lines = g.readlines()
         for proc, line in lines:
-            yield line          
+            yield line
 
 @app.route('/existing_cluster', methods=['GET', 'POST'])
 def existing_cluster():
@@ -895,7 +906,7 @@ def existing_cluster():
         g = proc.Group()
         g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
             ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
-        
+
         #p = g.run("ls")
         return Response( read_process(g), mimetype= 'text/event-stream' )
     else:
@@ -904,7 +915,7 @@ def existing_cluster():
             # Do something with the file
         except IOError:
             return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
-        
+
         return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=f.read())
 
 @app.route('/')

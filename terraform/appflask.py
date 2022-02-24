@@ -379,8 +379,8 @@ def update_config():
             config = request.json.get("config", "[]")
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
-            return json.dumps({"msg": "Config update success!"}), 200
-        elif fabric_type == "vxlan_evpn":
+            return "OK", 200
+        elif fabric_type.lower() == "vxlan_evpn":
             config = request.json.get("config", "[]")
             with open('./ndfc/cluster.tfvars', 'w') as f:
                 f.write(config)

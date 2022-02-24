@@ -114,7 +114,7 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "external_svc_subnet": external_svc_subnet,
                 "external_svc_subnet_v6": external_svc_subnet_v6,
                 "local_as" : local_as,
-                "ingress_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1),
+                #"ingress_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1),
                 "kubeadm_token": kubeadm_token,
                 "node_sub": node_sub,
                 "node_sub_v6": node_sub_v6,
@@ -201,7 +201,7 @@ def create():
         req = request.form
         button = req.get("button")
         if button == "Previous":
-            return redirect('/cluster')
+            return redirect('/cluster_network')
         if button == "Update Config":
             config = req.get('config')
             with open('cluster.tfvars', 'w') as f:
@@ -395,7 +395,7 @@ def cluster():
             req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"), 
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
-            return redirect('/create')
+            return redirect('/cluster_network')
         elif button == "Previous":
             return redirect('/calico_nodes')
     if request.method == 'GET':
@@ -428,6 +428,61 @@ def cluster():
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
 
         return render_template('cluster.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
+        ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
+        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
+
+
+@app.route('/cluster_network', methods=['GET', 'POST'])
+def cluster_network():
+
+    # app.logger.info(apic+apic_password+apic_username)
+    if request.method == 'POST':
+        req = request.form
+        button = req.get("button")
+        if button == "Next":
+            external_svc_subnet = req.get("ipv4_ext_svc_sub")
+            cluster['pod_subnet'] = req.get("ipv4_pod_sub")
+            cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
+            cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
+            cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
+            cluster['external_svc_subnet'] = external_svc_subnet
+            cluster['cluster_svc_subnet_v6'] = req.get("ipv6_ext_svc_sub")
+            cluster['local_as'] = req.get("local_as")
+            cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
+            
+            return redirect('/create')
+        elif button == "Previous":
+            return redirect('/cluster')
+    if request.method == 'GET':
+        ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+        api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
+
+        # Calculate Subnets
+        ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
+
+        # Calculate POD Subnets
+        ipv4_pod_sub = (ipv4_cluster_subnet + 1 * ipv4_cluster_subnet.size())
+
+        # Calculate SVC Subnets (Cluster_IP) and 
+        # make them smaller as K8s only accepts up to 108 for services 
+        ipv4_svc_sub = (ipv4_cluster_subnet + 2 * ipv4_cluster_subnet.size())
+
+        # Calculate External SVC Subnets (Cluster_IP)
+        ipv4_ext_svc_sub = (ipv4_cluster_subnet + 3 * ipv4_cluster_subnet.size())
+
+        #same as above just for v6
+        ipv6_cluster_subnet = ""
+        ipv6_pod_sub = ""
+        ipv6_svc_sub = ""
+        ipv6_ext_svc_sub = ""
+        if ipv6_enabled: 
+            ipv6_cluster_subnet = BetterIPv6Network(l3out['ipv6_cluster_subnet'], strict=False)
+            ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
+            ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
+            ipv6_svc_sub = next(ipv6_svc_sub_iterator)
+            ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
+
+        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
         ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
         ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
 

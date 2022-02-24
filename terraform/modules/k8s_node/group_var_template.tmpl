@@ -1,8 +1,6 @@
 ### TO DO: This should be fixed with SSH KEY Autnentication
-ansible_ssh_pass: 123Cisco123
-ansible_ssh_private_key_file: ${ ssh_private_key }
 ansible_user: ubuntu
-ansible_sudo_pass: 123Cisco123
+ansible_ssh_private_key_file: ${ ssh_private_key }
 
 #K8S an Crio Version
 kube_version: ${k8s_cluster.kube_version}            # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
@@ -28,6 +26,7 @@ ntp_server: ${k8s_cluster.ntp_server}
 time_zone: "${k8s_cluster.time_zone}"
 
 kubeadm_token: ${k8s_cluster.kubeadm_token}
+fabric_type: ${fabric_type}
 
 aci_as: ${k8s_cluster.peer_as}
 peer_as: ${k8s_cluster.peer_as}
@@ -36,13 +35,13 @@ calico_as:  ${k8s_cluster.local_as}
 anchor_nodes:
 %{ for peer in bgp_peers~}
   - id: ${ peer.node_id}
-    primary_ip: ${split("/",peer.ipv4)[0]}
+    primary_ip: ${split("/",peer.ip)[0]}
     primary_ipv6: ${split("/",peer.ipv6)[0]}
     rack_id: "${peer.rack_id}"
 %{ endfor ~}
 
 docker_mirror: ${k8s_cluster.docker_mirror}
-bgp_pass: ${k8s_cluster.bgp_pass}
+bgp_pass: ${k8s_cluster.bgp_passwd}
 sandbox_status: ${k8s_cluster.sandbox_status}
 http_proxy_status: ${k8s_cluster.http_proxy_status}
 %{ if k8s_cluster.http_proxy_status == "on" }
@@ -62,3 +61,4 @@ https_proxy: ""
 %{endif}
 dns_domain: ${k8s_cluster.dns_domain}
 ubuntu_apt_mirror: ${k8s_cluster.ubuntu_apt_mirror}
+apt_upgrade: ${k8s_cluster.apt_upgrade}

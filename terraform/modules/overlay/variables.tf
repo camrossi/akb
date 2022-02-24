@@ -1,44 +1,34 @@
-variable "fabric_type" {
-  type    = string
-  default = "aci"
-}
-
-variable "vc" {
+variable "ndfc" {
   type = object({
-    url         = string
-    username    = string
-    pass        = string
-    dc          = string
-    datastore   = string
-    cluster     = string
-    dvs         = string
-    port_group  = string
-    vm_template = string
-    library     = string
-    vm_folder   = string
+    username = string
+    password = string
+    url      = string
+    platform = string
   })
 }
 
-variable "calico_nodes" {
-  type = list(object({
-    hostname     = string
-    ip           = string
-    ip_gateway   = string
-    ipv6         = string
-    ipv6_gateway = string
-    natip        = string
-    rack_id      = string
-  }))
-}
-
-variable "bgp_peers" {
-  type = list(object({
-    node_id  = number
-    ip       = string
-    ipv6     = string
-    rack_id  = number
-    peer_asn = number
-  }))
+variable "overlay" {
+  type = object({
+    fabric_name    = string
+    vrf            = string
+    asn            = string
+    bgp_passwd     = string
+    ibgp_peer_vlan = number
+    k8s_route_map  = string
+    route_tag      = number
+    vpc_peers = list(
+      list(object({
+        hostname       = string
+        loopback_id    = number
+        loopback_ipv4  = string
+        loopback_ipv6  = string
+        ibgp_svi_ipv4  = string
+        ibgp_peer_ipv4 = string
+        ibgp_svi_ipv6  = string
+        ibgp_peer_ipv6 = string
+        })
+    ))
+  })
 }
 
 variable "k8s_cluster" {
@@ -73,11 +63,7 @@ variable "k8s_cluster" {
     http_proxy_status      = string
     http_proxy             = string
     ubuntu_apt_mirror      = string
-    apt_upgrade            = bool
     sandbox_status         = bool
+    apt_upgrade            = bool
   })
-}
-variable "ansible_dir" {
-  type    = string
-  default = "../../ansible/"
 }

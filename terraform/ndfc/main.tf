@@ -6,3 +6,10 @@ module "k8s_node" {
   k8s_cluster  = var.k8s_cluster
   bgp_peers    = var.bgp_peers
 }
+
+module "overlay" {
+  source      = "../modules/overlay"
+  overlay     = var.overlay
+  ndfc        = var.ndfc
+  k8s_cluster = var.k8s_cluster
+}

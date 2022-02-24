@@ -31,6 +31,39 @@ variable "calico_nodes" {
   }))
 }
 
+variable "overlay" {
+  type = object({
+    fabric_name    = string
+    asn            = string
+    vrf            = string
+    ibgp_peer_vlan = number
+    bgp_passwd     = string
+    k8s_route_map  = string
+    route_tag      = number
+    vpc_peers = list(
+      list(object({
+        hostname       = string
+        loopback_id    = number
+        loopback_ipv4  = string
+        loopback_ipv6  = string
+        ibgp_svi_ipv4  = string
+        ibgp_peer_ipv4 = string
+        ibgp_svi_ipv6  = string
+        ibgp_peer_ipv6 = string
+        })
+    ))
+  })
+}
+
+variable "ndfc" {
+  type = object({
+    username = string
+    password = string
+    url      = string
+    platform = string
+  })
+}
+
 variable "bgp_peers" {
   type = list(object({
     node_id  = number
@@ -73,6 +106,7 @@ variable "k8s_cluster" {
     http_proxy_status      = string
     http_proxy             = string
     ubuntu_apt_mirror      = string
+    apt_upgrade            = bool
     sandbox_status         = bool
   })
 }

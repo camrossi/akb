@@ -402,34 +402,7 @@ def cluster():
         ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
 
-        # Calculate Subnets
-        ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
-
-        # Calculate POD Subnets
-        ipv4_pod_sub = (ipv4_cluster_subnet + 1 * ipv4_cluster_subnet.size())
-
-        # Calculate SVC Subnets (Cluster_IP) and 
-        # make them smaller as K8s only accepts up to 108 for services 
-        ipv4_svc_sub = (ipv4_cluster_subnet + 2 * ipv4_cluster_subnet.size())
-
-        # Calculate External SVC Subnets (Cluster_IP)
-        ipv4_ext_svc_sub = (ipv4_cluster_subnet + 3 * ipv4_cluster_subnet.size())
-
-        #same as above just for v6
-        ipv6_cluster_subnet = ""
-        ipv6_pod_sub = ""
-        ipv6_svc_sub = ""
-        ipv6_ext_svc_sub = ""
-        if ipv6_enabled: 
-            ipv6_cluster_subnet = BetterIPv6Network(l3out['ipv6_cluster_subnet'], strict=False)
-            ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
-            ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
-            ipv6_svc_sub = next(ipv6_svc_sub_iterator)
-            ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
-
-        return render_template('cluster.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
-        ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
-        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
+        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions())
 
 
 @app.route('/cluster_network', methods=['GET', 'POST'])
@@ -442,13 +415,20 @@ def cluster_network():
         if button == "Next":
             external_svc_subnet = req.get("ipv4_ext_svc_sub")
             cluster['pod_subnet'] = req.get("ipv4_pod_sub")
-            cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
-            cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
-            cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
             cluster['external_svc_subnet'] = external_svc_subnet
-            cluster['cluster_svc_subnet_v6'] = req.get("ipv6_ext_svc_sub")
+            cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
             cluster['local_as'] = req.get("local_as")
             cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
+            if ipv6_enabled: 
+                cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
+                cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
+                cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
+                cluster['external_svc_subnet_v6'] = req.get("ipv6_ext_svc_sub")
+            else:
+                cluster['cluster_svc_subnet_v6'] = ""
+                cluster['pod_subnet_v6'] = ""
+                cluster['cluster_svc_subnet_v6'] = ""
+                cluster['external_svc_subnet_v6'] = ""
             
             return redirect('/create')
         elif button == "Previous":
@@ -482,9 +462,7 @@ def cluster_network():
             ipv6_svc_sub = next(ipv6_svc_sub_iterator)
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
 
-        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
-        ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
-        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
+        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])

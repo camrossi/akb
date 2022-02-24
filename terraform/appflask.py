@@ -172,8 +172,10 @@ def tf_plan():
         else:
             g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     elif fabric_type == "vxlan_evpn":
-        # TODO add terraform plan for NDFC
-        pass
+        if not os.path.exists('.terraform'):
+            g.run(["bash", "-c", "terraform -chdir=ndfc init -no-color && terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
+        else:
+            g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     # p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
 
@@ -185,8 +187,7 @@ def tf_apply():
     if fabric_type == "aci":
         g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan"])
     elif fabric_type == "vxlan_evpn":
-        # TODO add terraform apply for NDFC
-        pass
+        g.run(["bash", "-c", "terraform -chdir=ndfc apply -auto-approve -no-color plan"])
     # p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
 
@@ -242,11 +243,10 @@ def update_config():
                 f.write(config)
             return "OK", 200
         elif fabric_type.lower() == "vxlan_evpn":
-            # TODO update NDFC terraform tfvars
             config = request.json.get("config", "[]")
             with open('./ndfc/cluster.tfvars', 'w') as f:
                 f.write(config)
-            return "OK", 200
+            return json.dumps({"msg": "Config update success!"}), 200
         else:
             return json.dumps({"error": "invalid fabric type"}), 400
 

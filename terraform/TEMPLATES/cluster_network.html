@@ -14,22 +14,8 @@
             document.getElementById(dunchecked).style.display = "block";
          }
       }
-      </script>
-      <script>
-      function DoCheckUncheckDisplay2(d,dchecked,dunchecked)
-      {
-         if( d.checked == true )
-         {
-            document.getElementById(dchecked).style.display = "block";
-            document.getElementById(dunchecked).style.display = "none";
-         }
-         else
-         {
-            document.getElementById(dchecked).style.display = "none";
-            document.getElementById(dunchecked).style.display = "block";
-         }
-      }
-      </script>
+   </script>
+
 
 <head>
    {{ turbo() }}
@@ -122,6 +108,17 @@
                         </div>
                      </div>
    -->
+
+                     <div id="checkbox-unchecked" {% if  vm_deploy %} style="display:none";{% endif %}  >     
+                        <div class="container">
+                           <div class="form-group base-margin-bottom">
+                              <div  class="form-group__text">
+                                 <label for="url">VLAN ID:</label>
+                                 <input type="text" id="vlan_id" name="vlan_id">
+                              </div>
+                           </div>       
+                        </div>
+                     </div>
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">

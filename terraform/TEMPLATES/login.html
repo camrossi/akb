@@ -72,6 +72,9 @@
             <h2>ACI Login details</h2>
             <p>
                <br> Specify the credentials to login your ACI fabric.
+               <br> Select the 'Deploy K8s cluster' checkbox if K8s cluster should be deployed by this tool.
+               <br> If 'Deploy K8s cluster' is selected the tool will ask you more information on the vCenter where you want the tool to provision K8s nodes.
+               <br> If 'Deploy K8s cluster' is not selected, the tool will provision only the ACI configuration and provide you the .yaml file to apply to your K8s cluster to run Calico BGP Peering to the ACI fabric.
             </p>
          </div>
          <div class="container">
@@ -84,6 +87,15 @@
             {% endfor %}
             {% endif %}
             {% endwith %}
+            <div class="container">
+               <div class="checkbox form-group form-group--inline c8041">
+                  <label class="checkbox">
+                     <input type="checkbox" style="margin:0;" id="deploy_vm" name="deploy_vm" value="deploy_vm" checked>
+                     <span id='deploy_vm-checkbox' class="checkbox__input" ></span>
+                     <span class="checkbox__label hidden-xs">Deploy K8s cluster</span>
+                  </label>
+               </div>
+            </div>
 
             <table class="table table--compressed table--selectable table--wrap c1990" id="_uid829dc898">
 

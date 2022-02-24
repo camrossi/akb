@@ -1,8 +1,0 @@
-#cloud-config 
-users:
-  - name: cisco
-    gecos: Local
-    lock_passwd: false
-    groups: sudo, users, admin
-    shell: /bin/bash
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']

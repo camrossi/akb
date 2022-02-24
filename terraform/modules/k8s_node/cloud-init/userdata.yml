@@ -1,9 +1,0 @@
-# cloud-config
-users:
-  - name: cisco
-    lock_passwd: false
-    groups: sudo, users, admin
-    shell: /bin/bash
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']
-    ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDGj5NbNAXHsgpLV9zeIqnJ70FXnhnHQIbdMpQ4DSasNaga+pKxb9Qgy0Jb8YNDCCcOdKtLdcJCPIZlNOQsjKsGjaq4usm4qLPYV14fpEyuVhUwNxP2XyFYZtfSysGdPUltBQsWMTFOQsD+GGp6cxebAiybBXfFGnlUyfV9ynXaxfYeHE5hi/CYg4vJBi8iGtDNrKfm/BYtPI+QBWHH8YNOaX8ANTaFpPLiOuTb1hqpCgut08l/hwFly6qDVeUMxjE79C7qijmaO1n6xXdR9L+72bIAg6A5EsYJVb9RLSoakNE7o2SuzRUkbw2J0AVB9oZd6AbmVwRCnOC+9xfbwdO2w/Qa/ZwEsCjT3NPLV/1+vGOss9tbczO/vEToLry+JdVnmkodX85KCBFrau9kNrHOlchb++4J5e6ObPnT6TmuC35pUXvNTar1suLmFd0B2nEh/sSAYGZ2/iRpTN95YGkbqhVtapt36vdKTtC8/5LkpxaWnEOn3THvKfjDxQ1LFYE= root@ubuntu-mgmt-cylon

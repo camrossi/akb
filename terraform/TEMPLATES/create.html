@@ -88,12 +88,22 @@
             </p>
          </div>
          <div class="container">
+            <div id="alert_success" class="alert alert--success" style="display: none">
+                <div class="alert__icon icon-check-outline"></div>
+                <div id="alert_success_msg" class="alert__message">Config update success!</div>
+            </div>
+            <div id="alert_fail" class="alert alert--warning" style="display: none">
+                <div class="alert__icon icon-warning-outline"></div>
+                <div id="alert_fail_msg" class="alert__message">Config update failed!</div>
+            </div>
+        </div>
+         <div class="container">
             <div class="form-group__text">
                <div class="row">
                   <div class="col-md-4">
                      <div class="form-group base-margin-bottom">
                         <div class="form-group__text">
-                           <textarea rows="25" class="textarea" name="config"
+                           <textarea rows="30" class="textarea" name="config"
                               id="config">{{ config }}</textarea><label>Config:</label>
                         </div>
                      </div>
@@ -173,10 +183,10 @@
 <script>
    function updateiFrame(button) {
        if (button.value === 'Plan') {
-           document.getElementById('iframe').src = "{{ url_for("tf_plan") }}"
+           document.getElementById('iframe').src = "{{ url_for("tf_plan") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
        }
        if (button.value === 'Apply') {
-           document.getElementById('iframe').src = "{{ url_for("tf_apply") }}"
+           document.getElementById('iframe').src = "{{ url_for("tf_apply") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
        }
    }
    function autoscrollDown() {
@@ -194,10 +204,10 @@
                 contentType: 'application/json',
                 data: JSON.stringify({ config: $("#config").val()}),
                 success: function (result, status, xhr) {
-                    $("#returnedData").html(result);
+                    $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
                 },
                 error: function (xhr, status, error) {
-                    $("#returnedData").html("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                    $("#alert_fail").show(500);
                 }
             });
         });

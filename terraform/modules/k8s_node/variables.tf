@@ -72,6 +72,7 @@ variable "k8s_cluster" {
     http_proxy_status      = string
     http_proxy             = string
     ubuntu_apt_mirror      = string
+    apt_upgrade            = bool
     sandbox_status         = bool
   })
 }

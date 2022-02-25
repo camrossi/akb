@@ -99,16 +99,16 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
              }
     return l3out
 
-def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, vm_template, vm_folder):
+def createVCVars(url="", username="", passw="", dc="", datastore="", cluster="", dvs="", port_group="", vm_template="", vm_folder=""):
     vc = {"url": url, "username": username, "pass": passw, "dc": dc, "datastore": datastore, "cluster": cluster,
           "dvs": dvs, "port_group": port_group, "vm_template": vm_template, "vm_folder": vm_folder}
     return vc
 
 
-def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, local_as, kube_version, kubeadm_token, 
-                        crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror, sandbox_status):
-    cluster = { "control_plane_vip": control_plane_vip.split(":")[0],
-                "vip_port": control_plane_vip.split(":")[1],
+def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status=""):
+    cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
+                "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else "",
                 "pod_subnet": ipv4_pod_sub, 
                 "pod_subnet_v6": ipv6_pod_sub,
                 "cluster_svc_subnet": ipv4_svc_sub,
@@ -164,6 +164,29 @@ def prereqaci():
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
         g = proc.Group()
+        cwd = os.getcwd
+        if not vm_deploy:
+            if os.path.exists("vms.tf"):
+                os.rename("vms.tf","vms.tf.ignore")
+            if os.path.exists("variables.tf"):
+                os.rename("variables.tf","variables.tf.ignore")
+            if os.path.exists("variables_novm.tf.ignore"):
+                os.rename("variables_novm.tf.ignore","variables.tf")
+            if os.path.exists("outputs.tf"):
+                os.rename("outputs.tf","outputs.tf.ignore")
+            if os.path.exists("outputs_novm.tf.ignore"):
+                os.rename("outputs_novm.tf.ignore","outputs_novm.tf")                
+        if vm_deploy:
+            if os.path.exists("vms.tf.ignore"):
+                os.rename("vms.tf.ignore","vms.tf")
+            if os.path.exists("outputs.tf.ignore"):
+                os.rename("outputs.tf.ignore","outputs.tf")
+            if os.path.exists("outputs_novm.tf"):
+                os.rename("outputs_novm.tf","outputs_novm.tf.ignore")                   
+            if os.path.exists("variables.tf.ignore"):
+                os.rename("variables.tf.ignore","variables.tf")
+            if os.path.exists("variables_novm.tf.ignore"):
+                os.rename("variables_novm.tf","variables.tf.ignore")         
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
@@ -174,7 +197,11 @@ def tf_plan():
 @app.route('/tf_apply', methods=['GET', 'POST'])
 def tf_apply():
         g = proc.Group()
-        g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
+        if vm_deploy:
+            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
+        else:
+            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan && \
+                ansible-playbook -b ../ansible/roles/calico_config/tasks/main.yaml -i ../ansible/inventory/nodes.ini"])
         #p = g.run("ls")
         return Response( read_process(g), mimetype='text/event-stream' )
 
@@ -182,29 +209,51 @@ def tf_apply():
 @app.route('/create', methods=['GET', 'POST'])
 def create():
     if request.method == 'GET':
-        try: 
-            tf_apic = {}
-            tf_apic['username'] = apic["nkt_user"]
-            tf_apic['cert_name'] = apic["nkt_user"]
-            tf_apic['private_key'] = apic["private_key"]
-            tf_apic['url'] = apic["url"]
-            tf_apic['oob_ips'] = apic["oob_ips"]
-            config = "apic =" + json.dumps(tf_apic, indent=4)
-            config += "\nvc =" + json.dumps(vc, indent=4)
-            config += "\nl3out =" + json.dumps(l3out, indent=4)
-            config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
-            config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
-            with open('cluster.tfvars', 'w') as f:
-                f.write(config)      
-        except:
-            config = []
-        return render_template('create.html', config=config)
+        if vm_deploy:
+            try: 
+                tf_apic = {}
+                tf_apic['username'] = apic["akb_user"]
+                tf_apic['cert_name'] = apic["akb_user"]
+                tf_apic['private_key'] = apic["private_key"]
+                tf_apic['url'] = apic["url"]
+                tf_apic['oob_ips'] = apic["oob_ips"]
+                config = "apic =" + json.dumps(tf_apic, indent=4)
+                config += "\nvc =" + json.dumps(vc, indent=4)
+                config += "\nl3out =" + json.dumps(l3out, indent=4)
+                config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
+                config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
+                config += "vm_deploy =" + str(vm_deploy)
+                with open('cluster.tfvars', 'w') as f:
+                    f.write(config)      
+            except:
+                config = []
+            return render_template('create.html', config=config)
+        else:
+            try: 
+                tf_apic = {}
+                tf_apic['username'] = apic["akb_user"]
+                tf_apic['cert_name'] = apic["akb_user"]
+                tf_apic['private_key'] = apic["private_key"]
+                tf_apic['url'] = apic["url"]
+                tf_apic['oob_ips'] = apic["oob_ips"]
+                config = "apic =" + json.dumps(tf_apic, indent=4)
+                config += "\nl3out =" + json.dumps(l3out, indent=4)
+                vc = createVCVars()
+                config += "\nvc =" + json.dumps(vc, indent=4)
+                config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
+                config += "\nvm_deploy =" + str(vm_deploy)
+                with open('cluster.tfvars', 'w') as f:
+                    f.write(config)      
+            except:
+                config = []
+            return render_template('create.html', config=config)        
+          
     elif request.method == 'POST':
         print("POST")
         req = request.form
         button = req.get("button")
         if button == "Previous":
-            return redirect('/cluster')
+            return redirect('/cluster_network')
         if button == "Update Config":
             config = req.get('config')
             with open('cluster.tfvars', 'w') as f:
@@ -397,9 +446,50 @@ def cluster():
             req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"), 
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
-            return redirect('/create')
+            return redirect('/cluster_network')
         elif button == "Previous":
             return redirect('/calico_nodes')
+    if request.method == 'GET':
+        ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+        api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
+
+        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions())
+
+
+@app.route('/cluster_network', methods=['GET', 'POST'])
+def cluster_network():
+
+    # app.logger.info(apic+apic_password+apic_username)
+    if request.method == 'POST':
+        req = request.form
+        button = req.get("button")
+        if button == "Next":
+            if not vm_deploy:
+                global cluster
+                cluster = createClusterVars()
+                l3out['vlan_id'] = req.get("vlan_id")
+            external_svc_subnet = req.get("ipv4_ext_svc_sub")
+            cluster['pod_subnet'] = req.get("ipv4_pod_sub")
+            cluster['external_svc_subnet'] = external_svc_subnet
+            cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
+            cluster['local_as'] = req.get("local_as")
+            cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
+            if ipv6_enabled: 
+                cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
+                cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
+                cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
+                cluster['external_svc_subnet_v6'] = req.get("ipv6_ext_svc_sub")
+            else:
+                cluster['cluster_svc_subnet_v6'] = ""
+                cluster['pod_subnet_v6'] = ""
+                cluster['cluster_svc_subnet_v6'] = ""
+                cluster['external_svc_subnet_v6'] = ""
+            
+            return redirect('/create')
+        elif button == "Previous" and vm_deploy:
+            return redirect('/cluster')
+        elif button == "Previous" and not vm_deploy:
+            return redirect('/l3out')
     if request.method == 'GET':
         ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
@@ -429,9 +519,7 @@ def cluster():
             ipv6_svc_sub = next(ipv6_svc_sub_iterator)
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
 
-        return render_template('cluster.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
-        ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
-        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
+        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
@@ -440,7 +528,6 @@ def vcenterlogin():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            global vc
             vc = {"url": "",
                   "username": "",
                   "pass": "",
@@ -668,7 +755,10 @@ def l3out():
 
             l3out = createl3outVars(req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("dns_servers"), req.get("dns_domain"), req.get("anchor_nodes"))
-            return redirect('/vcenterlogin')
+            if vm_deploy:
+                return redirect('/vcenterlogin')
+            else:
+                return redirect('/cluster_network')
         # Then the post came from the L3OUT Tenant Select
         elif button == None and req.get("l3out_tenant"):
             vrfs = []
@@ -829,6 +919,8 @@ def l3out():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     global apic
+    global vm_deploy
+    global vc
     apic = {}
     ansible_output = ''
     if request.method == "POST":
@@ -849,6 +941,7 @@ def login():
             apic['nkt_pass'] = get_random_string(20)
             apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
             apic['oob_ips'] = ""
+            vm_deploy = req.get("deploy_vm")
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
             # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR

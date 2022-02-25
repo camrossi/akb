@@ -155,7 +155,7 @@ resource "aci_match_route_destination_rule" "import_pod_match_rule_subnet_v6" {
 
 resource "aci_match_route_destination_rule" "import_node_match_rule_subnet" {
   match_rule_dn       = aci_match_rule.import_match_rule.id
-  ip = var.k8s_cluster.node_sub
+  ip = var.l3out.ipv4_cluster_subnet
   aggregate = "yes"
 }
 

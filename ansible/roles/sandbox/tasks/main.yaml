@@ -20,8 +20,8 @@
    - osixia/keepalived:latest
    - kubernetesui/dashboard:v2.2.0
    - kubernetesui/metrics-scraper:v1.0.6
-   - quay.io/camillo/vkaci
-   - quay.io/camillo/vkaci-init
+   - quay.io/camillo/vkaci:0.1
+   - quay.io/camillo/vkaci-init:0.1
    - k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1
    - k8s.gcr.io/ingress-nginx/controller:v1.1.1
    - neo4j:4.4.3

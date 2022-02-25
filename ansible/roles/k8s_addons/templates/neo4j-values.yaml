@@ -1,0 +1,14 @@
+neo4j:
+  resources:
+    cpu: "0.5"
+    memory: "2Gi"
+  password: me-change
+volumes:
+  data:
+    mode: volume
+    volume:
+      persistentVolumeClaim:
+        claimName: neo4j-pvc
+config:
+  dbms.default_database: neo4j
+  dbms.config.strict_validation: 'true'

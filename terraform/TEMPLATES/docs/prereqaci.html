@@ -4,7 +4,7 @@
 
 <head>
    <meta charset="utf-8">
-   <title>AKB - Day0</title>
+   <title>NKT - Day0</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css"
@@ -49,7 +49,7 @@
                <div class="header-panels">
                   <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
                         id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">ACI Kubernetes Bootstrapper</div>
+                     <div class="header__title">Nexus Kubernetes Tools</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
                         data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
@@ -118,12 +118,13 @@
                <br>
                <h1>VMWare Infrastructure</h1>
                {% include "docs/_vc_requirements.html" %}
-               <h2>Under the hood of AKB</h2>
-               AKB is powered by the following technologies:
+               <h2>Under the hood of NKT</h2>
+               NKT is powered by the following technologies:
                <ul>
+                  <li>Python3: The front end is developed in Python3. We use pyaci and pyVmomi to interact with ACI and vCenter </li>
                   <li>Terraform: It is used to provision the ACI configuration, clone the VMs, customized the VM OS with basic parameters (IP, hostname) and generate the ansible configuration</li>
                   <li>Ansible: It is used to Bootstrap the K8s cluster and perform all the VMs customizations</li>
-                  <li>Packer: It is used to package AKB in a VM form Factor</li>
+                  <li>Packer: It is used to package NKT in a VM form Factor</li>
                </ul>
          </div>
 

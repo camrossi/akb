@@ -70,6 +70,12 @@ spec:
              value: "{{ vrf_tenant }}"
            - name: VRF
              value: "{{ vrf_name }}"
+           - name: NEO4J_URL
+             value: neo4j://my-neo4j-neo4j:7687
+           - name: NEO4J_USER
+             value: neo4j
+           - name: NEO4J_PASSWORD
+             value: me-change
          volumeMounts:
            - name: aci-user-cert-volume
              mountPath: /usr/local/etc/aci-cert/
@@ -99,6 +105,8 @@ metadata:
   name: vkaci
 spec:
   type: NodePort
+  externalIPs:
+  - {{ visibility_ip }}
   externalTrafficPolicy: Local
   selector:
     app: vkaci

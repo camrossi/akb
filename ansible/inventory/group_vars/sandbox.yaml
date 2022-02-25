@@ -17,7 +17,7 @@ keepalived_router_id: 51
 
 ntp_server: "72.163.32.44"
 time_zone: "Australia/Sydney"
-http_proxy_status: "off"
+http_proxy_status: false
 dns_domain : cam.ciscolabs.com
 ubuntu_apt_mirror : ubuntu.mirror.digitalpacific.com.au/archive/
 docker_mirror: "10.67.185.120:5000"

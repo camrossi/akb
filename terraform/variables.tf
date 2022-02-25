@@ -93,6 +93,8 @@ variable "k8s_cluster" {
     external_svc_subnet = string
     external_svc_subnet_v6 = string
     ingress_ip          = string
+    neo4j_ip            = string
+    visibility_ip       = string
     ntp_server          = string
     time_zone           = string
     docker_mirror       = string

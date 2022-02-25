@@ -117,6 +117,8 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "external_svc_subnet_v6": external_svc_subnet_v6,
                 "local_as" : local_as,
                 "ingress_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1),
+                "visibility_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2),
+                "neo4j_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3),
                 "kubeadm_token": kubeadm_token,
                 "node_sub": node_sub,
                 "node_sub_v6": node_sub_v6,

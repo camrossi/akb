@@ -112,6 +112,8 @@ elem = driver.find_element(By.NAME,"username")
 elem.send_keys("administrator@vsphere.local")
 elem = driver.find_element(By.NAME,"pass")
 elem.send_keys("123Cisco123!")
+elem = driver.find_element(By.ID,"template_checkbox")
+elem.click()
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

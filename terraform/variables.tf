@@ -8,6 +8,16 @@ variable "apic" {
   })
 }
 
+variable "calico_nodes" {
+  type = list(object({
+    hostname        = string
+    ip              = string
+    ipv6            = string
+    natip           = string
+    rack_id         = string
+     }))
+}
+
 variable "vc" {
   type = object({
   url               = string
@@ -20,8 +30,41 @@ variable "vc" {
   port_group        = string
   vm_template       = string
   vm_folder         = string
-  vm_deploy         = string
+  vm_deploy         = bool
   })
+}
+
+variable "k8s_cluster" {
+  type = object({
+    kube_version        = string
+    crio_version        = string
+    OS_Version          = string
+    control_plane_vip   = string
+    vip_port            = number
+    local_as            = number
+    haproxy_image       = string
+    keepalived_image    = string
+    keepalived_router_id= string
+    kubeadm_token       = string
+    node_sub            = string
+    node_sub_v6         = string
+    pod_subnet          = string
+    pod_subnet_v6       = string
+    cluster_svc_subnet  = string
+    cluster_svc_subnet_v6  = string
+    external_svc_subnet = string
+    external_svc_subnet_v6 = string
+    ingress_ip          = string
+    neo4j_ip            = string
+    visibility_ip       = string
+    ntp_server          = string
+    time_zone           = string
+    docker_mirror       = string
+    http_proxy_status   = string
+    http_proxy          = string
+    ubuntu_apt_mirror   = string
+    sandbox_status      = bool
+     })
 }
 
 variable "l3out" {
@@ -61,47 +104,4 @@ variable "l3out" {
       rack_id         = string
     }))
   })
-}
-
-variable "calico_nodes" {
-  type = list(object({
-    hostname        = string
-    ip              = string
-    ipv6            = string
-    natip           = string
-    rack_id         = string
-     }))
-}
-
-variable "k8s_cluster" {
-  type = object({
-    kube_version        = string
-    crio_version        = string
-    OS_Version          = string
-    control_plane_vip   = string
-    vip_port            = number
-    local_as            = number
-    haproxy_image       = string
-    keepalived_image    = string
-    keepalived_router_id= string
-    kubeadm_token       = string
-    node_sub            = string
-    node_sub_v6         = string
-    pod_subnet          = string
-    pod_subnet_v6       = string
-    cluster_svc_subnet  = string
-    cluster_svc_subnet_v6  = string
-    external_svc_subnet = string
-    external_svc_subnet_v6 = string
-    ingress_ip          = string
-    neo4j_ip            = string
-    visibility_ip       = string
-    ntp_server          = string
-    time_zone           = string
-    docker_mirror       = string
-    http_proxy_status   = string
-    http_proxy          = string
-    ubuntu_apt_mirror   = string
-    sandbox_status      = bool
-     })
 }

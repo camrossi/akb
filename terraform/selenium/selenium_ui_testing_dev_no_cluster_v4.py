@@ -55,6 +55,8 @@ elem = driver.find_element(By.NAME,"button")
 elem.click()
 
 assert "Apic Login" in driver.title
+elem = driver.find_element(By.ID,"deploy_vm-checkbox")
+elem.click()
 elem = driver.find_element(By.NAME,"fabric")
 elem.clear()
 elem.send_keys("fab1-apic1.cam.ciscolabs.com")
@@ -105,82 +107,10 @@ elem.click()
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
-assert "vCenter Login" in driver.title
-elem = driver.find_element(By.NAME,"url")
-elem.send_keys("vc1.cam.ciscolabs.com")
-elem = driver.find_element(By.NAME,"username")
-elem.send_keys("administrator@vsphere.local")
-elem = driver.find_element(By.NAME,"pass")
-elem.send_keys("123Cisco123!")
-elem = driver.find_element(By.ID,"template_checkbox")
-elem.click()
+assert "NKT - Cluster Network" in driver.title
+elem = driver.find_element(By.ID,"vlan_id")
+elem.send_keys("11")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-
-#Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "vCenter Details" in driver.title
-select = Select(driver.find_element(By.ID,'dc'))
-select.select_by_visible_text("STLD")
-
-#Wait for vCenter API to populate the page
-try:
-    elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
-except ValueError as e:
-    print("Loading took too much time!")
-
-elem = driver.find_element(By.ID,'datastore')
-elem.send_keys("ESXi1_SSD")
-select = Select(driver.find_element(By.ID,'cluster'))
-select.select_by_visible_text("Cluster1")
-elem = driver.find_element(By.ID,'port_group')
-elem.send_keys("ACI/calico_dev_v4/vlan-11")
-elem = driver.find_element(By.ID,'vm_templates')
-elem.send_keys("Ubuntu21SandBox")
-elem = driver.find_element(By.ID,'vm_folder')
-elem.send_keys("CalicoDev_v4")
-elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
-elem.click()
-
-#Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Calico Nodes" in driver.title
-elem = driver.find_element(By.ID,'calico_nodes')
-elem.clear()
-add_calico_ndoe('nkt-master-{}-1'.format(run_id),'192.168.39.1/24', '1')
-add_calico_ndoe('nkt-master-{}-2'.format(run_id),'192.168.39.2/24', '1')
-add_calico_ndoe('nkt-master-{}-3'.format(run_id),'192.168.39.3/24', '1')
-add_calico_ndoe('nkt-worker-{}-1'.format(run_id),'192.168.39.4/24', '1')
-add_calico_ndoe('nkt-worker-{}-2'.format(run_id),'192.168.39.5/24', '1')
-add_calico_ndoe('nkt-worker-{}-3'.format(run_id),'192.168.39.6/24', '1')
-
-
-elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
-elem.click()
-
-#Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Cluster" in driver.title
-elem = driver.find_element(By.ID,'advanced')
-elem.click()
-elem = driver.find_element(By.ID,'timezone')
-elem.send_keys("Australia/Sydney")
-elem = driver.find_element(By.ID,'docker_mirror')
-elem.send_keys("10.67.185.120:5000")
-elem = driver.find_element(By.ID,'ntp_server')
-elem.send_keys("72.163.32.44")
-elem = driver.find_element(By.ID,'ubuntu_apt_mirror')
-elem.send_keys("ubuntu.mirror.digitalpacific.com.au/archive/")
-elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
-elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-#Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Cluster Network" in driver.title
-elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
-elem.click()
+#driver.quit()

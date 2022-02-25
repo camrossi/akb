@@ -10,7 +10,6 @@ resource "local_file" "AnsibleInventory" {
   )
   filename = "../ansible/inventory/nodes.ini"
 }
-
 ### Generate Ansible config file
 resource "local_file" "AnsibleConfig" {
   content = templatefile("group_var_template.tmpl",

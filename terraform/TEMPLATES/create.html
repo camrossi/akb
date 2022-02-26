@@ -19,6 +19,7 @@
     <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
     <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
     <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
    <style>
       .chevron ul.tabs li.active a {
          background-color: #017cad !important;
@@ -164,23 +165,6 @@
 <!-- End Main Content -->
 </div>
 <script>
-    var getUrlParameter = function getUrlParameter(sParam) {
-        var sPageURL = window.location.search.substring(1),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-        for (i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-            }
-        }
-        return false;
-    };
-</script>
-<script>
    function updateiFrame(button) {
        if (button.value === 'Plan') {
            document.getElementById('iframe').src = "{{ url_for("tf_plan") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
@@ -207,7 +191,7 @@
                     $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
                 },
                 error: function (xhr, status, error) {
-                    $("#alert_fail").show(500);
+                    $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
                 }
             });
         });

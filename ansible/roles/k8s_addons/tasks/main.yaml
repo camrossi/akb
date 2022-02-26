@@ -12,6 +12,8 @@
     - metric_server.yaml
     - goldpinger.yaml
     - vkaci.yaml.j2
+    - neo4j-values.yaml
+    - local-storage.yaml
   tags:
     - k8s_addons
 
@@ -53,6 +55,59 @@
   tags:
     - k8s_addons
 
+- name: Labels Nodes with local-storage 
+  shell: |
+    kubectl label node {{ item }} local-storage=yes --overwrite
+  loop: "{{groups['k8s_nodes']}}"
+  register: label_res
+  retries: 10
+  until: label_res is success
+  any_errors_fatal: true
+  tags:
+    - k8s_addons
+
+- name: enabled local storage
+  shell: kubectl apply -f /tmp/local-storage.yaml
+  tags:
+    - k8s_addons
+
+### NEO4J HELM INSTALL
+
+- name: Add Neo4J helm Repo
+  shell: helm repo add neo4j https://helm.neo4j.com/neo4j
+  environment: "{{ proxy_env }}"
+  when: not sandbox_status
+  tags:
+    - k8s_addons
+
+- name: helm repo update
+  shell: helm repo update
+  when: not sandbox_status
+  environment: "{{ proxy_env }}"
+  tags:
+    - k8s_addons
+
+- name: helm install Neo4J
+  shell: helm install my-neo4j neo4j/neo4j-standalone -f /tmp/neo4j-values.yaml
+  environment: "{{ proxy_env }}"
+  ignore_errors: yes
+  when: not sandbox_status
+  tags:
+    - k8s_addons
+
+- name: helm install Neo4J 
+  shell: helm install my-neo4j neo4j-standalone-4.4.3.tgz  -f /tmp/neo4j-values.yaml
+  when: sandbox_status
+  ignore_errors: yes
+  tags:
+    - k8s_addons
+
+- name: Expose Neo4j
+  shell: kubectl patch svc  my-neo4j-neo4j -p '{"spec":{"type":"NodePort","externalIPs":["{{ neo4j_ip }}"]}}'
+  tags:
+    - k8s_addons
+
+####
 - name: Install vkaci
   shell: kubectl apply -f /tmp/vkaci.yaml.j2
   tags:
@@ -71,5 +126,25 @@
     path: ~{{ ansible_ssh_user }}/.bashrc
     line: source <(kubectl completion bash)
     state: present
+  tags:
+    - k8s_addons
+
+- name: add local DNS entry for Neo4j
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ neo4j_ip }} my-neo4j-neo4j"
+    regexp: .*my-neo4j-neo4j
+    state: present
+  delegate_to: localhost
+  tags:
+    - k8s_addons
+
+- name: add local DNS entry for Visibility UI
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ visibility_ip }} visibility"
+    regexp: .*visibility
+    state: present
+  delegate_to: localhost
   tags:
     - k8s_addons

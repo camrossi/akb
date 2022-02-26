@@ -46,7 +46,7 @@ def add_calico_ndoe(hostname, ip, ipv6, rack_id):
 driver = webdriver.Chrome()
 
 driver.get("http://10.67.185.120:5003/")
-assert "AKB" in driver.title
+assert "NKT" in driver.title
 
 current_url = driver.current_url
 elem = driver.find_element(By.NAME,"button")

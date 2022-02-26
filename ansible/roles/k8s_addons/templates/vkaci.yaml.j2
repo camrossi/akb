@@ -52,7 +52,7 @@ spec:
     spec:
        containers:
        - name: vkaci
-         image: quay.io/camillo/vkaci
+         image: quay.io/camillo/vkaci:0.1
          imagePullPolicy: IfNotPresent
          ports:
          - containerPort: 50000
@@ -70,6 +70,12 @@ spec:
              value: "{{ vrf_tenant }}"
            - name: VRF
              value: "{{ vrf_name }}"
+           - name: NEO4J_URL
+             value: neo4j://my-neo4j-neo4j:7687
+           - name: NEO4J_USER
+             value: neo4j
+           - name: NEO4J_PASSWORD
+             value: me-change
          volumeMounts:
            - name: aci-user-cert-volume
              mountPath: /usr/local/etc/aci-cert/
@@ -77,7 +83,7 @@ spec:
              mountPath: "/root/.aci-meta"
        initContainers:
        - name: init-vkaci
-         image: quay.io/camillo/vkaci-init
+         image: quay.io/camillo/vkaci-init:0.1
          imagePullPolicy: IfNotPresent
          command: ['sh', '-c', "python3 init.py"]
          env:
@@ -99,6 +105,8 @@ metadata:
   name: vkaci
 spec:
   type: NodePort
+  externalIPs:
+  - {{ visibility_ip }}
   externalTrafficPolicy: Local
   selector:
     app: vkaci

@@ -1,26 +1,23 @@
+from distutils.util import strtobool
 import json
 import sys
 from logging import error
 from flask import Flask, Response, request, render_template, redirect, flash, session
+import vc_utils
 from logging.config import dictConfig
 from turbo_flask import Turbo
 import requests
 import os
 from pyaci import Node, options, filters
 import ipaddress
-from pyVmomi import vim
-from pyVim import connect
 import re
 from shelljob import proc
 from distutils.version import LooseVersion
 from time import sleep
 import random
 import string
-l3out = {}
-vc = {}
-apic = {}
-cluster = {}
-
+from datetime import datetime
+import concurrent.futures
 
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
@@ -97,16 +94,25 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
              }
     return l3out
 
-def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, vm_template, vm_folder):
-    vc = {"url": url, "username": username, "pass": passw, "dc": dc, "datastore": datastore, "cluster": cluster,
-          "dvs": dvs, "port_group": port_group, "vm_template": vm_template, "vm_folder": vm_folder}
-    return vc
+def createVCVars(url="", username="", passw="", dc="", datastore="", cluster="", dvs="", port_group="", vm_template="", vm_folder="", vm_deploy=True):
+    return {"url": url, "username": username, "pass": passw, "dc": dc, "datastore": datastore, "cluster": cluster,
+          "dvs": dvs, "port_group": port_group, "vm_template": vm_template, "vm_folder": vm_folder, "vm_deploy": vm_deploy}
+     
 
 
-def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, local_as, kube_version, kubeadm_token, 
-                        crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror, sandbox_status):
-    cluster = { "control_plane_vip": control_plane_vip.split(":")[0],
-                "vip_port": control_plane_vip.split(":")[1],
+def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status=""):
+    try:
+        ingress_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
+        visibility_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
+        neo4j_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
+    except:
+        ingress_ip = ""
+        visibility_ip = ""
+        neo4j_ip = ""
+
+    cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
+                "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else None,
                 "pod_subnet": ipv4_pod_sub, 
                 "pod_subnet_v6": ipv6_pod_sub,
                 "cluster_svc_subnet": ipv4_svc_sub,
@@ -114,7 +120,9 @@ def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ip
                 "external_svc_subnet": external_svc_subnet,
                 "external_svc_subnet_v6": external_svc_subnet_v6,
                 "local_as" : local_as,
-                "ingress_ip": str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1),
+                "ingress_ip": ingress_ip,
+                "visibility_ip": visibility_ip,
+                "neo4j_ip": neo4j_ip,
                 "kubeadm_token": kubeadm_token,
                 "node_sub": node_sub,
                 "node_sub_v6": node_sub_v6,
@@ -161,6 +169,16 @@ def prereqaci():
 def tf_plan():
         g = proc.Group()
         cwd = os.getcwd
+        if not vc['vm_deploy']:
+            if os.path.exists("vms.tf"):
+                os.rename("vms.tf","vms.tf.ignore")
+            if os.path.exists("outputs.tf"):
+                os.rename("outputs.tf","outputs.tf.ignore")     
+        if vc['vm_deploy']:
+            if os.path.exists("vms.tf.ignore"):
+                os.rename("vms.tf.ignore","vms.tf")
+            if os.path.exists("outputs.tf.ignore"):
+                os.rename("outputs.tf.ignore","outputs.tf")
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
@@ -171,37 +189,50 @@ def tf_plan():
 @app.route('/tf_apply', methods=['GET', 'POST'])
 def tf_apply():
         g = proc.Group()
-        g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
+        if vc['vm_deploy']:
+            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
+        else:
+            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan && \
+                ansible-playbook -b ../ansible/roles/calico_config/tasks/main.yaml -i ../ansible/inventory/nodes.ini"])
         #p = g.run("ls")
         return Response( read_process(g), mimetype='text/event-stream' )
 
 
 @app.route('/create', methods=['GET', 'POST'])
 def create():
+    global cluster
+    global apic
+    global l3out
+    global vc
     if request.method == 'GET':
-        try: 
-            tf_apic = {}
-            tf_apic['username'] = apic["akb_user"]
-            tf_apic['cert_name'] = apic["akb_user"]
-            tf_apic['private_key'] = apic["private_key"]
-            tf_apic['url'] = apic["url"]
-            tf_apic['oob_ips'] = apic["oob_ips"]
-            config = "apic =" + json.dumps(tf_apic, indent=4)
-            config += "\nvc =" + json.dumps(vc, indent=4)
-            config += "\nl3out =" + json.dumps(l3out, indent=4)
+       # try:
+            
+        tf_apic = {}
+        tf_apic['username'] = apic["nkt_user"]
+        tf_apic['cert_name'] = apic["nkt_user"]
+        tf_apic['private_key'] = apic["private_key"]
+        tf_apic['url'] = apic["url"]
+        tf_apic['oob_ips'] = apic["oob_ips"]
+        config = "apic =" + json.dumps(tf_apic, indent=4)
+        config += "\nl3out =" + json.dumps(l3out, indent=4)
+        if vc['vm_deploy']:
             config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
-            config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
-            with open('cluster.tfvars', 'w') as f:
-                f.write(config)      
-        except:
-            config = []
-        return render_template('create.html', config=config)
+        else:
+            config += "\ncalico_nodes = null"
+        config += "\nvc =" + json.dumps(vc, indent=4)
+        config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
+        with open('cluster.tfvars', 'w') as f:
+                f.write(config) 
+        #except:
+        #    config = []
+        
+        return render_template('create.html', config=config)           
+          
     elif request.method == 'POST':
-        print("POST")
         req = request.form
         button = req.get("button")
         if button == "Previous":
-            return redirect('/cluster')
+            return redirect('/cluster_network')
         if button == "Update Config":
             config = req.get('config')
             with open('cluster.tfvars', 'w') as f:
@@ -306,13 +337,13 @@ def calico_nodes():
             if turbo.can_stream():
                 return turbo.stream(
                     turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
-                                 target='tf_calico_nodes'))
+                                target='tf_calico_nodes'))
 
     if request.method == 'GET':
         if calico_nodes == []:
             i = 1
             while i <= 3:
-                    hostname = 'akb-master-' + str(i)
+                    hostname = 'nkt-master-' + str(i)
                     ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
                     ipv6 = ""
                     natip = ""
@@ -320,7 +351,6 @@ def calico_nodes():
                     calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                     i += 1
         return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
-
 
 def is_valid_hostname(hostname):
     if hostname == "":
@@ -395,12 +425,54 @@ def cluster():
             req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"), 
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), 
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
-            return redirect('/create')
+            return redirect('/cluster_network')
         elif button == "Previous":
             return redirect('/calico_nodes')
     if request.method == 'GET':
         ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)            
+
+        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions())
+
+
+@app.route('/cluster_network', methods=['GET', 'POST'])
+def cluster_network():
+
+    # app.logger.info(apic+apic_password+apic_username)
+    if request.method == 'POST':
+        req = request.form
+        button = req.get("button")
+        if button == "Next":
+            if not vc['vm_deploy']:
+                global cluster
+                cluster = createClusterVars()
+                l3out['vlan_id'] = req.get("vlan_id")
+            external_svc_subnet = req.get("ipv4_ext_svc_sub")
+            cluster['pod_subnet'] = req.get("ipv4_pod_sub")
+            cluster['external_svc_subnet'] = external_svc_subnet
+            cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
+            cluster['local_as'] = req.get("local_as")
+            cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
+            cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
+            cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
+            if ipv6_enabled: 
+                cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
+                cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
+                cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
+                cluster['external_svc_subnet_v6'] = req.get("ipv6_ext_svc_sub")
+            else:
+                cluster['cluster_svc_subnet_v6'] = ""
+                cluster['pod_subnet_v6'] = ""
+                cluster['cluster_svc_subnet_v6'] = ""
+                cluster['external_svc_subnet_v6'] = ""
+            
+            return redirect('/create')
+        elif button == "Previous" and vc['vm_deploy']:
+            return redirect('/cluster')
+        elif button == "Previous" and not vc['vm_deploy']:
+            return redirect('/l3out')
+    if request.method == 'GET':
+        ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
@@ -427,89 +499,114 @@ def cluster():
             ipv6_svc_sub = next(ipv6_svc_sub_iterator)
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
 
-        return render_template('cluster.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], api_ip=api_ip, k8s_ver=k8s_versions(), ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,
-        ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub,
-        ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1)
+        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1, vm_deploy=vc['vm_deploy'])
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
 def vcenterlogin():
+    global vc
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
         if button == "Next":
-            global vc
-            vc = {"url": "",
-                  "username": "",
-                  "pass": "",
-                  "dc": "",
-                  "datastore": "",
-                  "cluster": "",
-                  "dvs": "",
-                  "port_group": "",
-                  "vm_template": "",
-                  "vm_folder": "",
-                  }
+            vc = createVCVars()
             vc["url"] = req.get("url")
             vc["username"] = req.get("username")
             vc["pass"] = req.get("pass")
+            if req.get("template"):
+                return redirect('/vctemplate')
             return redirect('/vcenter')
         if button == "Previous":
             return redirect('/l3out')
     if request.method == 'GET':
         return render_template('vcenter-login.html')
 
+@app.route('/vctemplate', methods=['GET', 'POST'])
+def vctemplate():
+    global vc
+    vc_folders = []
+    dss = []
+    if request.method == 'POST':
+        req = request.form
+        button = req.get("button")
+        if button == "Previous":
+            return redirect('/vcenterlogin')
+        if button == None and req.get("dc"):
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            dcs = vc_utils.get_all_dcs(si)
+            dc_name = req.get('dc')
+            for dc in dcs:
+                if dc.name == dc_name:
+                    for ds in dc.datastore:
+                        dss.append(ds.name)
+                    for child in dc.vmFolder.childEntity:
+                        if vc_utils.find_folders(child):
+                            vc_folders.append(child.name)
+            
+            vc_utils.disconnect(si)
+            vc_folders = sorted(vc_folders, key=str.lower)
+            dss = sorted(dss, key=str.lower)
 
-def get_all_objs(content, vimtype):
-    obj = {}
-    container = content.viewManager.CreateContainerView(
-        content.rootFolder, vimtype, True)
-    for managed_object_ref in container.view:
-        obj.update({managed_object_ref: managed_object_ref.name})
-    return obj
+            if turbo.can_stream():
+                return turbo.stream(
+                    turbo.update(render_template('_template_folder.html', vc_folders=vc_folders, dcs=dcs.values(),dss=dss),
+                                  target='template-upload-folder'))
+
+        if button == "Upload":
+            template_name = "NKT-Ubuntu-Template"
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            datacenter = vc_utils.get_dc(si, req.get('dc'))
+            datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
+            resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
+            ova_path = str(os.getcwd()) + "/static/vm_templates/nkt_template.ova"
+            ovf_handle = vc_utils.OvfHandler(ova_path)
+            ovf_manager = si.content.ovfManager
+            cisp = vc_utils.import_spec_params(entityName=template_name)
+
+            cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(), resource_pool, datastore, cisp)
+            if cisr.error:
+                print("The following errors will prevent import of this OVA:")
+                for error in cisr.error:
+                    print("%s" % error)
+
+            ovf_handle.set_spec(cisr)
 
 
-def find_pgs(obj, pgs):
-    if isinstance(obj, vim.Datacenter):
-        for child in obj.networkFolder.childEntity:
-            if (isinstance(child, vim.DistributedVirtualSwitch)):
-                pg_dvs = child.summary.name + "/"
-                for pg in child.portgroup:
-                    # Only accept access ports
-                    if isinstance(pg.config.defaultPortConfig.vlan, vim.dvs.VmwareDistributedVirtualSwitch.VlanIdSpec):
-                        vlan = "vlan-" + \
-                            str(pg.config.defaultPortConfig.vlan.vlanId)
-                        pgs.append(pg_dvs + pg.summary.name + "/" + vlan)
-            elif(isinstance(child, vim.Folder)):
-                find_pgs(child, pgs)
-    elif isinstance(obj, vim.Folder):
-        for child in obj.childEntity:
-            if (isinstance(child, vim.DistributedVirtualSwitch)):
-                pg_dvs = child.summary.name + "/"
-                for pg in child.portgroup:
-                    # Only accept access ports
-                    if isinstance(pg.config.defaultPortConfig.vlan, vim.dvs.VmwareDistributedVirtualSwitch.VlanIdSpec):
-                        vlan = "vlan-" + \
-                            str(pg.config.defaultPortConfig.vlan.vlanId)
-                        pgs.append(pg_dvs + pg.summary.name + "/" + vlan)
-            elif(isinstance(child, vim.Folder)):
-                find_pgs(child, pgs)
+            #Start upload as a new thread
+            #Find Folder
+            # Get only 1st level folder
+            for child in datacenter.vmFolder.childEntity:
+                if vc_utils.find_folders(child):
+                    if child.name == req.get('vm_folder'):
+                        folder = child
 
+            # If the template already exists, delete it!
+            vm = vc_utils.find_by_name(si,folder,template_name)
+            if vm:
+                task = vm.Destroy_Task()
+                task.vc_utils.wait_for_tasks(si, [task])
+            upload = concurrent.futures.ThreadPoolExecutor()
+            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
+            upload.shutdown(wait=True)
+            vm = vc_utils.find_by_name(si,folder,template_name)
+            vm.CreateSnapshot_Task(name=str(datetime.now()),
+                                        description="Snapshot",
+                                        memory=False,
+                                        quiesce=False)
 
-def find_vms(obj, vms):
-    if isinstance(obj, vim.Datacenter):
-        for child in obj.vmFolder.childEntity:
-            if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child.name)
-            elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
-    elif isinstance(obj, vim.Folder):
-        for child in obj.childEntity:
-            if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child.name)
-            elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
+            return redirect('/vcenter')
+            
+            
+    if request.method == 'GET':
+        try:
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except Exception as e:
+            flash(e.msg, 'error')
+            return redirect('/vcenterlogin')
 
+        dcs = vc_utils.get_all_dcs(si)
+        vc_utils.disconnect(si)
+        return render_template('vc_template_upload.html', dcs=dcs.values(), progress=0)
 
 @app.route('/vcenter', methods=['GET', 'POST'])
 def vcenter():
@@ -528,8 +625,7 @@ def vcenter():
             vc["cluster"] = req.get('cluster')
             vc["dvs"] = req.get('port_group').split('/')[0]
             vc["port_group"] = req.get('port_group').split('/')[1]
-            l3out['vlan_id'] = req.get(
-                'port_group').split('/')[2].split('-')[1]
+            l3out['vlan_id'] = req.get('port_group').split('/')[2].split('-')[1]
             vc["vm_template"] = req.get('vm_templates')
             vc["vm_folder"] = req.get('vm_folder')
             return redirect('/calico_nodes')
@@ -537,29 +633,27 @@ def vcenter():
             return redirect('/vcenterlogin')
 
         elif button == None and req.get("dc"):
-            si = connect.SmartConnectNoSSL(
-                host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
-            content = si.RetrieveContent()
-            dcs = get_all_objs(content, [vim.Datacenter])
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
                 if dc.name == dc_name:
                     for ds in dc.datastore:
                         dss.append(ds.name)
-                    find_pgs(dc, pgs)
-
+                    
+                    vc_utils.find_pgs(dc, pgs)
                     for child in dc.hostFolder.childEntity:
-                        if (isinstance(child, vim.ClusterComputeResource)):
+                        if (vc_utils.find_compute_cluster(child)):
                             clusters.append(child.name)
 
-                    find_vms(dc, vm_templates)
+                    vc_utils.find_vms(dc, vm_templates)
 
                     # Get only 1st level folder
                     for child in dc.vmFolder.childEntity:
-                        if (isinstance(child, vim.Folder)):
+                        if vc_utils.find_folders(child):
                             vc_folders.append(child.name)
 
-            connect.Disconnect(si)
+            vc_utils.disconnect(si)
             vc_folders = sorted(vc_folders, key=str.lower)
             dss = sorted(dss, key=str.lower)
             dvss = sorted(dvss, key=str.lower)
@@ -575,15 +669,13 @@ def vcenter():
 
     if request.method == 'GET':
         try:
-            si = connect.SmartConnectNoSSL(
-                host=vc["url"],  user=vc["username"], pwd=vc["pass"], port='443')
-        except Exception:
-            flash(u'Incorrect Username Or Password', 'error')
+            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except Exception as e:
+            flash(e, 'error')
             return redirect('/vcenterlogin')
 
-        content = si.RetrieveContent()
-        dcs = get_all_objs(content, [vim.Datacenter])
-        connect.Disconnect(si)
+        dcs = vc_utils.get_all_dcs(si)
+        vc_utils.disconnect(si)
         return render_template('vcenter.html', dcs=dcs.values(), )
 
 
@@ -608,7 +700,7 @@ def l3out():
     rtr_id_counter = ipaddress.IPv4Address("1.1.1.1")
     global ipv6_enabled
     try:
-        pyaci_apic.useX509CertAuth(apic['akb_user'],apic["akb_user"],apic['private_key'])
+        pyaci_apic.useX509CertAuth(apic['nkt_user'],apic["nkt_user"],apic['private_key'])
     except FileNotFoundError as e:
         return redirect('/login')
     if request.method == 'POST':
@@ -635,7 +727,10 @@ def l3out():
 
             l3out = createl3outVars(req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("dns_servers"), req.get("dns_domain"), req.get("anchor_nodes"))
-            return redirect('/vcenterlogin')
+            if vc['vm_deploy']:
+                return redirect('/vcenterlogin')
+            else:
+                return redirect('/cluster_network')
         # Then the post came from the L3OUT Tenant Select
         elif button == None and req.get("l3out_tenant"):
             vrfs = []
@@ -797,6 +892,8 @@ def l3out():
 def login():
     global apic
     apic = {}
+    global vc
+    vc = createVCVars()
     ansible_output = ''
     if request.method == "POST":
         req = request.form
@@ -809,13 +906,13 @@ def login():
             if apic['url'].endswith('/'):
                 apic['url'] = apic['url'][:-1]
 
-            print(apic['url'])
             apic['username'] = request.form['username']
             apic['password'] = request.form['password']
-            apic['akb_user'] = "akb_user_" + get_random_string(6) #request.form['akb_user']
-            apic['akb_pass'] = get_random_string(20)
-            apic['private_key']= "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
+            apic['nkt_user'] = "nkt_user_" + get_random_string(6) #request.form['nkt_user']
+            apic['nkt_pass'] = get_random_string(20)
+            apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
             apic['oob_ips'] = ""
+            vc['vm_deploy'] = True if req.get("deploy_vm") == "on" else False
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
             # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR
@@ -842,8 +939,8 @@ def login():
       admin_pass: {apic['password']}
       # APIC User that we create only for the duration of this playbook
       # We also create certificates for this user name to use cert based authentication
-      aci_temp_username: {apic['akb_user']}
-      aci_temp_pass: {apic['akb_pass']}"""
+      aci_temp_username: {apic['nkt_user']}
+      aci_temp_pass: {apic['nkt_pass']}"""
             with open('../ansible/inventory/apic.yaml', 'w') as f:
                 f.write(config)      
             # Generate temporary user and certificate
@@ -861,7 +958,7 @@ def login():
             if "failed=0" in ansible_output:
                 return redirect('/l3out')
             else:
-                return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
+                return (Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
         if button == "Previous":
             return redirect('/prereqaci')
     return render_template('login.html')

@@ -23,6 +23,8 @@ pod_subnet_v6: ${k8s_cluster.pod_subnet_v6}
 cluster_svc_subnet_v6: ${k8s_cluster.cluster_svc_subnet_v6}
 external_svc_subnet_v6: ${k8s_cluster.external_svc_subnet_v6}
 ingress_ip: ${k8s_cluster.ingress_ip}
+visibility_ip: ${k8s_cluster.visibility_ip}
+neo4j_ip: ${k8s_cluster.neo4j_ip}
 ntp_server: ${k8s_cluster.ntp_server}
 time_zone: "${k8s_cluster.time_zone}"
 
@@ -57,8 +59,8 @@ proxy_env:
     https_proxy: http://${k8s_cluster.http_proxy}
     HTTP_PROXY: http://${k8s_cluster.http_proxy}
     HTTPS_PROXY: http://${k8s_cluster.http_proxy}
-    no_proxy: .${ dns_domain },localhost, ::1, 172.30.0.1, .svc,.cluster.local, apiserver.kube-service-catalog.svc, %{ for node in calico_nodes }${ split("/", node.ip)[0] }, ${ split("/", node.ipv6)[0] }, ${node.hostname}.${dns_domain}, ${node.hostname}, %{ endfor }${k8s_cluster.pod_subnet}, ${k8s_cluster.cluster_svc_subnet}, ${k8s_cluster.external_svc_subnet}, ${k8s_cluster.pod_subnet_v6}, ${k8s_cluster.cluster_svc_subnet_v6}, ${k8s_cluster.control_plane_vip}, ${cidrhost(k8s_cluster.cluster_svc_subnet, 1)}, %{ if k8s_cluster.cluster_svc_subnet_v6 != "" }${cidrhost(k8s_cluster.cluster_svc_subnet_v6, 1)}, %{ endif } ${k8s_cluster.docker_mirror}
-    NO_PROXY: .${ dns_domain },localhost, ::1, 172.30.0.1, .svc,.cluster.local, apiserver.kube-service-catalog.svc, %{ for node in calico_nodes }${ split("/", node.ip)[0] }, ${ split("/", node.ipv6)[0] }, ${node.hostname}.${dns_domain}, ${node.hostname}, %{ endfor }${k8s_cluster.pod_subnet}, ${k8s_cluster.cluster_svc_subnet}, ${k8s_cluster.external_svc_subnet}, ${k8s_cluster.pod_subnet_v6}, ${k8s_cluster.cluster_svc_subnet_v6}, ${k8s_cluster.control_plane_vip}, ${cidrhost(k8s_cluster.cluster_svc_subnet, 1)}, %{ if k8s_cluster.cluster_svc_subnet_v6 != "" }${cidrhost(k8s_cluster.cluster_svc_subnet_v6, 1)}, %{ endif } ${k8s_cluster.docker_mirror}
+    no_proxy: .${ dns_domain },localhost, ::1, 172.30.0.1, .svc,.cluster.local, apiserver.kube-service-catalog.svc, %{ for node in calico_nodes }${ split("/", node.ip)[0] }, ${ split("/", node.ipv6)[0] }${node.hostname}.${dns_domain}, ${node.hostname}, %{ endfor }${k8s_cluster.pod_subnet}, ${k8s_cluster.cluster_svc_subnet}, ${k8s_cluster.external_svc_subnet}, ${k8s_cluster.control_plane_vip}, ${cidrhost(k8s_cluster.cluster_svc_subnet, 1)} %{ if k8s_cluster.cluster_svc_subnet_v6 != "" },${cidrhost(k8s_cluster.cluster_svc_subnet_v6, 1)}, %{ endif } %{ if k8s_cluster.docker_mirror != "" },${ split(":", k8s_cluster.docker_mirror)[0] } %{ endif } 
+    NO_PROXY: .${ dns_domain },localhost, ::1, 172.30.0.1, .svc,.cluster.local, apiserver.kube-service-catalog.svc, %{ for node in calico_nodes }${ split("/", node.ip)[0] }, ${ split("/", node.ipv6)[0] }${node.hostname}.${dns_domain}, ${node.hostname}, %{ endfor }${k8s_cluster.pod_subnet}, ${k8s_cluster.cluster_svc_subnet}, ${k8s_cluster.external_svc_subnet}, ${k8s_cluster.control_plane_vip}, ${cidrhost(k8s_cluster.cluster_svc_subnet, 1)} %{ if k8s_cluster.cluster_svc_subnet_v6 != "" },${cidrhost(k8s_cluster.cluster_svc_subnet_v6, 1)}, %{ endif } %{ if k8s_cluster.docker_mirror != "" },${ split(":", k8s_cluster.docker_mirror)[0] } %{ endif } 
 %{else}
 proxy_env: {}
 http_proxy: ""

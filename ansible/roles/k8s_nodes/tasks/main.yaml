@@ -382,6 +382,16 @@
   tags:
     - k8s_nodes
 
+- name: Create local-storage folder
+  file:
+    path: /mnt/local-storage
+    state: directory
+    mode: '0755'
+    force: yes
+  any_errors_fatal: true
+  tags:
+    - k8s_nodes
+
 - name: Reboot the server
   shell: "sleep 5 && reboot"
   async: 1

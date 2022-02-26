@@ -37,88 +37,6 @@
          justify-content: center !important;
       }
    </style>
-</head>
-
-<form name="tenantForm" method="post" action="/intro">
-
-   <body class="cui cui--animated cui--compressed" data-theme="">
-      <div id="oneui">
-         <!-- Main Content -->
-         <header class="header" id="_uid818d10e3">
-            <div class="container">
-               <div class="header-panels">
-                  <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
-                        id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">ACI Kubernetes Bootstrapper</div>
-                  </div>
-                  <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
-                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
-                        href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
-                        data-hreftitle="Source Code" title="Source Code" class="header-item"
-                        id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self"
-                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues"
-                        href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue"
-                        title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
-               </div>
-            </div>
-         </header>
-         <div class="flexrow">
-            <div class="cell"></div>
-            <div class="cell"> </div>
-         </div>
-         <div class="container bg-gray">
-            <h2>AKB Project Information</h2>
-            <p>
-               <br> This is the ACI Kubernetes Bootstrapper Project.
-               <br> Our goal is to provide a simple and automated way to deploy
-               a Kubernetes cluster and integrate it with ACI. Currently we support Calico as CNI plugin.
-               <br> 
-               If you are familiar with AKB press next, otherwise is recommended you open the documentation!
-               
-               
-
-            </p>
-            <div class="container">
-               <input type="button" value="Open Documentation" class="btn btn--wide" onclick="window.open('docs/doc','_blank')">
-               <input type="submit" value="Next" class="btn btn--wide" name="button">
-            </div>
-            <br>
-         </div>
-
-
-         <div class="container">
-            <footer class="footer footer--tertiary" id="_uidca388897">
-               <div class="footer__links">
-                  <ul class="list list--inline" id="_uid08010aa3">
-                     <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
-                           id="_uidbb5636c3">Contacts</a></li>
-                     <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
-                           id="_uid92d9bfeb">Feedback</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
-                           id="_uidcbd80f09">Help</a></li>
-                     <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
-                           id="_uid134ab5bc">Site Map</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
-                           id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
-                           id="_uide8b9adf9">Privacy Statement</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
-                           id="_uid5580971c">Cookie Policy</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
-                           id="_uidbe7db422">Trademarks</a></li>
-                  </ul>
-               </div>
-            </footer>
-         </div>
-
-
-
-         <div class="form-group base-margin-bottom"></div>
-         <main class="c549">
-            <div></div>
-         </main>
-         <!-- End Main Content -->
-      </div>
       <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
       <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
       <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
@@ -126,34 +44,128 @@
       <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
       <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
       <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
-      <div id="canvas"></div>
-      <script>
-         $(document).ready(function () {
-            $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
-               var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
-               var myChart = Highcharts.chart(val, JSON.parse(finalJson));
-            })
-         })
-         $('#canvas').on('click', function () {
-            html2canvas(document.body, {}).then(canvas => {
-               html2canvas(document.body, {}).then(canvas => {
-                  document.body.appendChild(canvas);
-                  getCanvas = canvas;
-                  var imgageData = getCanvas.toDataURL('image/png');
-                  var newData = imgageData.replace(
-                     /^data:image\/png/,
-                     'data:application/octet-stream'
-                  );
-                  // console.log(newData);
-                  document.getElementById('canvas').setAttribute("data-title", newData);
-                  /**
-                   * remove canvas and link after download
-                   */
-                  document.querySelector('canvas').remove();
-               });
-            });
-         });
-      </script>
-   </body>
+</head>
 
+<form name="mainForm" method="post" action="/intro">
+    <body class="cui styleguide cui--animated cui--compressed" data-theme="">
+        <main>
+            <div id="oneui">
+                <!-- Main Content -->
+                <header class="header" id="_uid818d10e3">
+                    <div class="container">
+                        <div class="header-panels">
+                            <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
+                                                                                                     id="_uid5a704e92"><span class="icon-cisco"></span></a>
+                                <div class="header__title">ACI Kubernetes Bootstrapper</div>
+                            </div>
+                            <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
+                                                                                                     data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
+                                                                                                     href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
+                                                                                                     data-hreftitle="Source Code" title="Source Code" class="header-item"
+                                                                                                                                                      id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self"
+                                                                                                                                                                                                             data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues"
+                                                                                                                                                                                                             href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue"
+                                                                                                                                                                                                                                                                            title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
+                        </div>
+                    </div>
+                </header>
+                <div class="flexrow">
+                    <div class="cell"></div>
+                    <div class="cell"> </div>
+                </div>
+                <div class="container bg-gray">
+                    <h2>AKB Project Information</h2>
+                    <p>
+                    <br> This is the ACI Kubernetes Bootstrapper Project.
+                    <br> Our goal is to provide a simple and automated way to deploy
+                    a Kubernetes cluster and integrate it with ACI. Currently we support Calico as CNI plugin.
+                    <br> 
+                    If you are familiar with AKB press next, otherwise is recommended you open the documentation!
+
+
+
+                    </p>
+                    <div class="row base-margin-bottom">
+                        <div class="col-md-2">
+                            <div class="form-group dropdown">
+                                <div class="form-group__text select">
+                                    <input id="select-type-styled" name="fabric_type" value="Select Fabric Type">
+                                </div>
+                                <div class="dropdown__menu">
+                                    <a value="aci" class="selected">ACI</a>
+                                    <a value="vxlan_evpn">NDFC/VXLAN_EVPN</a>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="button" value="Open Documentation" class="btn btn--wide" onclick="window.open('docs/doc','_blank')">
+                        <input type="submit" value="Next" class="btn btn--wide" name="button">
+                    </div>
+                    <br>
+                </div>
+
+
+                <div class="container">
+                    <footer class="footer footer--tertiary" id="_uidca388897">
+                        <div class="footer__links">
+                            <ul class="list list--inline" id="_uid08010aa3">
+                                <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
+                                                                                                            id="_uidbb5636c3">Contacts</a></li>
+                                <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
+                                                                                                    id="_uid92d9bfeb">Feedback</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
+                                                                                            id="_uidcbd80f09">Help</a></li>
+                                <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
+                                                                                              id="_uid134ab5bc">Site Map</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
+                                                                                                              id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
+                                                                                                          id="_uide8b9adf9">Privacy Statement</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
+                                                                                                                  id="_uid5580971c">Cookie Policy</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
+                                                                                                        id="_uidbe7db422">Trademarks</a></li>
+                            </ul>
+                        </div>
+                    </footer>
+                </div>
+
+
+
+                <div class="form-group base-margin-bottom"></div>
+                <main class="c549">
+                    <div></div>
+                </main>
+                <!-- End Main Content -->
+            </div>
+            <div id="canvas"></div>
+        </main>
+    </body>
+</form>
+<script>
+    $(document).ready(function () {
+        $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
+            var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
+            var myChart = Highcharts.chart(val, JSON.parse(finalJson));
+        })
+    })
+    $('#canvas').on('click', function () {
+        html2canvas(document.body, {}).then(canvas => {
+            html2canvas(document.body, {}).then(canvas => {
+                document.body.appendChild(canvas);
+                getCanvas = canvas;
+                var imgageData = getCanvas.toDataURL('image/png');
+                var newData = imgageData.replace(
+                    /^data:image\/png/,
+                    'data:application/octet-stream'
+                );
+                // console.log(newData);
+                document.getElementById('canvas').setAttribute("data-title", newData);
+                /**
+                 * remove canvas and link after download
+                 */
+                document.querySelector('canvas').remove();
+            });
+        });
+    });
+</script>
 </html>

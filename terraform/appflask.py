@@ -14,6 +14,7 @@ from shelljob import proc
 from distutils.version import LooseVersion
 import random
 import string
+from ndfc import NDFC
 l3out = {}
 vc = {}
 apic = {}
@@ -33,6 +34,22 @@ def get_random_string(length):
     return result_str
 
 
+def get_fabric_type(request: request) -> str:
+    # get fabric type from url parameters
+    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    return fabric_type.lower()
+
+
+def normalize_url(hostname):
+    if hostname.startswith('http://'):
+        url = hostname.replace("http://", "https://")
+    else:
+        url = "https://" + hostname
+    if url.endswith('/'):
+        url = url[:-1]
+    return url
+
+
 def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, dns_servers, dns_domain, anchor_nodes):
     def_ext_epg_scope = []
     floating_ip = ""
@@ -50,7 +67,8 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
             ipv4_cluster_subnet, strict=False).broadcast_address - 1) + "/" + str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).prefixlen)
         secondary_ip = str(ipaddress.IPv4Network(
             ipv4_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).prefixlen)
-    except:
+    except (ipaddress.AddressValueError, ipaddress.NetmaskValueError) as e:
+        print(e)
         pass
     if ipv6_enabled:
         try:
@@ -62,7 +80,8 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
                 ipv6_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv6Network(
                     ipv6_cluster_subnet, strict=False).prefixlen)
             ipv6_cluster_subnet = str(ipaddress.IPv6Network(ipv6_cluster_subnet))
-        except:
+        except (ipaddress.AddressValueError, ipaddress.NetmaskValueError) as e:
+            print(e)
             pass
 
     dns_servers = list(dns_servers.split(","))
@@ -163,7 +182,7 @@ def prereqaci():
 # These two methods create a stream that is then fed to an iFrame to auto populate the content on the fly
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
-    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    fabric_type = get_fabric_type(request)
     g = proc.Group()
     # cwd = os.getcwd
     if fabric_type == "aci":
@@ -182,7 +201,7 @@ def tf_plan():
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
 def tf_apply():
-    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    fabric_type = get_fabric_type(request)
     g = proc.Group()
     if fabric_type == "aci":
         g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan"])
@@ -194,9 +213,9 @@ def tf_apply():
 
 @app.route('/create', methods=['GET', 'POST'])
 def create():
-    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    fabric_type = get_fabric_type(request)
     if request.method == 'GET':
-        if fabric_type.lower() == "aci":
+        if fabric_type == "aci":
             try:
                 tf_apic = {}
                 tf_apic['username'] = apic["akb_user"]
@@ -211,9 +230,10 @@ def create():
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
                 with open('cluster.tfvars', 'w') as f:
                     f.write(config)
-            except:
+            except(KeyError, json.JSONDecodeError) as e:
+                print(e)
                 config = []
-        elif fabric_type.lower() == "vxlan_evpn":
+        elif fabric_type == "vxlan_evpn":
             config = []
         else:
             config = json.dumps({
@@ -221,7 +241,6 @@ def create():
             })
         return render_template('create.html', config=config)
     elif request.method == 'POST':
-        print("POST")
         req = request.form
         button = req.get("button")
         if button == "Previous":
@@ -235,14 +254,14 @@ def create():
 
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
-    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    fabric_type = get_fabric_type(request)
     if request.method == "POST":
-        if fabric_type.lower() == "aci":
+        if fabric_type == "aci":
             config = request.json.get("config", "[]")
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
             return "OK", 200
-        elif fabric_type.lower() == "vxlan_evpn":
+        elif fabric_type == "vxlan_evpn":
             config = request.json.get("config", "[]")
             with open('./ndfc/cluster.tfvars', 'w') as f:
                 f.write(config)
@@ -373,7 +392,7 @@ def is_valid_hostname(hostname):
     if hostname[-1] == ".":
         # strip exactly one dot from the right, if present
         hostname = hostname[:-1]
-    allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+    allowed = re.compile("(?!-)[a-zA-Z0-9]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(x) for x in hostname.split("."))
 
 
@@ -683,6 +702,7 @@ def l3out():
     try:
         pyaci_apic.useX509CertAuth(apic['akb_user'], apic["akb_user"], apic['private_key'])
     except FileNotFoundError as e:
+        print(e)
         return redirect('/login')
     if request.method == 'POST':
         req = request.form
@@ -831,7 +851,8 @@ def l3out():
         # Get required data from APIC:
         try:
             physDomPs = pyaci_apic.methods.ResolveClass('physDomP').GET()
-        except:
+        except Exception as e:
+            print(e)
             flash(u'Invalid Credentials', 'error')
             return redirect('/login')
         fvTenants = pyaci_apic.methods.ResolveClass('fvTenant').GET()
@@ -859,45 +880,79 @@ def l3out():
         return render_template('l3out.html', phys_dom=phys_dom, tenants=tenants, vrfs=vrfs, local_as=local_as, pod_ids=session['pod_ids'], nodes_id=session['nodes_id'], rtr_id=str(rtr_id_counter))
 
 
+@app.route("/fabric", methods=["GET", "POST"])
+def fabric():
+    fabric_type = get_fabric_type(request)
+    if request.method == "GET":
+        if fabric_type == "vxlan_evpn":
+            fabrics = []
+            inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
+            inst_ndfc.logon()
+            result = inst_ndfc.get_fabrics()
+            if result:
+                for f in result:
+                    fabric = {
+                        "fabric_name": f.get("fabricName"),
+                        "asn": f.get("asn")
+                    }
+                    fabrics.append(fabric)
+            return render_template("fabric.html", fabrics=fabrics)
+
+
+@app.route("/query_ndfc", methods=["GET"])
+def query_ndfc():
+    # TODO: impelement query API
+    fabric_type = get_fabric_type(request)
+    fabric_name = request.args.get("fabric_name")
+    query_vrf = request.args.get("query_vrf")
+    query_inv = request.args.get("query_inv")
+    print(query_vrf)
+    inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
+    inst_ndfc.logon()
+    result = inst_ndfc.get_vrfs(fabric_name)
+    vrfs = []
+    for vrf in result:
+        vrfs.append(vrf["vrfName"])
+    return json.dumps(vrfs), 200
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    global apic
-    apic = {}
-    ansible_output = ''
+    fabric_type = get_fabric_type(request)
+
     if request.method == "POST":
+        global apic
+        apic = {}
+        ansible_output = ''
         req = request.form
         button = req.get("button")
         if button == "Login":
-            if request.form['fabric'].startswith('http://'):
-                apic['url'] = request.form['fabric'].replace("http://", "https://")
-            else:
-                apic['url'] = "https://" + request.form['fabric']
-            if apic['url'].endswith('/'):
-                apic['url'] = apic['url'][:-1]
-
-            print(apic['url'])
-            apic['username'] = request.form['username']
-            apic['password'] = request.form['password']
-            apic['akb_user'] = "akb_user_" + get_random_string(6)  # request.form['akb_user']
-            apic['akb_pass'] = get_random_string(20)
-            apic['private_key'] = "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
-            apic['oob_ips'] = ""
-            # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
-            # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
-            # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR
-            url = apic['url'] + '/acimeta/aci-meta.json'
-            try:
-                r = requests.get(url, verify=False, allow_redirects=True, timeout=5)
-            except:
-                flash("Unable to connect to APIC", error)
-                return render_template('login.html')
-            home = os.path.expanduser("~")
-            meta_path = home + '/.aci-meta'
-            if not os.path.exists(meta_path):
-                os.makedirs(meta_path)
-            open(meta_path + '/aci-meta.json', 'wb').write(r.content)
-    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
-            config = f"""apic: #You ACI Fabric Name
+            if fabric_type == "aci":
+                apic['url'] = normalize_url(request.form["fabric"])
+                print(apic['url'])
+                apic['username'] = request.form['username']
+                apic['password'] = request.form['password']
+                apic['akb_user'] = "akb_user_" + get_random_string(6)  # request.form['akb_user']
+                apic['akb_pass'] = get_random_string(20)
+                apic['private_key'] = "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
+                apic['oob_ips'] = ""
+                # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
+                # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
+                # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR
+                url = apic['url'] + '/acimeta/aci-meta.json'
+                try:
+                    r = requests.get(url, verify=False, allow_redirects=True, timeout=5)
+                except Exception as e:
+                    print(e)
+                    flash("Unable to connect to APIC", error)
+                    return render_template('login.html')
+                home = os.path.expanduser("~")
+                meta_path = home + '/.aci-meta'
+                if not os.path.exists(meta_path):
+                    os.makedirs(meta_path)
+                open(meta_path + '/aci-meta.json', 'wb').write(r.content)
+        ## Generate the inventory file for the APIC, this looks ugly might want to clean up
+                config = f"""apic: #You ACI Fabric Name
   hosts:
     {apic['url'].replace("https://",'')}:
       validate_certs: no
@@ -910,53 +965,99 @@ def login():
       # We also create certificates for this user name to use cert based authentication
       aci_temp_username: {apic['akb_user']}
       aci_temp_pass: {apic['akb_pass']}"""
-            with open('../ansible/inventory/apic.yaml', 'w') as f:
-                f.write(config)
-            # Generate temporary user and certificate
-            g = proc.Group()
-            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
-            #Just wait for terraform to finish
-            for s in read_process(g):
-                ansible_output += str(s, 'utf-8')
+                with open('../ansible/inventory/apic.yaml', 'w') as f:
+                    f.write(config)
+                # Generate temporary user and certificate
+                g = proc.Group()
+                g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
+                #Just wait for terraform to finish
+                for s in read_process(g):
+                    ansible_output += str(s, 'utf-8')
 
-            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
-            # This for some reason does not work on Alpine so I do a hacky thing:
-            #if g.get_exit_codes()[0][1] == 0 :
-            #    return redirect('/l3out')
-            # If something failed then the user creation failed.
-            if "failed=0" in ansible_output:
-                return redirect('/l3out')
-            else:
-                return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype='text/event-stream'))
+                # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
+                # This for some reason does not work on Alpine so I do a hacky thing:
+                #if g.get_exit_codes()[0][1] == 0 :
+                #    return redirect('/l3out')
+                # If something failed then the user creation failed.
+                if "failed=0" in ansible_output:
+                    return redirect('/l3out')
+                else:
+                    return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype='text/event-stream'))
+            if fabric_type == "vxlan_evpn":
+                global ndfc
+                ndfc = {}
+                ndfc["url"] = normalize_url(request.form["nd"])
+                ndfc["username"] = request.form["username"]
+                ndfc["password"] = request.form["password"]
+                ndfc["platform"] = "nd"  # set to nd stattically
+                inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
+                if not inst_ndfc.logon():
+                    return json.dumps({"error": "login fail"}), 400
+                return redirect("/fabric?fabric_type=vxlan_evpn")
         if button == "Previous":
             return redirect('/prereqaci')
-    return render_template('login.html')
+    if request.method == "GET":
+        if fabric_type == "aci":
+            return render_template('login.html')
+        elif fabric_type == "vxlan_evpn":
+            return render_template('login_ndfc.html', fabric_type=fabric_type)
 
 
 def read_process(g):
     while g.is_pending():
         lines = g.readlines()
-        for proc, line in lines:
+        for prcs, line in lines:
             yield line
 
 
 @app.route('/existing_cluster', methods=['GET', 'POST'])
 def existing_cluster():
+    fabric_type = get_fabric_type(request)
     if request.method == "POST":
         g = proc.Group()
-        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
+        if fabric_type == "aci":
+            g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
             ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
-
+        elif fabric_type == "vxlan_evpn":
+            g.run(["bash",
+                   "-c",
+                   "terraform -chdir ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
         #p = g.run("ls")
         return Response(read_process(g), mimetype='text/event-stream')
     else:
-        try:
-            f = open("cluster.tfvars")
-            # Do something with the file
-        except IOError:
-            return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
+        if fabric_type == "aci":
+            try:
+                f = open("cluster.tfvars")
+                # Do something with the file
+            except IOError:
+                return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
+            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=f.read())
+        elif fabric_type == "vxlan_evpn":
+            ndfc_tfvars = "./ndfc/cluster.tfvars"
+            if not os.path.exists(ndfc_tfvars):
+                return render_template('/existing_cluster.html?fabric_type=vxlan_evpn',
+                                       text_area_title="Error",
+                                       config="Config File Not Found but terraform.tfstate file is present")
+            with open(ndfc_tfvars, "r") as f:
+                tf_vars = f.read()
+            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=tf_vars)
 
-        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=f.read())
+
+@app.route('/destroy', methods=['GET'])
+def destroy():
+    fabric_type = get_fabric_type(request)
+    if request.method != "GET":
+        return "unsupported method", 405
+    g = proc.Group()
+    if fabric_type == "aci":
+        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
+        ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
+    elif fabric_type == "vxlan_evpn":
+        g.run(["bash",
+               "-c",
+               "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
+    #p = g.run("ls")
+    return Response(read_process(g), mimetype='text/event-stream')
 
 
 @app.route('/')
@@ -965,20 +1066,36 @@ def get_page():
     if request.method == "POST":
         req = request.form
         button = req.get("button")
+        fabric_type_selectd = req.get("fabric_type")
         if button == "Next":
-            return redirect('/login')
-    try:
-        with open('terraform.tfstate', 'r') as f:
-            state = json.load(f)
-            # If there are resources the cluster is there
-            if state['resources'] != []:
+            if fabric_type_selectd == "Select Fabric Type" or fabric_type_selectd == "ACI":
+                return redirect('/login?fabric_type=aci')
+            elif fabric_type_selectd == "NDFC/VXLAN_EVPN":
+                return redirect('/login?fabric_type=vxlan_evpn')
+    if request.method == "GET":
+        tf_state_aci = "terraform.tfstate"
+        tf_state_ndfc = "./ndfc/terraform.tfstate"
+        # if no tf state existed, return the intro page
+        if not os.path.exists(tf_state_aci) and not os.path.exists(tf_state_ndfc):
+            return render_template('intro.html')
+
+        if os.path.exists(tf_state_aci):
+            with open('terraform.tfstate', 'r') as f:
+                state_aci = json.load(f)
+            if state_aci['resources'] != []:
                 return redirect('/existing_cluster')
+            else:
+                return render_template('intro.html')
+
+        if os.path.exists(tf_state_ndfc):
+            with open('./ndfc/terraform.tfstate', 'r') as f:
+                state_ndfc = json.load(f)
+                # If there are resources the cluster is there
+            if state_ndfc['resources'] != []:
+                return redirect('/existing_cluster?fabric_type=vxlan_evpn')
             # If the resources are not present go to intro
             else:
                 return render_template('intro.html')
-    # If the state file is not there go to intro
-    except:
-        return render_template('intro.html')
 
 
 if __name__ == "__main__":

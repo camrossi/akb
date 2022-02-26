@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
     <head>
         <meta charset="utf-8">
         <title>AKB - Apic Login</title>
@@ -16,6 +17,7 @@
         <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
         <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
         <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
         <style>
         .chevron ul.tabs li.active a {
             background-color: #017cad !important;
@@ -47,7 +49,7 @@
 
 
 
-    <form name="loginForm" method="post" action="/login">
+    <form name="loginForm" method="post" action="/login?fabric_type={{ fabric_type }}">
 
         <body class="cui cui--animated cui--compressed" data-theme="">
             <div id="oneui">
@@ -55,18 +57,16 @@
                 <header class="header" id="_uid818d10e3">
                     <div class="container">
                         <div class="header-panels">
-                            <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
-                                                                                                     id="_uid5a704e92"><span class="icon-cisco"></span></a>
+                            <div class="header-panel">
+                                <a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92">
+                                    <span class="icon-cisco"></span>
+                                </a>
                                 <div class="header__title">ACI Kubernetes Bootstrapper</div>
                             </div>
-                            <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
-                                                                                                     data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
-                                                                                                     href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
-                                                                                                     data-hreftitle="Source Code" title="Source Code" class="header-item"
-                                                                                                                                                      id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self"
-                                                                                                                                                                                                             data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues"
-                                                                                                                                                                                                             href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue"
-                                                                                                                                                                                                                                                                            title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
+                            <div class="header-panel header-panel--right">
+                                <a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -75,41 +75,36 @@
                     <div class="cell"> </div>
                 </div>
                 <div class="container bg-gray">
-                    <h2>ACI Login details</h2>
+                    <h2>NDFC Login details</h2>
                     <p>
-                    <br> Specify the credentials to login your ACI fabric.
+                    <br> Specify the credentials to login your Nexus Dashboard
                     </p>
                 </div>
                 <div class="container">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                    {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        <span>{{ message }}</span>
+                    <div id="alert_fail" class="alert alert--warning" style="display: none">
+                        <div class="alert__icon icon-warning-outline"></div>
+                        <div id="alert_fail_msg" class="alert__message"></div>
                     </div>
-                    {% endfor %}
-                    {% endif %}
-                    {% endwith %}
 
                     <table class="table table--compressed table--selectable table--wrap c1990" id="_uid829dc898">
 
                         <tbody>
                             <tr>
-                                <td>Fabric IP or Host Name:</td>
-                                <td><input type="text" size=25 name="fabric"></td>
+                                <td>Nexus Dashboard IP or hostname</td>
+                                <td><input id="url" type="text" size=25 name="nd"></td>
                             </tr>
                             <tr>
-                                <td>Username (with Admin Privilege):</td>
-                                <td><input type="text" size=25 name="username" value="admin"></td>
+                                <td>Username:</td>
+                                <td><input id="username" type="text" size=25 name="username" value="admin"></td>
                             </tr>
                             <tr>
                                 <td>Password:</td>
-                                <td><input type="password" size=25 name="password"></td>
+                                <td><input id="password" type="password" size=25 name="password"></td>
                             </tr>
                             <tr>
                                 <td>
                                     <div class="container">
-                                        <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
+                                        <input type="Submit" value="Login" class="btn btn--wide" name="button" id="login">
                                     </div>
                                 </td>
                             </tr>
@@ -126,22 +121,14 @@
                     <footer class="footer footer--tertiary" id="_uidca388897">
                         <div class="footer__links">
                             <ul class="list list--inline" id="_uid08010aa3">
-                                <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
-                                                                                                            id="_uidbb5636c3">Contacts</a></li>
-                                <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
-                                                                                                    id="_uid92d9bfeb">Feedback</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
-                                                                                            id="_uidcbd80f09">Help</a></li>
-                                <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
-                                                                                              id="_uid134ab5bc">Site Map</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
-                                                                                                              id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
-                                                                                                          id="_uide8b9adf9">Privacy Statement</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
-                                                                                                                  id="_uid5580971c">Cookie Policy</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
-                                                                                                        id="_uidbe7db422">Trademarks</a></li>
+                                <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank" id="_uidbb5636c3">Contacts</a></li>
+                                <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank" id="_uid92d9bfeb">Feedback</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank" id="_uidcbd80f09">Help</a></li>
+                                <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank" id="_uid134ab5bc">Site Map</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank" id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank" id="_uide8b9adf9">Privacy Statement</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank" id="_uid5580971c">Cookie Policy</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank" id="_uidbe7db422">Trademarks</a></li>
                             </ul>
                         </div>
                     </footer>
@@ -184,5 +171,33 @@
                 });
             </script>
         </body>
+        <script>
+            $(document).ready(function () {
+                $("#login").click(function (e) {
+                    var update_url = "{{ url_for("login")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+                    $.ajax({
+                        url: update_url,
+                        type: 'post',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            url: $("#url").val(),
+                            username: $("#username").val(),
+                            password: $("#password").val(),
+                        }),
+                        success: function (data, status, xhr) {
+                        },
+                        error: function (xhr, status, error) {
+                            if (xhr.status == "302") {
+                                console.log(xhr.redirect)
+                            };
+                                
+                            var error_msg = JSON.parse(xhr.responseText)
+                            $("#alert_fail_msg").text(error_msg.error)
+                            $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                        }
+                    });
+                });
+            })
+        </script>
 
 </html>

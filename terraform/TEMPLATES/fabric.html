@@ -105,7 +105,7 @@
                                 for="fabric_asn">Fabric AS Number:
                                 <span data-title="Fabric ASN number, this is get from fabric configuration">ⓘ</span>
                             </label>
-                            <input type="text" id="input_fabric_asn" name="input_fabric_asn" value="" />
+                            <input type="text" id="input_fabric_asn" name="input_fabric_asn" value="" disabled/>
                         </div>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                                 for="bgp_pass">IPv4 Cluster Subnet:
                                 <span data-title="The IPv4 subnet for you cluster. This subnet should be able to be routable and reach internet to pull the container images.">ⓘ</span>
                             </label>
-                            <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="192.168.0.0/24" onchange="updateAnchorNodeIPv4(this)">
+                            <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="10.13.0.0/24" onchange="updateAnchorNodeIPv4(this)">
                         </div>
                     </div>
                 </div>
@@ -173,7 +173,7 @@
                             <label for="dns_domain">DNS Domain:
                                 <span data-title="Comma separated list for DNS Servers" >ⓘ</span>
                             </label>
-                            <input type="text" id="dns_domain" name="dns_domain">
+                            <input type="text" id="dns_domain" name="dns_domain" value="cisco.com">
                         </div>
                     </div>
                 </div>
@@ -184,7 +184,7 @@
                 <div class="container">
                     <div class="checkbox form-group form-group--inline c8041">
                         <label class="checkbox">
-                            <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'checkbox-checked','checkbox-unchecked')" style="margin:0;">
+                            <input id="adv_chck" type="checkbox" style="margin:0;">
                             <span id='advanced' class="checkbox__input"></span>
                             <span class="checkbox__label hidden-xs">Advanced BGP Settings</span>
                         </label>
@@ -286,19 +286,6 @@
             document.getElementById('node_ipv6').value = document.getElementById('ipv6_cluster_subnet').value
         }
 
-        function DoCheckUncheckDisplay(d,dchecked,dunchecked)
-        {
-            if( d.checked == true )
-            {
-                document.getElementById(dchecked).style.display = "block";
-                document.getElementById(dunchecked).style.display = "none";
-            }
-            else
-            {
-                document.getElementById(dchecked).style.display = "none";
-                document.getElementById(dunchecked).style.display = "block";
-            }
-        };
         $(document).ready(function() {
             $(window).keydown(function(e){
                 if(e.key == "Enter") {
@@ -306,59 +293,68 @@
                     return false;
                 }
             });
-        });
 
-        $("#fabric").change(function(){
-            var fabric_name = this.value;
-            $("#input_fabric_asn").val($("#" + this.value).attr("data-asn"));
-            $("#div_asn").fadeIn(300);
-            var url = "{{ url_for("query_ndfc")}}";
-            $.ajax({
-                url: url,
-                type: 'get',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: {
-                    fabric_type: getUrlParameter('fabric_type'),
-                    fabric_name: fabric_name,
-                    query_vrf: true
-                },
-                success: function (result, status, xhr) {
-                    $.each(result, function(index, value){
-                        $('<option value="' + value +'">').appendTo($("#datalist_vrf"));
-                    });
+            $("#adv_chck").click(function(){
+                if ( $(this).prop("checked") ) {
+                    $("#checkbox-checked").fadeIn(200);
+                } else {
+                    $("#checkbox-checked").fadeOut(200);
+                };
+            });
 
-                },
-                error: function (xhr, status, error) {
-                    $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+            $("#fabric").change(function(){
+                var fabric_name = this.value;
+                $("#input_fabric_asn").val($("#" + this.value).attr("data-asn"));
+                $("#div_asn").fadeIn(300);
+                var url = "{{ url_for("query_ndfc")}}";
+                $.ajax({
+                    url: url,
+                    type: 'get',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: {
+                        fabric_type: getUrlParameter('fabric_type'),
+                        fabric_name: fabric_name,
+                        query_vrf: true
+                    },
+                    success: function (result, status, xhr) {
+                        $.each(result, function(index, value){
+                            $('<option value="' + value +'">').appendTo($("#datalist_vrf"));
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                });
+            });
+
+            $("#input_lo_ipv4").on("keyup", function(e){
+                if (e.key == "Enter") {
+                    var count_lo = $("#loopback_ipv4").children().length;
+                    if ( count_lo >= 2 ) {
+                        $("#form_loopback_alert").show();
+                        $("#form_loopback").addClass("form-group--error");
+                        return false
+                    };
+                    var ip_addr = $(this).value;
+                    var ipv4_addr = $("#input_lo_ipv4").val();
+                    var lo_label = '<span class="label label--info base-margin-left"><span>' + ipv4_addr + '</span> <span class="icon-close"></span></span>';
+                    $("#loopback_ipv4").append(lo_label);
+                    $(this).val("");
                 }
+            });
+
+            $("#loopback_ipv4").on("click", ".icon-close", function(){
+                $(this).parent().remove();
+                var count_lo = $("#loopback_ipv4").children().length;
+                if ( count_lo < 2 ) {
+                    $("#form_loopback_alert").hide();
+                    $("#form_loopback").removeClass("form-group--error");
+                    return false
+                };
             });
         });
 
-        $("#input_lo_ipv4").on("keyup", function(e){
-            if (e.key == "Enter") {
-                var count_lo = $("#loopback_ipv4").children().length;
-                if ( count_lo >= 2 ) {
-                    $("#form_loopback_alert").show();
-                    $("#form_loopback").addClass("form-group--error");
-                    return false
-                };
-                var ip_addr = $(this).value;
-                var ipv4_addr = $("#input_lo_ipv4").val();
-                var lo_label = '<span class="label label--info base-margin-left"><span>' + ipv4_addr + '</span> <span class="icon-close"></span></span>';
-                $("#loopback_ipv4").append(lo_label);
-                $(this).val("");
-            }
-        });
-
-        $("#loopback_ipv4").on("click", ".icon-close", function(){
-            $(this).parent().remove();
-            var count_lo = $("#loopback_ipv4").children().length;
-            if ( count_lo < 2 ) {
-                $("#form_loopback_alert").hide();
-                $("#form_loopback").removeClass("form-group--error");
-                return false
-            };
-        });
     </script>
 </html>

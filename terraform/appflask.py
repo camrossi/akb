@@ -169,12 +169,12 @@ def prereqaci():
 def tf_plan():
         g = proc.Group()
         cwd = os.getcwd
-        if not vc['vm_deploy']:
+        if (str(config.find('"vm_deploy": true')) == "-1"):
             if os.path.exists("vms.tf"):
                 os.rename("vms.tf","vms.tf.ignore")
             if os.path.exists("outputs.tf"):
                 os.rename("outputs.tf","outputs.tf.ignore")     
-        if vc['vm_deploy']:
+        if (str(config.find('"vm_deploy": true')) != "-1"):
             if os.path.exists("vms.tf.ignore"):
                 os.rename("vms.tf.ignore","vms.tf")
             if os.path.exists("outputs.tf.ignore"):
@@ -189,7 +189,7 @@ def tf_plan():
 @app.route('/tf_apply', methods=['GET', 'POST'])
 def tf_apply():
         g = proc.Group()
-        if vc['vm_deploy']:
+        if (str(config.find('"vm_deploy": true')) != "-1"):
             g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
         else:
             g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan && \

@@ -15,4 +15,4 @@ spec:
 {% if external_svc_subnet_v6 %}
   - cidr: {{ external_svc_subnet_v6 | ipaddr('network') }}/{{ external_svc_subnet_v6 | ipaddr('prefix') }}
 {% endif %}
-  listenPort: 178
+  listenPort: 179

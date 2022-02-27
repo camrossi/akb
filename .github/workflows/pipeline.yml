@@ -13,7 +13,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  akb-testing-v4:
+  nkt-testing-v4:
     # The type of runner that the job will run on
     runs-on: self-hosted
     defaults:
@@ -26,12 +26,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: v4
-      - name: Start AKB
+      - name: Start NKT
         run: | 
           python3 appflask.py 5003 &
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium_ui_testing_dev_cluster_v4.py --headless
+          python3 selenium_ui_testing_dev_cluster_v4.py --headless ${{ github.run_id }}
       - name: Terraform init
         run: | 
           terraform init
@@ -54,7 +54,7 @@ jobs:
         run: | 
           ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'   
   
-  akb-testing-v46:
+  nkt-testing-v46:
     # The type of runner that the job will run on
     runs-on: self-hosted
     defaults:
@@ -67,7 +67,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: v46
-      - name: Start AKB
+      - name: Start NKT
         run: | 
           python3 appflask.py 5004 &
       - name: Run headless chrome to generate the config

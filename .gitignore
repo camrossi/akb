@@ -7,3 +7,4 @@ terraform/cluster.tfvars
 *.key
 *.csr 
 apic.yaml
+ansible/roles/calico/files/calicoctl

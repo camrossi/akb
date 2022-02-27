@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+   <script>
+      function DoCheckUncheckDisplay(d,dchecked,dunchecked)
+      {
+         if( d.checked == true )
+         {
+            document.getElementById(dchecked).style.display = "block";
+            document.getElementById(dunchecked).style.display = "none";
+         }
+         else
+         {
+            document.getElementById(dchecked).style.display = "none";
+            document.getElementById(dunchecked).style.display = "block";
+         }
+      }
+   </script>
+
+
+<head>
+   {{ turbo() }}
+   <meta charset="utf-8">
+   <title>NKT - Cluster Network</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <link rel="stylesheet" type="text/css"
+      href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+   <style>
+      .chevron ul.tabs li.active a {
+         background-color: #017cad !important;
+         opacity: 1 !important;
+         color: #ffffff;
+         box-shadow: none !important;
+      }
+
+      .chevron ul.tabs li a {
+         height: 56px min-width: 90% !important;
+         padding: 10px 6px;
+         background-color: #ffffff;
+         opacity: 1 !important;
+         color: #58585d;
+         text-align: center;
+         position: relative;
+         line-height: 16px;
+         font-size: 12px;
+         cursor: pointer;
+         flex: 1 !important;
+         flex-shrink: 1 !important;
+         flex-wrap: wrap !important;
+         display: flex !important;
+         justify-content: center !important;
+      }
+   </style>
+</head>
+
+<form name="tenantForm" method="post" action="/cluster_network">
+
+   <body class="cui cui--animated cui--compressed" data-theme="">
+      <div id="oneui">
+         <!-- Main Content -->
+         <header class="header" id="_uid818d10e3">
+            <div class="container">
+               <div class="header-panels">
+                  <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
+                        id="_uid5a704e92"><span class="icon-cisco"></span></a>
+                     <div class="header__title">Nexus Kubernetes Tools</div>
+                  </div>
+                  <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
+                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
+                        href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
+                        data-hreftitle="Source Code" title="Source Code" class="header-item"
+                        id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self"
+                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues"
+                        href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue"
+                        title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
+               </div>
+            </div>
+         </header>
+         <div class="flexrow">
+            <div class="cell"></div>
+            <div class="cell"> </div>
+         </div>
+
+         <!--  K8s Settings   -->
+
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>
+
+         <div class="container bg-gray">
+            <h2>K8s Cluster Network Details</h2>
+            <p>
+               <br> Here you should insert the K8s cluster network details. </br>
+               
+            </p>
+         </div>
+
+    <!--
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="node_sub">Node Subnet:</label>
+                              <input type="text" id="node_sub" name="node_sub" value="{{ ipv4_cluster_subnet }}" readonly class="bg-gray-200" >
+            
+                           </div>
+                        </div>
+                     </div>
+   -->
+
+                     <div id="checkbox-unchecked" {% if  vm_deploy %} style="display:none";{% endif %}  >     
+                        <div class="container">
+                           <div class="form-group base-margin-bottom">
+                              <div  class="form-group__text">
+                                 <label for="url">VLAN ID:</label>
+                                 <input type="text" id="vlan_id" name="vlan_id">
+                              </div>
+                           </div>       
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="ipv4_pod_sub">POD Subnet (Defaults Node Subnet + 1):</label>
+                              <input type="text" id="ipv4_pod_sub" name="ipv4_pod_sub" value="{{ ipv4_pod_sub }}">
+            
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="ipv4_svc_sub">Cluster SVC Subnet (Default Node Subnet + 2):</label>
+                              <input type="text" id="ipv4_svc_sub" name="ipv4_svc_sub" value="{{ ipv4_svc_sub }}">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="ipv4_ext_svc_sub">External SVC Subnet (Default Node Subnet + 3):</label>
+                              <input type="text" id="ipv4_ext_svc_sub" name="ipv4_ext_svc_sub" value="{{ ipv4_ext_svc_sub }}">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="local_as">Cluster BGP AS:
+                                 <span data-title="This is pre-calculated as the ACI AS + 1">ⓘ</span>
+                              </label>
+                              <input type="text" id="local_as" name="local_as" value="{{ local_as }}">
+            
+                           </div>
+                        </div>
+                     </div>
+<!--
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="node_sub_v6">Node Subnet v6:</label>
+                              <input type="text" id="node_sub_v6" name="node_sub_v6" value="{{ ipv6_cluster_subnet }}" readonly class="bg-gray-200" >
+            
+                           </div>
+                        </div>
+                     </div>
+-->                     
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="ipv6_pod_sub">POD Subnet v6 (Default Node Subnet + 1):</label>
+                              <input type="text" id="ipv6_pod_sub" name="ipv6_pod_sub" value="{{ ipv6_pod_sub }}">
+            
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="ipv6_svc_sub">Cluster SVC Subnet v6 (Default Node Subnet + 2/108) Max Prefix 108, K8s Limitation:</label>
+                              <input type="text" id="ipv6_svc_sub" name="ipv6_svc_sub" value="{{ ipv6_svc_sub }}">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
+                              <label for="ipv6_ext_svc_sub">External SVC Subnet v6 (Default Node Subnet + 2/108 +1)  Max Prefix 108, K8s Limitation:</label>
+                              <input type="text" id="ipv6_ext_svc_sub" name="ipv6_ext_svc_sub" value="{{ ipv6_ext_svc_sub }}">
+                           </div>
+                        </div>
+                     </div>
+
+
+         <div class="container">
+            <input type="submit" value="Previous" class="btn btn--wide" name="button">
+            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button">
+         </div>
+
+</form>
+
+
+<div class="container">
+   <footer class="footer footer--tertiary" id="_uidca388897">
+      <div class="footer__links">
+         <ul class="list list--inline" id="_uid08010aa3">
+            <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
+                  id="_uidbb5636c3">Contacts</a></li>
+            <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
+                  id="_uid92d9bfeb">Feedback</a></li>
+            <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank" id="_uidcbd80f09">Help</a></li>
+            <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank" id="_uid134ab5bc">Site Map</a>
+            </li>
+            <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
+                  id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+            <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
+                  id="_uide8b9adf9">Privacy Statement</a></li>
+            <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
+                  id="_uid5580971c">Cookie Policy</a></li>
+            <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
+                  id="_uidbe7db422">Trademarks</a></li>
+         </ul>
+      </div>
+   </footer>
+</div>
+
+
+
+<div class="form-group base-margin-bottom"></div>
+<main class="c549">
+   <div></div>
+</main>
+<!-- End Main Content -->
+</div>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+<div id="canvas"></div>
+
+</body>
+
+</html>

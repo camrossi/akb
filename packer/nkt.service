@@ -1,0 +1,14 @@
+[Unit]
+Description=Nexus Kubernetes Tools
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/cisco/akb-main/terraform/appflask.py
+WorkingDirectory=/home/cisco/akb-main/terraform
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

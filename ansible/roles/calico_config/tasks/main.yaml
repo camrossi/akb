@@ -1,0 +1,20 @@
+---
+- name: Playbook
+  hosts: localhost
+  connection: local 
+  tasks:
+    - name: shell
+      shell: 'pwd'
+    - name: Template files
+      template:
+          src: ../../calico/templates/{{ item }}
+          dest: "../../../../terraform/static/calico/{{ item }}"
+      with_items:
+        - BGPPassSecret.yaml
+        - IPPool.yaml
+        - BGPConfiguration.yaml
+        - BGPPeer.j2
+        - calico-typha.yaml
+        - calico-typha-v46.yaml   
+      tags:
+        - calico     

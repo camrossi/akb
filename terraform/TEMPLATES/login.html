@@ -3,7 +3,7 @@
 
 <head>
    <meta charset="utf-8">
-   <title>AKB - Apic Login</title>
+   <title>NKT - Apic Login</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css"
@@ -51,7 +51,7 @@
                <div class="header-panels">
                   <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
                         id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">ACI Kubernetes Bootstrapper</div>
+                     <div class="header__title">Nexus Kubernetes Tools</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
                         data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
@@ -72,6 +72,9 @@
             <h2>ACI Login details</h2>
             <p>
                <br> Specify the credentials to login your ACI fabric.
+               <br> Select the 'Deploy K8s cluster' checkbox if K8s cluster should be deployed by this tool.
+               <br> If 'Deploy K8s cluster' is selected the tool will ask you more information on the vCenter where you want the tool to provision K8s nodes.
+               <br> If 'Deploy K8s cluster' is not selected, the tool will provision only the ACI configuration and provide you the .yaml file to apply to your K8s cluster to run Calico BGP Peering to the ACI fabric.
             </p>
          </div>
          <div class="container">
@@ -84,6 +87,15 @@
             {% endfor %}
             {% endif %}
             {% endwith %}
+            <div class="container">
+               <div class="checkbox form-group form-group--inline c8041">
+                  <label class="checkbox">
+                     <input type="checkbox" style="margin:0;" id="deploy_vm" name="deploy_vm" checked>
+                     <span id='deploy_vm-checkbox' class="checkbox__input" ></span>
+                     <span class="checkbox__label hidden-xs">Deploy K8s cluster</span>
+                  </label>
+               </div>
+            </div>
 
             <table class="table table--compressed table--selectable table--wrap c1990" id="_uid829dc898">
 
@@ -102,12 +114,12 @@
                   </tr>
                   <!--              
                   <tr>
-                     <td>AKB Username (Service Account):</td>
-                     <td><input type="text" size=25 name="akb_user" value="akb_user"></td>
+                     <td>NKT Username (Service Account):</td>
+                     <td><input type="text" size=25 name="nkt_user" value="nkt_user"></td>
                   </tr>
                   <tr>
-                   <td>AKB Password (default: 123Cisco123):</td>
-                     <td><input type="password" size=25 name="akb_pass" value="123Cisco123"></td>
+                   <td>NKT Password (default: 123Cisco123):</td>
+                     <td><input type="password" size=25 name="nkt_pass" value="123Cisco123"></td>
                   </tr>
                   -->
                   <tr>

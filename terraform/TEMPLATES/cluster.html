@@ -34,7 +34,7 @@
 <head>
    {{ turbo() }}
    <meta charset="utf-8">
-   <title>AKB - Cluster</title>
+   <title>NKT - Cluster</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
    <link rel="stylesheet" type="text/css"
@@ -79,7 +79,7 @@
                <div class="header-panels">
                   <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
                         id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">ACI Kubernetes Bootstrapper</div>
+                     <div class="header__title">Nexus Kubernetes Tools</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
                         data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
@@ -107,13 +107,24 @@
             <h2>K8s Cluster Details</h2>
             <p>
                <br> Here you should insert the K8s cluster details. </br>
-               <br>
-               <br><br><br>
+               <b>Internet Access:</b> If you do not have internet access you <b>MUST</b> use the provided VM template.<br>
+               No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. <br>
+               This only works for the default image versions and result in a faster cluster bring up.<br>
+               If you want to use your own template or specific image version then Internet access is required.<br>
 
             </p>
          </div>
 
-
+         <div class="container">
+            <div class="checkbox form-group form-group--inline c8041">
+               <label class="checkbox">
+                  <span class="checkbox__label hidden-xs">Does your K8s cluster have internet access?</span>
+                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;">
+                  <span id="sandbox_status" class="checkbox__input"></span>
+               </label>
+            </div>
+         </div>
+         <br>
 
          <div class="container">
             <div class="form-group base-margin-bottom">
@@ -143,10 +154,6 @@
                </div>
             </div>
          </div>   
-
-
-         <div class="container">
-      </div>
 
                         <!--advanced tab for proxy-->
                         <div class="form-group base-margin-bottom">
@@ -188,98 +195,20 @@
                      </div>
                   </div>
                   <div id="checkbox-checked" style="display:none;" >     
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="node_sub">Node Subnet:</label>
-                              <input type="text" id="node_sub" name="node_sub" value="{{ ipv4_cluster_subnet }}" readonly class="bg-gray-200" >
-            
-                           </div>
+
+                  <div class="container">
+                     <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                           <label for="control_plane_vip">API LB IP:PORT for K8s (Defaults NodeSubnet.252):</label>
+                           <input type="text" id="control_plane_vip" name="control_plane_vip" value="{{ api_ip }}:8443">
                         </div>
                      </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="node_sub_v6">Node Subnet v6:</label>
-                              <input type="text" id="node_sub_v6" name="node_sub_v6" value="{{ ipv6_cluster_subnet }}" readonly class="bg-gray-200" >
-            
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="local_as">Cluster BGP AS:
-                                 <span data-title="This is pre-calculated as the ACI AS + 1">ⓘ</span>
-                              </label>
-                              <input type="text" id="local_as" name="local_as" value="{{ local_as }}">
-            
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="control_plane_vip">API LB IP:PORT for K8s (Defaults NodeSubnet.252):</label>
-                              <input type="text" id="control_plane_vip" name="control_plane_vip" value="{{ api_ip }}:8443">
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="ipv4_pod_sub">POD Subnet (Defaults Node Subnet + 1):</label>
-                              <input type="text" id="ipv4_pod_sub" name="ipv4_pod_sub" value="{{ ipv4_pod_sub }}">
-            
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="ipv6_pod_sub">POD Subnet v6 (Default Node Subnet + 1):</label>
-                              <input type="text" id="ipv6_pod_sub" name="ipv6_pod_sub" value="{{ ipv6_pod_sub }}">
-            
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="ipv4_svc_sub">Cluster SVC Subnet (Default Node Subnet + 2):</label>
-                              <input type="text" id="ipv4_svc_sub" name="ipv4_svc_sub" value="{{ ipv4_svc_sub }}">
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="ipv6_svc_sub">Cluster SVC Subnet v6 (Default Node Subnet + 2/108) Max Prefix 108, K8s Limitation:</label>
-                              <input type="text" id="ipv6_svc_sub" name="ipv6_svc_sub" value="{{ ipv6_svc_sub }}">
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="ipv4_ext_svc_sub">External SVC Subnet (Default Node Subnet + 3):</label>
-                              <input type="text" id="ipv4_ext_svc_sub" name="ipv4_ext_svc_sub" value="{{ ipv4_ext_svc_sub }}">
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="ipv6_ext_svc_sub">External SVC Subnet v6 (Default Node Subnet + 2/108 +1)  Max Prefix 108, K8s Limitation:</label>
-                              <input type="text" id="ipv6_ext_svc_sub" name="ipv6_ext_svc_sub" value="{{ ipv6_ext_svc_sub }}">
-                           </div>
-                        </div>
-                     </div>
+                  </div>
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="kube_version">Kubernetes Version:</label>
-                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.22.4-00">
+                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.23.3-00">
                               <datalist id="kube_version_list">
                                  {% for o in k8s_ver %}
                                  <option value="{{ o }}">

@@ -188,7 +188,7 @@
                   <div class="container">
                      <div class="checkbox form-group form-group--inline c8041">
                         <label class="checkbox">
-                        <input type="checkbox" onclick="DoCheckUncheckDisplay(this,'checkbox-checked','checkbox-unchecked')" style="margin:0;">
+                        <input type="checkbox" id="advancedK8" onclick="DoCheckUncheckDisplay(this,'checkbox-checked','checkbox-unchecked')" style="margin:0;">
                         <span class="checkbox__input" id="advanced"></span>
                         <span class="checkbox__label hidden-xs">Advanced K8s Cluster Settings</span>
                         </label>
@@ -276,9 +276,9 @@
                   </div>         
 
 
-         <div class="container">
+         <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
+            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;">
             <input type="submit" value="Previous" class="btn btn--wide" name="button">
-            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button">
          </div>
 
 </form>
@@ -323,6 +323,10 @@
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
+<script>
+   loadInput();
+</script>
 <div id="canvas"></div>
 
 </body>

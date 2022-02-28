@@ -56,7 +56,7 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://10.67.185.120:5004")
+driver.get("http://10.67.185.120:5001")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
@@ -94,7 +94,7 @@ except ValueError as e:
     print("Loading took too much time!")
 
 elem = driver.find_element(By.ID,'vrf_name')
-elem.send_keys("calico_dev/vrf")
+elem.send_keys("calico_dev_v4/vrf")
 elem = driver.find_element(By.ID,'contract')
 elem.send_keys("common/calico_dev")
 elem = driver.find_element(By.ID,'physical_dom')
@@ -127,6 +127,9 @@ elem = driver.find_element(By.NAME,"username")
 elem.send_keys("administrator@vsphere.local")
 elem = driver.find_element(By.NAME,"pass")
 elem.send_keys("123Cisco123!")
+exit()
+elem = driver.find_element(By.ID,"template_checkbox")
+elem.click()
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

@@ -135,8 +135,8 @@ def wait_for_tasks(service_instance, tasks):
 def get_vm(si, name):
     vm = si.content.searchIndex.FindByUuid(None, args.uuid, True, instance_search)
 
-def import_spec_params(entityName,):
-    return vim.OvfManager.CreateImportSpecParams(entityName=entityName)
+def import_spec_params(entityName,diskProvisioning):
+    return vim.OvfManager.CreateImportSpecParams(entityName=entityName, diskProvisioning=diskProvisioning)
 
 def get_largest_free_rp(si, datacenter):
     """

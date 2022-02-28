@@ -561,7 +561,7 @@ def vctemplate():
             ova_path = str(os.getcwd()) + "/static/vm_templates/nkt_template.ova"
             ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
-            cisp = vc_utils.import_spec_params(entityName=template_name)
+            cisp = vc_utils.import_spec_params(entityName=template_name, diskProvisioning='thin')
 
             cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(), resource_pool, datastore, cisp)
             if cisr.error:

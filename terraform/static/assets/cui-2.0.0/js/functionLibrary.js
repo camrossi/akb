@@ -35,15 +35,15 @@ function saveInput() {
         currentElem.type === "checkbox"
       ) {
         // if (currentElem.
-        console.log(currentElem);
-        console.log(currentElem.checked);
+        // console.log(currentElem);
+        // console.log(currentElem.checked);
         sessionStorage.setItem(currentElem.id, currentElem.checked);
 
         //   console.log(currentElem.tagName)
       }
     }
   }
-  console.log("saved");
+  // console.log("Saved inputs locally.");
 }
 function loadInput() {
   var inputs, index;
@@ -61,7 +61,7 @@ function loadInput() {
           currentElem.type === "checkbox"
         )
       ) {
-        console.log(currentElem);
+        // console.log(currentElem);
         if (
           sessionStorage.getItem(currentElem.id) !== null &&
           (tag.length === 1 || (tag.length > 1 && tag[1] === currentElem.type))
@@ -79,5 +79,5 @@ function loadInput() {
       }
     }
   }
-  console.log("loaded");
+  // console.log("Loaded saved inputs from local storage.");
 }

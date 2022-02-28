@@ -4,7 +4,7 @@ const tags = [
   ["input", "list"],
   ["select"],
   // ["span", "checkbox__input"],
-  ["input", "checkbox"],
+  // ["input", "checkbox"],
 ];
 function saveInput() {
   var inputs, index;

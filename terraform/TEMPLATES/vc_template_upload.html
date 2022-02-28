@@ -96,7 +96,7 @@
             </div>
             <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
                <input id="submit" type="submit" value="Upload" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="clicked(event)">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
             </div>
          </form>
 
@@ -125,13 +125,17 @@
       </main>
       <!-- End Main Content -->
    </div>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
+<script>
+   loadInput();
+</script>
    <script>
       var source = new EventSource("/vctemplate");
       source.onmessage = function(event) {
@@ -139,6 +143,7 @@
       }
       function clicked(e)
       {
+         saveInput();
             if(!confirm('Press OK to start the Upload. If the template already exists it will be replaced. The UI will freeze till the upload it complete. You can check the upload progress from vCenter')) {
                e.preventDefault();
             }

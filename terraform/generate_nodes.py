@@ -6,7 +6,7 @@ subnet = ipaddress.ip_network("192.168.12.0/24")
 
 v6subnet = ipaddress.ip_network("2001:db8:12::/56")
 as_number = 650011
-nodes = 50
+nodes = 200
 racks = 2
 
 i = 1

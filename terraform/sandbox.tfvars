@@ -453,7 +453,7 @@ k8s_cluster ={
     "node_sub": "192.168.12.0/24",
     "node_sub_v6": "2001:db8:12::0/56",
     "ntp_server": "72.163.32.44",
-    "kube_version": "1.23.3-00",
+    "kube_version": "1.23.4-00",
     "crio_version": "1.23",
     "OS_Version": "xUbuntu_21.04",
     "haproxy_image": "haproxy:latest",

@@ -4,7 +4,7 @@ ansible_user: cisco
 ansible_sudo_pass: 123Cisco123
 
 #K8S an Crio Version
-kube_version: 1.23.3-00            # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
+kube_version: 1.23.4-00            # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
 OS_Version: "xUbuntu_21.04"
 crio_version: "1.23"
 

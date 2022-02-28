@@ -33,13 +33,6 @@ source "vsphere-clone" "clone" {
   vm_name        = "nkt-${local.timestamp}"
   ssh_username = "cisco"
   ssh_password = "123Cisco123"
-  disk_controller_type = ["lsilogic"]
-
-    storage {
-      disk_size = 32000
-      disk_thin_provisioned = true
-      disk_controller_index = 0
-  }
 }
 
 # a build block invokes sources and runs provisioning steps on them. The

@@ -310,23 +310,6 @@ class OvfHandler(object):
         except Exception:  # Any exception means we should stop updating progress.
             pass
 
-    def get_progress(self):
-        """
-        Update the progress and reschedule the timer if not complete.
-        """
-        try:
-            prog = self.handle.progress()
-            self.lease.Progress(prog)
-            if self.lease.state not in [vim.HttpNfcLease.State.done,
-                                        vim.HttpNfcLease.State.error]:
-                sys.stderr.write("Progress: %d%%\r" % prog)
-                return prog
-            else:
-                return 100
-        except Exception:  # Any exception means we should stop updating progress.
-            pass
-
-
 class FileHandle(object):
     def __init__(self, filename):
         self.filename = filename

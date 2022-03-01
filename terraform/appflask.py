@@ -452,7 +452,7 @@ def cluster_network():
             cluster['pod_subnet'] = req.get("ipv4_pod_sub")
             cluster['external_svc_subnet'] = external_svc_subnet
             cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
-            cluster['local_as'] = req.get("local_as")
+            cluster['local_as'] = req.get("k8s_local_as")
             cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
             cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
             cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
@@ -474,7 +474,7 @@ def cluster_network():
             return redirect('/l3out')
     if request.method == 'GET':
         ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
-
+        k8s_local_as= int(l3out['local_as'])+1
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
 
@@ -500,7 +500,7 @@ def cluster_network():
             ipv6_svc_sub = next(ipv6_svc_sub_iterator)
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
 
-        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, local_as=int(l3out['local_as'])+1, vm_deploy=vc['vm_deploy'])
+        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
@@ -588,6 +588,7 @@ def vctemplate():
                 task.vc_utils.wait_for_tasks(si, [task])
             upload = concurrent.futures.ThreadPoolExecutor()
             upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
+            # Wait for upload to complete UI freeze here
             upload.shutdown(wait=True)
             vm = vc_utils.find_by_name(si,folder,template_name)
             vm.CreateSnapshot_Task(name=str(datetime.now()),

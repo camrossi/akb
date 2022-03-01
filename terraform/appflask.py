@@ -14,7 +14,7 @@ from shelljob import proc
 from distutils.version import LooseVersion
 import random
 import string
-from ndfc import NDFC
+from ndfc import NDFC, Fabric
 l3out = {}
 vc = {}
 apic = {}
@@ -901,19 +901,34 @@ def fabric():
 
 @app.route("/query_ndfc", methods=["GET"])
 def query_ndfc():
-    # TODO: impelement query API
-    fabric_type = get_fabric_type(request)
+    # function to implement query ndfc API
     fabric_name = request.args.get("fabric_name")
     query_vrf = request.args.get("query_vrf")
     query_inv = request.args.get("query_inv")
-    print(query_vrf)
     inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
-    inst_ndfc.logon()
-    result = inst_ndfc.get_vrfs(fabric_name)
-    vrfs = []
-    for vrf in result:
-        vrfs.append(vrf["vrfName"])
-    return json.dumps(vrfs), 200
+    logon = inst_ndfc.logon()
+    if not logon:
+        return json.dumps('{"error": "login failed"}'), 400
+    if query_vrf == "true":
+        vrfs = []
+        result = inst_ndfc.get_vrfs(fabric_name)
+        for vrf in result:
+            vrfs.append(vrf["vrfName"])
+        return json.dumps(vrfs), 200
+    elif query_inv == "true":
+        vpc_peers = []
+        fabric = Fabric(fabric_name, inst_ndfc)
+        fabric.get_inventory()
+        inv = fabric.inventory
+        for sw in inv.values():
+            if not sw.get("isVpcConfigured") or sw.get("role").lower() != "primary":
+                continue
+            vpc = {
+                "primary": sw.get("hostName"),
+                "secondary": sw.get("peer")
+            }
+            vpc_peers.append(vpc)
+        return json.dumps(vpc_peers), 200
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -927,32 +942,31 @@ def login():
         req = request.form
         button = req.get("button")
         if button == "Login":
-            if fabric_type == "aci":
-                apic['url'] = normalize_url(request.form["fabric"])
-                print(apic['url'])
-                apic['username'] = request.form['username']
-                apic['password'] = request.form['password']
-                apic['akb_user'] = "akb_user_" + get_random_string(6)  # request.form['akb_user']
-                apic['akb_pass'] = get_random_string(20)
-                apic['private_key'] = "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
-                apic['oob_ips'] = ""
-                # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
-                # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
-                # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR
-                url = apic['url'] + '/acimeta/aci-meta.json'
-                try:
-                    r = requests.get(url, verify=False, allow_redirects=True, timeout=5)
-                except Exception as e:
-                    print(e)
-                    flash("Unable to connect to APIC", error)
-                    return render_template('login.html')
-                home = os.path.expanduser("~")
-                meta_path = home + '/.aci-meta'
-                if not os.path.exists(meta_path):
-                    os.makedirs(meta_path)
-                open(meta_path + '/aci-meta.json', 'wb').write(r.content)
-        ## Generate the inventory file for the APIC, this looks ugly might want to clean up
-                config = f"""apic: #You ACI Fabric Name
+            apic['url'] = normalize_url(request.form["fabric"])
+            print(apic['url'])
+            apic['username'] = request.form['username']
+            apic['password'] = request.form['password']
+            apic['akb_user'] = "akb_user_" + get_random_string(6)  # request.form['akb_user']
+            apic['akb_pass'] = get_random_string(20)
+            apic['private_key'] = "../ansible/roles/aci/files/" + apic['akb_user'] + '-user.key'
+            apic['oob_ips'] = ""
+            # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
+            # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
+            # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR
+            url = apic['url'] + '/acimeta/aci-meta.json'
+            try:
+                r = requests.get(url, verify=False, allow_redirects=True, timeout=5)
+            except Exception as e:
+                print(e)
+                flash("Unable to connect to APIC", error)
+                return render_template('login.html')
+            home = os.path.expanduser("~")
+            meta_path = home + '/.aci-meta'
+            if not os.path.exists(meta_path):
+                os.makedirs(meta_path)
+            open(meta_path + '/aci-meta.json', 'wb').write(r.content)
+    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
+            config = f"""apic: #You ACI Fabric Name
   hosts:
     {apic['url'].replace("https://",'')}:
       validate_certs: no
@@ -965,35 +979,36 @@ def login():
       # We also create certificates for this user name to use cert based authentication
       aci_temp_username: {apic['akb_user']}
       aci_temp_pass: {apic['akb_pass']}"""
-                with open('../ansible/inventory/apic.yaml', 'w') as f:
-                    f.write(config)
-                # Generate temporary user and certificate
-                g = proc.Group()
-                g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
-                #Just wait for terraform to finish
-                for s in read_process(g):
-                    ansible_output += str(s, 'utf-8')
+            with open('../ansible/inventory/apic.yaml', 'w') as f:
+                f.write(config)
+            # Generate temporary user and certificate
+            g = proc.Group()
+            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
+            #Just wait for terraform to finish
+            for s in read_process(g):
+                ansible_output += str(s, 'utf-8')
 
-                # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
-                # This for some reason does not work on Alpine so I do a hacky thing:
-                #if g.get_exit_codes()[0][1] == 0 :
-                #    return redirect('/l3out')
-                # If something failed then the user creation failed.
-                if "failed=0" in ansible_output:
-                    return redirect('/l3out')
-                else:
-                    return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype='text/event-stream'))
-            if fabric_type == "vxlan_evpn":
-                global ndfc
-                ndfc = {}
-                ndfc["url"] = normalize_url(request.form["nd"])
-                ndfc["username"] = request.form["username"]
-                ndfc["password"] = request.form["password"]
-                ndfc["platform"] = "nd"  # set to nd stattically
-                inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
-                if not inst_ndfc.logon():
-                    return json.dumps({"error": "login fail"}), 400
-                return redirect("/fabric?fabric_type=vxlan_evpn")
+            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
+            # This for some reason does not work on Alpine so I do a hacky thing:
+            #if g.get_exit_codes()[0][1] == 0 :
+            #    return redirect('/l3out')
+            # If something failed then the user creation failed.
+            if "failed=0" in ansible_output:
+                return redirect('/l3out')
+            else:
+                return (Response("Unable to create the akb user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype='text/event-stream'))
+        if fabric_type == "vxlan_evpn":
+            global ndfc
+            ndfc = {}
+            ndfc["url"] = normalize_url(request.json["url"])
+            ndfc["username"] = request.json["username"]
+            ndfc["password"] = request.json["password"]
+            ndfc["platform"] = "nd"  # set to nd stattically
+            inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
+            if not inst_ndfc.logon():
+                print("login to ndfc failed")
+                return json.dumps({"error": "login fail"}), 400
+            return json.dumps({"ok": "login success"}), 200
         if button == "Previous":
             return redirect('/prereqaci')
     if request.method == "GET":

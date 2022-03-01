@@ -44,7 +44,7 @@ build {
   provisioner "shell" {
     inline = [
       "sudo apt update",
-      "sudo apt upgrade",
+      "sudo apt upgrade -y",
       "sudo apt install -y python3-pip sshpass",
       "wget https://github.com/camrossi/akb/archive/refs/heads/main.zip",
       "unzip main.zip",
@@ -57,7 +57,7 @@ build {
       "sudo unzip terraform_1.1.6_linux_amd64.zip  -d /bin",
       "rm terraform_1.1.6_linux_amd64.zip",
       "cd akb-main/terraform",
-      "terraform init",
+      "terraform init -upgrade",
       "sudo cp /home/cisco/akb-main/packer/nkt.service /etc/systemd/system/nkt.service",
       "sudo systemctl enable  nkt.service && sudo systemctl start nkt.service", 
     ]

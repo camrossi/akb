@@ -1,5 +1,6 @@
 import json
 import requests
+from requests.exceptions import ConnectionError
 __author__ = "Shangxin Du(shdu@cisco.com)"
 
 
@@ -506,10 +507,14 @@ class NDFC:
             "userPasswd": self.password,
             "domain": "local"
         }
-        response = self.session.post(logon_url,
-                                     headers=headers,
-                                     data=json.dumps(data),
-                                     verify=False)
+        try:
+            response = self.session.post(logon_url,
+                                         headers=headers,
+                                         data=json.dumps(data),
+                                         verify=False)
+        except ConnectionError as e:
+            print(e)
+            return False
         if response.ok:
             return True
         else:

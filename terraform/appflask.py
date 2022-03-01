@@ -17,7 +17,7 @@ import random
 import string
 from datetime import datetime
 import concurrent.futures
-from ndfc import NDFC
+from ndfc import NDFC, Fabric
 l3out = {}
 vc = {}
 apic = {}
@@ -972,19 +972,34 @@ def fabric():
 
 @app.route("/query_ndfc", methods=["GET"])
 def query_ndfc():
-    # TODO: impelement query API
-    fabric_type = get_fabric_type(request)
+    # function to implement query ndfc API
     fabric_name = request.args.get("fabric_name")
     query_vrf = request.args.get("query_vrf")
     query_inv = request.args.get("query_inv")
-    print(query_vrf)
     inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
-    inst_ndfc.logon()
-    result = inst_ndfc.get_vrfs(fabric_name)
-    vrfs = []
-    for vrf in result:
-        vrfs.append(vrf["vrfName"])
-    return json.dumps(vrfs), 200
+    logon = inst_ndfc.logon()
+    if not logon:
+        return json.dumps('{"error": "login failed"}'), 400
+    if query_vrf == "true":
+        vrfs = []
+        result = inst_ndfc.get_vrfs(fabric_name)
+        for vrf in result:
+            vrfs.append(vrf["vrfName"])
+        return json.dumps(vrfs), 200
+    elif query_inv == "true":
+        vpc_peers = []
+        fabric = Fabric(fabric_name, inst_ndfc)
+        fabric.get_inventory()
+        inv = fabric.inventory
+        for sw in inv.values():
+            if not sw.get("isVpcConfigured") or sw.get("role").lower() != "primary":
+                continue
+            vpc = {
+                "primary": sw.get("hostName"),
+                "secondary": sw.get("peer")
+            }
+            vpc_peers.append(vpc)
+        return json.dumps(vpc_peers), 200
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1060,17 +1075,17 @@ def login():
                 return redirect('/l3out')
             else:
                 return (Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
-            if fabric_type == "vxlan_evpn":
-                global ndfc
-                ndfc = {}
-                ndfc["url"] = normalize_url(request.form["nd"])
-                ndfc["username"] = request.form["username"]
-                ndfc["password"] = request.form["password"]
-                ndfc["platform"] = "nd"  # set to nd stattically
-                inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
-                if not inst_ndfc.logon():
-                    return json.dumps({"error": "login fail"}), 400
-                return redirect("/fabric?fabric_type=vxlan_evpn")
+        if fabric_type == "vxlan_evpn":
+            global ndfc
+            ndfc = {}
+            ndfc["url"] = normalize_url(request.form["nd"])
+            ndfc["username"] = request.form["username"]
+            ndfc["password"] = request.form["password"]
+            ndfc["platform"] = "nd"  # set to nd stattically
+            inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
+            if not inst_ndfc.logon():
+                return json.dumps({"error": "login fail"}), 400
+            return json.dumps({"ok": "login success"}), 200
         if button == "Previous":
             return redirect('/prereqaci')
     if request.method == "GET":

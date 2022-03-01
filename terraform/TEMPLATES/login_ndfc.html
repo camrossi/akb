@@ -104,7 +104,7 @@
                             <tr>
                                 <td>
                                     <div class="container">
-                                        <input type="Submit" value="Login" class="btn btn--wide" name="button" id="login">
+                                        <input type="Button" value="Login" class="btn btn--wide" name="button" id="login">
                                     </div>
                                 </td>
                             </tr>
@@ -172,32 +172,36 @@
             </script>
         </body>
         <script>
+            var login = function(e){
+                var update_url = "{{ url_for("login")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+                $.ajax({
+                    url: update_url,
+                    type: 'post',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        url: $("#url").val(),
+                        username: $("#username").val(),
+                        password: $("#password").val(),
+                    }),
+                    success: function (data, status, xhr) {
+                        $(location).attr('href',"{{ url_for("fabric") }}?fabric_type=vxlan_evpn");
+                    },
+                    error: function (xhr, status, error) {
+                        var error_msg = JSON.parse(xhr.responseText)
+                        $("#alert_fail_msg").text(error_msg.error)
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                })
+            };
+
             $(document).ready(function () {
-                $("#login").click(function (e) {
-                    var update_url = "{{ url_for("login")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
-                    $.ajax({
-                        url: update_url,
-                        type: 'post',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            url: $("#url").val(),
-                            username: $("#username").val(),
-                            password: $("#password").val(),
-                        }),
-                        success: function (data, status, xhr) {
-                        },
-                        error: function (xhr, status, error) {
-                            if (xhr.status == "302") {
-                                console.log(xhr.redirect)
-                            };
-                                
-                            var error_msg = JSON.parse(xhr.responseText)
-                            $("#alert_fail_msg").text(error_msg.error)
-                            $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
-                        }
-                    });
+                $("#password").on("keypress", function(e){
+                    if (e.key == "Enter") {
+                        login();
+                    };
                 });
-            })
+                $("#login").on("click", login);
+            });
         </script>
 
 </html>

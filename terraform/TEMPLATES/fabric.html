@@ -81,6 +81,10 @@
                 </p>
 
             </div>
+            <div id="alert_fail" class="alert alert--warning" style="display: none">
+                <div class="alert__icon icon-warning-outline"></div>
+                <div id="alert_fail_msg" class="alert__message"></div>
+            </div>
             <form id="mainForm" name="mainForm">
                 <div class="container">
                     <div class="form-group base-margin-bottom">
@@ -98,14 +102,13 @@
                     </div>
                 </div>
 
-                <div id="div_asn"class="container" style="display: none">
+                <div id="div_asn" class="container" style="display: none">
                     <div class="form-group base-margin-bottom">
                         <div class="form-group__text">
-                            <label
-                                for="fabric_asn">Fabric AS Number:
+                            <label for="fabric_asn">Fabric AS Number:
                                 <span data-title="Fabric ASN number, this is get from fabric configuration">ⓘ</span>
                             </label>
-                            <input type="text" id="input_fabric_asn" name="input_fabric_asn" value="" disabled/>
+                            <input type="text" id="fabric_asn" name="fabric_asn" value="" disabled/>
                         </div>
                     </div>
                 </div>
@@ -118,6 +121,18 @@
                             </datalist>
                             <label for="vrf">VRF name:
                                 <span data-title="VRF of Cluster"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <input list="datalist_network" id="network" name="network">
+                            <datalist id="datalist_network">
+                            </datalist>
+                            <label for="network">Network Name:
+                                <span data-title="NDFC Newtork of K8s Cluster"></span>
                             </label>
                         </div>
                     </div>
@@ -154,7 +169,7 @@
                                 for="bgp_pass">IPv4 Cluster Subnet:
                                 <span data-title="The IPv4 subnet for you cluster. This subnet should be able to be routable and reach internet to pull the container images.">ⓘ</span>
                             </label>
-                            <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="10.13.0.0/24" onchange="updateAnchorNodeIPv4(this)">
+                            <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="">
                         </div>
                     </div>
                 </div>
@@ -222,12 +237,21 @@
                         </div>
                     </div>
                     <div class="container">
+                        <div class="checkbox form-group base-margin-bottom">
+                            <label class="checkbox">
+                                <input id="enable_ipv6" type="checkbox" >
+                                <span  class="checkbox__input"></span>
+                                <span class="checkbox__label hidden-xs">Enable IPv6 of K8s Cluster</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="container_ipv6" class="container" style="display: none">
                         <div class="form-group base-margin-bottom">
                             <div class="form-group__text">
-                                <label for="bgp_pass">IPv6 Cluster Subnet (Optional):
-                                 <span data-title="The IPv6 subnet for you cluster. Currently IPv4 is used for internet connectivity so this subnet does not need to be routable outside of ACI" >ⓘ</span>
+                                <label for="ipv6_cluster_subnet">IPv6 Cluster Subnet:
+                                    <span data-title="The IPv6 subnet for you cluster. Get from selected network">ⓘ</span>
                                 </label>
-                                <input type="text" id="ipv6_cluster_subnet" name="ipv6_cluster_subnet" onchange="updateAnchorNodeIPv6(this)">
+                                <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="">
                             </div>
                         </div>
                     </div>
@@ -333,6 +357,57 @@
     <!-- End Main Content -->
     <script>
 
+        function gather_farbic_input () {
+            var fabric_name = $("#fabric").val();
+            var asn = $("#fabric_asn").val();
+            var vrf = $("#vrf").val();
+            var network = $("#network").val();
+            var gateway_v4 = $("#" + network).data("gateway_v4");
+            var loopback_id = $("#loopback_id").val();
+            var loopback_ipv4 = $("#loopback_ipv4").data("lo_ipv4_addrs");
+            var node_sub = $("#ipv4_cluster_subnet").val();
+            var dns_servers = $("#dns_servers").val();
+            var dns_domain = $("#dns_domain").val();
+            var ibgp_peer_vlan = $("#ibgp_peer_vlan").val();
+            var k8s_route_map = $("#route_map").val();
+            var route_tag = $("#loopback_route_tag").val();
+            var node_sub_v6 = $("#ipv6_cluster_subnet").val();
+            var bgp_pass = ""; // seet to emplty untiil it is supported
+            
+            var vpc_peers = []
+            $("#leaf_switches").children().each(function() {
+                var peer = {
+                    primary: $(this).data("primary"),
+                    secondary: $(this).data("secondary"),
+                    primary_ipv4: $(this).data("primary_ipv4"),
+                    secondary_ipv4: $(this).data("secondary_ipv4")
+                }
+                vpc_peers.push(peer);
+
+            });
+            var data = {
+                fabric_name: fabric_name,
+                asn: asn,
+                vrf: vrf,
+                network: network,
+                gateway_v4: gateway_v4,
+                loopback_id: loopback_id,
+                loopback_ipv4: loopback_ipv4,
+                node_sub: node_sub,
+                dns_servers: dns_servers,
+                dns_domain: dns_domain,
+                ibgp_peer_vlan: ibgp_peer_vlan,
+                k8s_route_map: k8s_route_map,
+                route_tag: route_tag,
+                node_sub_v6: node_sub_v6,
+                bgp_pass: bgp_pass,
+                vpc_peers: vpc_peers
+            }
+            console.log(data);
+            return data
+        };
+
+
         function update_peer_address (e) {
             if (e.key == "Enter") {
                 var this_svi = $(this).val();
@@ -362,9 +437,47 @@
                 };
             });
 
+            $("#network").change(function(){
+                var network = $(this).val();
+                console.log($(network).data())
+                $("#ipv4_cluster_subnet").val($(network).data("subnet_v4"));
+                $("#ipv6_cluster_subnet").val($(network).data("subnet_v6"));
+
+            });
+            $("#vrf").change(function(){
+                var vrf_name = $(this).val();
+                var fabric_name = $("#fabric").val();
+                var query_url = "{{ url_for("query_ndfc")}}"
+                $.ajax({
+                    url: query_url,
+                    type: 'get',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: {
+                        fabric_type: getUrlParameter('fabric_type'),
+                        fabric_name: fabric_name,
+                        query_network: true,
+                        vrf_name: vrf_name
+                    },
+                    success: function (result, status, xhr) {
+                        $.each(result, function(index, value){
+                            var option = '<option id="' + value["name"] + '"value="' + value["name"] +'">'
+                            var option_net = $(option).appendTo($("#datalist_network"));
+                            console.log(value["subnet_v4"])
+                            $(option_net).data("subnet_v4", value["subnet_v4"]);
+                            $(option_net).data("subnet_v6", value["subnet_v6"]);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                });
+
+            });
+
             $("#fabric").change(function(){
                 var fabric_name = this.value;
-                $("#input_fabric_asn").val($("#" + this.value).attr("data-asn"));
+                $("#fabric_asn").val($("#" + this.value).attr("data-asn"));
                 $("#div_asn").fadeIn(300);
                 var query_url = "{{ url_for("query_ndfc")}}"
                 $.ajax({
@@ -428,21 +541,46 @@
                         $("#form_loopback").addClass("form-group--error");
                         return false
                     };
+
+                    var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
+                    if (lo_ipv4_addrs == null) {
+                        lo_ipv4_addrs = []
+                        $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+                    };
+
                     var ip_addr = $(this).value;
                     var ipv4_addr = $("#input_lo_ipv4").val();
                     var lo_label = '<span class="label label--info label--raised base-margin-left"><span>' + ipv4_addr + '</span> <span class="icon-close"></span></span>';
-                    $("#loopback_ipv4").append(lo_label);
+                    var label_ipv4 = $(lo_label).appendTo("#loopback_ipv4");
+                    label_ipv4.data("ipv4", ipv4_addr);
+                    lo_ipv4_addrs.push(ipv4_addr);
+                    $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
                     $(this).val("");
                 }
             });
 
             $("#loopback_ipv4").on("click", ".icon-close", function(){
+                var ipv4  = $(this).parent().data("ipv4");
+                var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
+                var new_lo_ipv4_addrs = lo_ipv4_addrs.filter(function(v){
+                    return v != ipv4;
+                });
+                $("#loopback_ipv4").data("lo_ipv4_addrs", new_lo_ipv4_addrs);
                 $(this).parent().remove();
                 var count_lo = $("#loopback_ipv4").children().length;
                 if ( count_lo < 2 ) {
                     $("#form_loopback_alert").hide();
                     $("#form_loopback").removeClass("form-group--error");
                     return false
+                };
+            });
+
+            $("#enable_ipv6").on("change", function() {
+                if ($(this).is(":checked")) {
+                    $("#container_ipv6").fadeIn(500);
+                };
+                if ($(this).is(":unchecked")) {
+                    $("#container_ipv6").fadeOut(500);
                 };
             });
 
@@ -476,6 +614,23 @@
                 peer.data("secondary_ipv4", $("#secondary_ipv4").val());
             });
 
+            $("#next").on("click", function(e){
+                var data = gather_farbic_input();
+                var url = "/fabric?fabric_type=vxlan_evpn"
+                $.ajax({
+                    url: url,
+                    type: 'post',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function (result, status, xhr) {
+                        $(location).attr('href',"{{ url_for("vcenterlogin") }}?fabric_type=vxlan_evpn");
+                    },
+                    error: function (xhr, status, error) {
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                });
+            });
         });
 
     </script>

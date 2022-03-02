@@ -37,7 +37,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/vcenterlogin">
+<form id="form_vc_login" name="tenantForm" method="post" action="/vcenterlogin">
 
   <body class="cui cui--animated cui--compressed" data-theme="">
    <div id="oneui">
@@ -143,7 +143,15 @@
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
    <div id="canvas"></div>
 </body>
+<script>
+    $("#submit").on("click", function(){
+        var url = "{{ url_for("vcenterlogin")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        $("#form_vc_login").attr("action", url);
+        $("#form_vc_login").submit();
+    })
+</script>
 
 </html>

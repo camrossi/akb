@@ -41,7 +41,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/vcenter">
+<form id="form_vcenter" name="tenantForm" method="post" action="/vcenter">
 
   <body class="cui cui--animated cui--compressed" data-theme="">
    <div id="oneui">
@@ -134,11 +134,18 @@
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
       <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
    <script>
       loadInput();
 
    </script>
    <div id="canvas"></div>
 </body>
-
+<script>
+    $("#submit").on("click", function(){
+        var url = "{{ url_for("vcenter")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        $("#form_vcenter").attr("action", url);
+        $("#form_vcenter").submit();
+    })
+</script>
 </html>

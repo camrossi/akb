@@ -141,6 +141,35 @@ class Fabric:
 
         return result_list
 
+    def get_network_detail(self, net_name=None, vrf_name=None):
+        url = "/rest/top-down/v2/fabrics/{}/networks".format(self.name)
+        result_list = []
+        params = {}
+
+        if vrf_name:
+            params = {
+                "vrf-name": vrf_name
+            }
+
+        response = self._dcnm.rest(url, "get", params)
+        if response:
+            for item in response:
+                if net_name and net_name != item["networkName"]:
+                    continue
+                # no filter, return whole list
+                template_config = item["networkTemplateConfig"]
+                net = Network(item["fabric"],
+                              item["networkName"],
+                              item["networkId"],
+                              item["vrf"],
+                              vlan_id=template_config['vlanId'],
+                              gateway=template_config['gatewayIpAddress'],
+                              gateway_v6=template_config['gatewayIpV6Address'],
+                              template_config=template_config)
+                result_list.append(net)
+
+        return result_list
+
     def create_vrf(self, vrf):
         url = "/rest/top-down/fabrics/{}/vrfs".format(self.name)
 
@@ -340,6 +369,7 @@ class Network:
         self._vrf = vrf
         self._vlan_id = kwargs.get("vlan_id")
         self._gateway = kwargs.get("gateway")
+        self._gateway_v6 = kwargs.get("gateway_v6")
         self._status = kwargs.get("network_status")
         if kwargs.get("template_config"):
             self._template_config = kwargs.get("template_config")
@@ -372,6 +402,10 @@ class Network:
     @property
     def gateway(self):
         return self._gateway
+
+    @property
+    def gateway_v6(self):
+        return self._gateway_v6
 
     @property
     def template_config(self):
@@ -537,6 +571,7 @@ class NDFC:
                 return None
         if "get" == method.lower():
             response = self.session.get(rest_url,
+                                        params=data,
                                         headers=self.headers,
                                         verify=self.verify)
             if response.ok:

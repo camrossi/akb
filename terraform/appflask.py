@@ -106,12 +106,6 @@ def process_fabric_setting(data):
 
 
 def create_tf_vars(fabric_type, vc, ndfc, overlay, calico_nodes, cluster):
-    print(fabric_type)
-    print(vc)
-    print(ndfc)
-    print(overlay)
-    print(calico_nodes)
-    print(cluster)
     with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r") as f:
         tf_template = Template(f.read())
     tf_vars = tf_template.render(fabric_type=fabric_type,
@@ -120,7 +114,6 @@ def create_tf_vars(fabric_type, vc, ndfc, overlay, calico_nodes, cluster):
                                  overlay=overlay,
                                  calico_nodes=calico_nodes,
                                  cluster=cluster)
-    print(tf_vars)
     return tf_vars
 
 
@@ -199,6 +192,7 @@ def createVCVars(url, username, passw, dc, datastore, cluster, dvs, port_group, 
 
 def createClusterVars(control_plane_vip, node_sub, node_sub_v6, ipv4_pod_sub, ipv6_pod_sub, ipv4_svc_sub, ipv6_svc_sub, external_svc_subnet, external_svc_subnet_v6, local_as, kube_version, kubeadm_token,
                       crio_version, crio_os, haproxy_image, keepalived_image, keepalived_router_id, timezone, docker_mirror, http_proxy_status, http_proxy, ntp_server, ubuntu_apt_mirror, sandbox_status):
+    print(sandbox_status)
     cluster = {
         "control_plane_vip": control_plane_vip.split(":")[0],
         "vip_port": control_plane_vip.split(":")[1],
@@ -458,9 +452,7 @@ def calico_nodes():
                 if fabric_type == "aci":
                     ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out['ipv4_cluster_subnet']).prefixlen)
                 elif fabric_type == "vxlan_evpn":
-                    print(overlay)
                     ip = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
-                    print(ip)
                 ipv6 = ""
                 natip = ""
                 rack_id = "1"
@@ -551,7 +543,6 @@ def cluster():
                 ipv6_cluster_subnet = overlay["node_sub_v6"]
 
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
-            print(cluster)
             cluster = createClusterVars(
                 req.get("control_plane_vip"),
                 ipv4_cluster_subnet,

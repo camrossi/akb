@@ -46,7 +46,7 @@ def get_fabric_type(request: request) -> str:
     return fabric_type.lower()
 
 
-def normalize_url(hostname):
+def normalize_url(hostname: str) -> str:
     if hostname.startswith('http://'):
         url = hostname.replace("http://", "https://")
     else:
@@ -56,7 +56,7 @@ def normalize_url(hostname):
     return url
 
 
-def process_fabric_setting(data):
+def process_fabric_setting(data: dict) -> bool:
     global overlay
     overlay = {}
     try:
@@ -108,7 +108,12 @@ def process_fabric_setting(data):
     return True
 
 
-def create_tf_vars(fabric_type, vc, ndfc, overlay, calico_nodes, cluster):
+def create_tf_vars(fabric_type: str,
+                   vc: dict,
+                   ndfc: dict,
+                   overlay: dict,
+                   calico_nodes: dict,
+                   cluster: dict) -> str:
     with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r") as f:
         tf_template = Template(f.read())
     tf_vars = tf_template.render(fabric_type=fabric_type,
@@ -253,6 +258,12 @@ def prereqaci():
         if button == "Next":
             return redirect('/docs/prereqvc')
     return render_template('docs/prereqaci.html')
+
+
+# temporary solution for static page
+@app.route('/docs/ndfc', methods=['GET', 'POST'])
+def doc_ndfc():
+    return render_template('docs/ndfc.html')
 
 ##### DOCUMENTATION END #####
 

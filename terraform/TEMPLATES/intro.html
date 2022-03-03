@@ -124,7 +124,7 @@
                         <div class="col-md-2">
                             <div class="form-group dropdown">
                                 <div class="form-group__text select">
-                                    <input id="select-type-styled" name="fabric_type" value="Select Fabric Type">
+                                    <input id="fabric_type" name="fabric_type" value="Select Fabric Type">
                                 </div>
                                 <div class="dropdown__menu">
                                     <a value="aci" class="selected">ACI</a>
@@ -132,7 +132,7 @@
                                 </div>
                             </div>
                         </div>
-                        <input type="button" value="Open Documentation" class="btn btn--wide" onclick="window.open('docs/doc','_blank')">
+                        <input id="btn_doc" type="button" value="Open Documentation" class="btn btn--wide">
                         <input type="submit" value="Next" class="btn btn--wide" name="button">
                     </div>
                     <br>
@@ -182,6 +182,14 @@
             var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
             var myChart = Highcharts.chart(val, JSON.parse(finalJson));
         })
+        $("#btn_doc").on("click", function(){
+            var fabric_type = $("#fabric_type").val();
+            if (fabric_type == "NDFC/VXLAN_EVPN") {
+                window.open('docs/ndfc','_blank');
+            } else {
+                window.open('docs/doc','_blank');
+            };
+        });
     })
     $('#canvas').on('click', function () {
         html2canvas(document.body, {}).then(canvas => {

@@ -426,20 +426,6 @@
             return data
         };
 
-
-        function update_peer_address (e) {
-            if (e.key == "Enter") {
-                var this_svi = $(this).val();
-                var peer_svi = next_ip(this_svi);
-                if ($(this).attr("id") == "primary_ipv4") {
-                    $("#secondary_ipv4").val(peer_svi);
-                };
-                if ($(this).attr("id") == "secondary_ipv4") {
-                    $("#secondary_ipv4").val(peer_svi);
-                };
-            };
-        };
-
         $(document).ready(function() {
             $("#loopback_ipv4").data("lo_ipv4_addrs", [])
             $("#loopback_ipv6").data("lo_ipv6_addrs", [])
@@ -648,8 +634,11 @@
                 $(this).parent().remove();
             });
 
-            $("#primary_ipv4").on("keyup", update_peer_address);
-            $("#secondary_ipv4").on("keyup", update_peer_address);
+            $("#primary_ipv4").on("blur", function (e){
+                var this_svi = $(this).val();
+                var peer_svi = next_ip(this_svi);
+                $("#secondary_ipv4").val(peer_svi);
+            });
 
             $("#add_node").on("click", function(e){
                 var dup = false;

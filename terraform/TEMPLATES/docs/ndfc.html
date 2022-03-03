@@ -72,12 +72,12 @@
                     <h1 class="page-title">VXLAN EVPN and Calico Architecture</h1>
                 </header>
                 <div class="page-body">
-                    <p id="1a4a776e-1273-4cfc-8ecb-4eed1db95ec2" class="">
-                    This tool implements Calico Network on Kubernetes cluster based on the <em>AS-per-Cluster</em> in <a href="https://www.cisco.com/c/en/us/td/docs/dcn/whitepapers/cisco-nx-os-calico-network-design.html"><strong>Cisco NX-OS Calico Network Design White Paper</strong></a>, section <strong>Deploy Calico over VXLAN EVPN fabrics with </strong>a little variation. This tool under the hood uses Terraform to push configuration to fabric through Nexus Dashboard Fabric Controller(NDFC) and deploy Kubernetes(K8s) Virtual Machines. Ansible is used to configure K8s VMs, bootstrap and provision K8s Cluster.
+                    <p id="1a4a776e-1273-4cfc-8ecb-4eed1db95ec2" class="text-size-16">
+                    This tool implements Calico Network on Kubernetes cluster based on the <em>AS-per-Cluster</em> in <a href="https://www.cisco.com/c/en/us/td/docs/dcn/whitepapers/cisco-nx-os-calico-network-design.html"><strong>Cisco NX-OS Calico Network Design White Paper</strong></a>, section <strong>Deploy Calico over VXLAN EVPN fabrics </strong>with a little variation. This tool under the hood uses Terraform to push configuration to fabric through Nexus Dashboard Fabric Controller(NDFC) and deploy Kubernetes(K8s) Virtual Machines. Ansible is used to configure K8s VMs, bootstrap and provision K8s Cluster.
                     </p>
                     <h2 id="f05c7bd9-79ed-4793-b450-54e7d1c65135" class="">High Level Architecture</h2>
-                    <p id="6571d860-c2d3-47c6-9ba7-e3996ea52ff6" class="">
-                    As best practice suggested by Cisco, all leaf switches are in the same AS while all Kubernetes nodes are in another AS. An eBGP session is established between the node IP of each Kubernetes node and the loopback address of the local leaf switch. To simplify the BGP configuration on Calico, same peer of loopback addresses will be used on all vPC Peers as they are local to each leaf switch and should not be advertised to EVPN address family.
+                    <p id="6571d860-c2d3-47c6-9ba7-e3996ea52ff6" class="text-size-16" >
+                    As best practice suggested by Cisco, all leaf switches are in the same AS while all Kubernetes nodes are in another AS. An eBGP session is established between the node IP of each Kubernetes node and the loopback address of the local leaf switch. To simplify the BGP configuration on Calico, same peer of loopback addresses will be used on all vPC Peers as they are local to each leaf switch and should not be advertised to EVPN address family. As result, iBGP peering in user VRF is needed between vPC peer. 
                     </p>
                     <div class="flex flex-center">
                         <div class="col-md-8 panel panel--bordered panel--raised panel--loose">
@@ -88,10 +88,10 @@
                         </figure>
                     </div>
                     </div>
-                    <p id="7b9d271d-7ce0-4bd0-a88d-df0059cde483" class="">
+                    <p id="7b9d271d-7ce0-4bd0-a88d-df0059cde483" class="text-size-16">
                     Please refer to <a href="https://www.cisco.com/c/en/us/td/docs/dcn/whitepapers/cisco-nx-os-calico-network-design.html"><strong>Cisco NX-OS Calico Network Design White Paper</strong></a><strong> </strong>for detail design consideration.</p>
                     <h2 id="d61e2e20-37f4-4e0f-8f1e-60d1520beb52" class="">Prerequisite</h2>
-                    <p id="5e42e081-af72-4814-901d-cd1c7cabbabe" class="">
+                    <p id="5e42e081-af72-4814-901d-cd1c7cabbabe" class="text-size-16">
                     The Kubernetes cluster needs to have allocated the following subnets:
                     <div class="indented">
                         <ul id="c5421f40-f0fe-4552-bf77-4066aad3227a" class="bulleted-list">
@@ -110,10 +110,10 @@
                     </div>
                     </p>
                     <p id="fd7b7190-3171-4537-9478-31150cf17a0c" class="">
-                    Network and VRF used for node connectivity need preconfigured on NDFC with IPv4 gateway, IPv6 is optional. This tool will acquire the subnet configured under Network and use it for Node Subnet. Additional resources are needed as follow:
+                    Network and VRF used for node connectivity need pre-configured on NDFC with IPv4 gateway(IPv6 is optional). This tool will acquire the subnet configured under Network and use it for Node Subnet. Additional resources are needed as follow:
                     </p>
                     <ul id="1059e225-eabb-4978-82e5-b10460583fde" class="bulleted-list">
-                        <li style="list-style-type:disc">loopback addresses(IPv4 and IPv6) for eBGP peer on leaf switches to K8s Nodes</li>
+                        <li style="list-style-type:disc">loopback addresses(IPv4 and IPv6), used for eBGP peer on leaf switches to K8s Nodes</li>
                     </ul>
                     <ul id="ca4d7ade-ca2b-4a61-a267-44db0187f9ff" class="bulleted-list">
                         <li style="list-style-type:disc">loopback ID, same loopback ID will be used on all leaf switches</li>
@@ -122,9 +122,9 @@
                         <li style="list-style-type:disc"> SVI address and one infra VLAN, used for iBGP peering between between vPC peer</li>
                     </ul>
                     <ul id="fcc6a090-76f7-4c16-9512-60f3a842e0f7" class="bulleted-list">
-                        <li style="list-style-type:disc">Route Map name and route tag, used for filtering routes to Kubernetes Nodes</li>
+                        <li style="list-style-type:disc">Route-map name and route tag, used for filtering routes to Kubernetes Nodes</li>
                     </ul>
-                    <p id="01efad2b-0dd2-4c86-b255-548a41855e67" class="">Other common requirements, please refer to this <a href="/docs/prereqaci">doc</a>.</p></div>
+                    <p id="01efad2b-0dd2-4c86-b255-548a41855e67" class="text-size-16">Other common requirements, please refer to this <a href="/docs/prereqaci">doc</a>.</p></div>
             </div>
          </div>
          </div>

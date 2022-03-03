@@ -1,6 +1,7 @@
 .terraform.lock.hcl
 *.tfstate
 *.terraform
+*.swp
 .DS_Store
 terraform/cluster.tfvars
 ansible/roles/calico/files/calicoctl

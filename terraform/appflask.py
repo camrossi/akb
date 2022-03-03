@@ -109,12 +109,6 @@ def process_fabric_setting(data):
 
 
 def create_tf_vars(fabric_type, vc, ndfc, overlay, calico_nodes, cluster):
-    print(fabric_type)
-    print(vc)
-    print(ndfc)
-    print(overlay)
-    print(calico_nodes)
-    print(cluster)
     with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r") as f:
         tf_template = Template(f.read())
     tf_vars = tf_template.render(fabric_type=fabric_type,
@@ -123,7 +117,6 @@ def create_tf_vars(fabric_type, vc, ndfc, overlay, calico_nodes, cluster):
                                  overlay=overlay,
                                  calico_nodes=calico_nodes,
                                  cluster=cluster)
-    print(tf_vars)
     return tf_vars
 
 

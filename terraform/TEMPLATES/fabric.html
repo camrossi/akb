@@ -251,8 +251,21 @@
                                 <label for="ipv6_cluster_subnet">IPv6 Cluster Subnet:
                                     <span data-title="The IPv6 subnet for you cluster. Get from selected network">ⓘ</span>
                                 </label>
-                                <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="">
+                                <input type="text" id="ipv6_cluster_subnet" name="ipv6_cluster_subnet" value="">
                             </div>
+                        </div>
+                        <div id="form_loopbackv6" class="form-group base-margin-bottom">
+                            <div class="form-group__text">
+                                <label for="input_lo_ipv6">IPv6 Loopback Addresses:
+                                    <span data-title="IPv6 loopback addresses for vPC peers, same addresses will be used for all vPC peers">ⓘ</span>
+                                </label>
+                                <input type="text" id="input_lo_ipv6" name="loopback_address" value=>
+                            </div>
+                            <div id="form_loopbackv6_alert" class="form-group__help" role="alert" style="display: none">
+                                <span>Maximum 2 addresses</span>
+                            </div>
+                        </div>
+                        <div id="loopback_ipv6" class="container  base-margin-bottom">
                         </div>
                     </div>
                     <div class="container">
@@ -362,18 +375,21 @@
             var asn = $("#fabric_asn").val();
             var vrf = $("#vrf").val();
             var network = $("#network").val();
-            var gateway_v4 = $("#" + network).data("gateway_v4");
             var loopback_id = $("#loopback_id").val();
             var loopback_ipv4 = $("#loopback_ipv4").data("lo_ipv4_addrs");
+            var loopback_ipv6 = $("#loopback_ipv6").data("lo_ipv6_addrs");
+            var gateway_v4 = $("#" + network).data("gateway_v4");
+            var gateway_v6 = $("#" + network).data("gateway_v6");
             var node_sub = $("#ipv4_cluster_subnet").val();
             var dns_servers = $("#dns_servers").val();
             var dns_domain = $("#dns_domain").val();
             var ibgp_peer_vlan = $("#ibgp_peer_vlan").val();
             var k8s_route_map = $("#route_map").val();
             var route_tag = $("#loopback_route_tag").val();
+            var ipv6_enabled = $("#enable_ipv6").prop("checked");
             var node_sub_v6 = $("#ipv6_cluster_subnet").val();
             var bgp_pass = ""; // seet to emplty untiil it is supported
-            
+
             var vpc_peers = []
             $("#leaf_switches").children().each(function() {
                 var peer = {
@@ -390,16 +406,19 @@
                 asn: asn,
                 vrf: vrf,
                 network: network,
-                gateway_v4: gateway_v4,
                 loopback_id: loopback_id,
                 loopback_ipv4: loopback_ipv4,
+                loopback_ipv6: loopback_ipv6,
+                gateway_v4: gateway_v4.split("/")[0],
+                gateway_v6: gateway_v6.split("/")[0],
+                node_sub_v6: node_sub_v6,
                 node_sub: node_sub,
                 dns_servers: dns_servers,
                 dns_domain: dns_domain,
                 ibgp_peer_vlan: ibgp_peer_vlan,
                 k8s_route_map: k8s_route_map,
                 route_tag: route_tag,
-                node_sub_v6: node_sub_v6,
+                ipv6_enabled: ipv6_enabled,
                 bgp_pass: bgp_pass,
                 vpc_peers: vpc_peers
             }
@@ -422,6 +441,8 @@
         };
 
         $(document).ready(function() {
+            $("#loopback_ipv4").data("lo_ipv4_addrs", [])
+            $("#loopback_ipv6").data("lo_ipv6_addrs", [])
             $(window).keydown(function(e){
                 if(e.key == "Enter") {
                     e.preventDefault();
@@ -439,10 +460,8 @@
 
             $("#network").change(function(){
                 var network = $(this).val();
-                console.log($(network).data())
-                $("#ipv4_cluster_subnet").val($(network).data("subnet_v4"));
-                $("#ipv6_cluster_subnet").val($(network).data("subnet_v6"));
-
+                $("#ipv4_cluster_subnet").val($("#" + network).data("subnet_v4"));
+                $("#ipv6_cluster_subnet").val($("#" + network).data("subnet_v6"));
             });
             $("#vrf").change(function(){
                 var vrf_name = $(this).val();
@@ -463,9 +482,10 @@
                         $.each(result, function(index, value){
                             var option = '<option id="' + value["name"] + '"value="' + value["name"] +'">'
                             var option_net = $(option).appendTo($("#datalist_network"));
-                            console.log(value["subnet_v4"])
                             $(option_net).data("subnet_v4", value["subnet_v4"]);
                             $(option_net).data("subnet_v6", value["subnet_v6"]);
+                            $(option_net).data("gateway_v4", value["gateway_v4"]);
+                            $(option_net).data("gateway_v6", value["gateway_v6"]);
                         });
                     },
                     error: function (xhr, status, error) {
@@ -575,11 +595,51 @@
                 };
             });
 
-            $("#enable_ipv6").on("change", function() {
-                if ($(this).is(":checked")) {
-                    $("#container_ipv6").fadeIn(500);
+            $("#input_lo_ipv6").on("keyup", function(e){
+                if (e.key == "Enter") {
+                    var count_lo = $("#loopback_ipv6").children().length;
+                    if ( count_lo >= 2 ) {
+                        $("#form_loopbackv6_alert").show();
+                        $("#form_loopbackv6").addClass("form-group--error");
+                        return false
+                    };
+
+                    var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
+                    if (lo_ipv6_addrs == null) {
+                        lo_ipv6_addrs = []
+                        $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+                    };
+
+                    var ipv6_addr = $("#input_lo_ipv6").val();
+                    var lo_label = '<span class="label label--info label--raised base-margin-left"><span>' + ipv6_addr + '</span> <span class="icon-close"></span></span>';
+                    var label_ipv6 = $(lo_label).appendTo("#loopback_ipv6");
+                    label_ipv6.data("ipv6", ipv6_addr);
+                    lo_ipv6_addrs.push(ipv6_addr);
+                    $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+                    $(this).val("");
+                }
+            });
+
+            $("#loopback_ipv6").on("click", ".icon-close", function(){
+                var ipv6  = $(this).parent().data("ipv6");
+                var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
+                var new_lo_ipv6_addrs = lo_ipv6_addrs.filter(function(v){
+                    return v != ipv6;
+                });
+                $("#loopback_ipv6").data("lo_ipv6_addrs", new_lo_ipv6_addrs);
+                $(this).parent().remove();
+                var count_lo = $("#loopback_ipv6").children().length;
+                if ( count_lo < 2 ) {
+                    $("#form_loopbackv6_alert").hide();
+                    $("#form_loopbackv6").removeClass("form-group--error");
+                    return false
                 };
-                if ($(this).is(":unchecked")) {
+            });
+
+            $("#enable_ipv6").on("change", function() {
+                if ($(this).prop("checked")) {
+                    $("#container_ipv6").fadeIn(500);
+                }else {
                     $("#container_ipv6").fadeOut(500);
                 };
             });

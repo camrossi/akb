@@ -14,7 +14,6 @@ variable "vc" {
     dvs         = string
     port_group  = string
     vm_template = string
-    library     = string
     vm_folder   = string
   })
 }

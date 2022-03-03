@@ -18,8 +18,10 @@ import string
 from datetime import datetime
 import concurrent.futures
 from ndfc import NDFC, Fabric
+from jinja2 import Template
 l3out = {}
 vc = {}
+ndfc = {}
 apic = {}
 cluster = {}
 overlay = {}
@@ -61,9 +63,19 @@ def process_fabric_setting(data):
         overlay["fabric_name"] = data["fabric_name"]
         overlay["asn"] = data["asn"]
         overlay["vrf"] = data["vrf"]
+        overlay["loopback_ipv4"] = data["loopback_ipv4"]
+        overlay["loopback_ipv6"] = data["loopback_ipv6"]
+        overlay["gateway_v4"] = data["gateway_v4"]
+        overlay["gateway_v6"] = data["gateway_v6"]
+        overlay["node_sub"] = data["node_sub"]
+        overlay["node_sub_v6"] = data["node_sub_v6"]
+        overlay["dns_domain"] = data["dns_domain"]
+        overlay["dns_servers"] = data["dns_servers"]
+        overlay["ipv6_enabled"] = data["ipv6_enabled"]
         overlay["network"] = data["network"]
         overlay["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
         overlay["bgp_pass"] = data["bgp_pass"]
+        overlay["k8s_route_map"] = data["k8s_route_map"]
         overlay["route_tag"] = data["route_tag"]
         overlay["vpc_peers"] = []
         for peer in data["vpc_peers"]:
@@ -71,7 +83,7 @@ def process_fabric_setting(data):
                 "hostname": peer["primary"],
                 "loopback_id": data["loopback_id"],
                 "loopback_ipv4": data["loopback_ipv4"][0],
-                "loopback_ipv6": "",
+                "loopback_ipv6": data["loopback_ipv6"][0] if overlay["ipv6_enabled"] else "",
                 "ibgp_svi_ipv4": peer["primary_ipv4"],
                 "ibgp_peer_ipv4": peer["secondary_ipv4"].split("/")[0],
                 "ibgp_svi_ipv6": "",
@@ -81,21 +93,38 @@ def process_fabric_setting(data):
             secondary = {
                 "hostname": peer["secondary"],
                 "loopback_id": data["loopback_id"],
-                "loopback_ipv4": data["loopback_ipv4"][0],
-                "loopback_ipv6": "",
+                "loopback_ipv4": data["loopback_ipv4"][1],
+                "loopback_ipv6": data["loopback_ipv6"][1] if overlay["ipv6_enabled"] else "",
                 "ibgp_svi_ipv4": peer["secondary_ipv4"],
                 "ibgp_peer_ipv4": peer["primary_ipv4"].split("/")[0],
                 "ibgp_svi_ipv6": "",
                 "ibgp_peer_ipv6": ""
             }
 
-            overlay["vpc_peers"].append(primary)
-            overlay["vpc_peers"].append(secondary)
-        overlay["gateway_v4"] = str(ipaddress.IPv4Interface(data["gateway_v4"]))
+            overlay["vpc_peers"].append([primary, secondary])
     except KeyError as e:
         print(e)
         return False
     return True
+
+
+def create_tf_vars(fabric_type, vc, ndfc, overlay, calico_nodes, cluster):
+    print(fabric_type)
+    print(vc)
+    print(ndfc)
+    print(overlay)
+    print(calico_nodes)
+    print(cluster)
+    with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r") as f:
+        tf_template = Template(f.read())
+    tf_vars = tf_template.render(fabric_type=fabric_type,
+                                 vc=vc,
+                                 ndfc=ndfc,
+                                 overlay=overlay,
+                                 calico_nodes=calico_nodes,
+                                 cluster=cluster)
+    print(tf_vars)
+    return tf_vars
 
 
 def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, dns_servers, dns_domain, anchor_nodes):
@@ -310,7 +339,12 @@ def create():
                 print(e)
                 config = []
         elif fabric_type == "vxlan_evpn":
-            config = []
+            config = create_tf_vars(fabric_type,
+                                    vc,
+                                    ndfc,
+                                    overlay,
+                                    calico_nodes,
+                                    cluster)
         else:
             config = json.dumps({
                 "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"
@@ -455,7 +489,7 @@ def calico_nodes():
                     if fabric_type == "aci":
                         ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
                     elif fabric_type == "vxlan_evpn":
-                        ip = str(ipaddress.IPv4Interface(overlay['gateway_v4']).network[i])
+                        ip = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
                     ipv6 = ""
                     natip = ""
                     rack_id = "1"
@@ -465,9 +499,10 @@ def calico_nodes():
             return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
         elif fabric_type == "vxlan_evpn":
             return render_template('calico_nodes.html',
-                                   ipv4_cluster_subnet=str(ipaddress.IPv4Interface(overlay['gateway_v4']).network),
-                                   ipv6_cluster_subnet="",  # TODO ipv6 support for NDFC 
+                                   ipv4_cluster_subnet=overlay["node_sub"],
+                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
                                    calico_nodes=json.dumps(calico_nodes, indent=4))
+
 
 def is_valid_hostname(hostname):
     if hostname == "":
@@ -537,16 +572,31 @@ def cluster():
         button = req.get("button")
         if button == "Next":
             global cluster
+            if fabric_type == "aci":
+                ipv4_cluster_subnet = l3out['ipv4_cluster_subnet'],
+                ipv6_cluster_subnet = l3out['ipv6_cluster_subnet'],
+            elif fabric_type == "vxlan_evpn":
+                ipv4_cluster_subnet = overlay["node_sub"]
+                ipv6_cluster_subnet = overlay["node_sub_v6"]
+
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
             cluster = createClusterVars(req.get("control_plane_vip"), l3out['ipv4_cluster_subnet'], l3out['ipv6_cluster_subnet'], req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"),req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
             req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"),
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
+            if fabric_type == "aci":
+                return redirect('/cluster_network')
+            elif fabric_type == "vxlan_evpn":
+                return redirect(f'/create?fabric_type={fabric_type}')
             return redirect('/cluster_network')
         elif button == "Previous":
             return redirect('/calico_nodes')
     if request.method == 'GET':
-        ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+        if fabric_type == "aci":
+            ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+        elif fabric_type == "vxlan_evpn":
+            ipv4_cluster_subnet = overlay["node_sub"]
+            ipv6_enabled = overlay["ipv6_enabled"]
 
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
 
@@ -593,7 +643,7 @@ def cluster_network():
         ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
         k8s_local_as= int(l3out['local_as'])+1
         # Calculate Subnets
-        ipv4_cluster_subnet = BetterIPv4Network(l3out['ipv4_cluster_subnet'])
+        ipv4_cluster_subnet = BetterIPv4Network(ipv4_cluster_subnet)
 
         # Calculate POD Subnets
         ipv4_pod_sub = (ipv4_cluster_subnet + 1 * ipv4_cluster_subnet.size())
@@ -611,13 +661,32 @@ def cluster_network():
         ipv6_svc_sub = ""
         ipv6_ext_svc_sub = ""
         if ipv6_enabled:
-            ipv6_cluster_subnet = BetterIPv6Network(l3out['ipv6_cluster_subnet'], strict=False)
+            if fabric_type == "aci":
+                ipv6_cluster_subnet = l3out['ipv6_cluster_subnet']
+            elif fabric_type == "vxlan_evpn":
+                ipv6_cluster_subnet = overlay["node_sub_v6"]
+            ipv6_cluster_subnet = BetterIPv6Network(ipv6_cluster_subnet, strict=False)
             ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
             ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
             ipv6_svc_sub = next(ipv6_svc_sub_iterator)
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
 
-        return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
+        if fabric_type == "aci":
+            return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
+        elif fabric_type == "vxlan_evpn":
+            return render_template(
+                'cluster.html',
+                ipv4_cluster_subnet=overlay["node_sub"],
+                ipv6_cluster_subnet=overlay["node_sub_v6"],
+                api_ip=api_ip,
+                k8s_ver=k8s_versions(),
+                ipv4_pod_sub=ipv4_pod_sub,
+                ipv6_pod_sub=ipv6_pod_sub,
+                ipv4_svc_sub=ipv4_svc_sub,
+                ipv6_svc_sub=ipv6_svc_sub,
+                ipv4_ext_svc_sub=ipv4_ext_svc_sub,
+                ipv6_ext_svc_sub=ipv6_ext_svc_sub,
+                local_as=int(overlay["asn"]) + 1)
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
@@ -1045,7 +1114,6 @@ def fabric():
     if request.method == "POST":
         data = request.json
         result = process_fabric_setting(data)
-        print(data)
         if result:
             return json.dumps({"ok": "fabric setting configured"}), 200
         else:
@@ -1090,11 +1158,12 @@ def query_ndfc():
         result = fabric.get_network_detail(vrf_name=vrf_name)
         if result:
             for item in result:
-                print(item)
                 subnet_v4 = str(ipaddress.IPv4Interface(item.gateway).network)
                 subnet_v6 = str(ipaddress.IPv6Interface(item.gateway_v6).network) if item.gateway_v6 else ""
                 net = {
                     "name": item.name,
+                    "gateway_v4": item.gateway,
+                    "gateway_v6": item.gateway_v6,
                     "subnet_v4": subnet_v4,
                     "subnet_v6": subnet_v6
                 }

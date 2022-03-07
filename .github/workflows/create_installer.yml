@@ -18,7 +18,6 @@ jobs:
     defaults:
       run:
         working-directory: packer
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Start Build
@@ -27,7 +26,7 @@ jobs:
       - name: Export OVA
         run: | 
           ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/nkt_installer-${{ github.run_number }} /nfs-share/www/nkt/nkt_installer-${{ github.run_number }}.ova
-       - name: Set permission for OVA
+      - name: Set permission for OVA
         run: | 
           chmod 777 /nfs-share/www/nkt/nkt_installer-github.${{ github.run_number }}.ova
    

@@ -6,7 +6,7 @@
              <div class="form-group base-margin-bottom">
                 <div class="form-group__text"><textarea rows="25" class="textarea" name="anchor_nodes" id="anchor_nodes">{{ anchor_nodes }}</textarea>
                     <label>
-                        Anchor nodes: JSON formatted entry defining the information about the ACI nodes
+                        Anchor nodes: JSON formatted entry defining the information about the ACI Leaves
                         <span data-title="You can enter the JSON manually or use the form on the right to add one node at a time.">ⓘ</span>
                     </label>
                 <div class="container text-danger text-bold"> {{ error }}</div>
@@ -36,7 +36,7 @@
                       {% for o in nodes_id %}
                       <option name="{{ o }}">{{ o }} </option>
                       {% endfor %}
-                   </select><label  for="node_id">Node ID
+                   </select><label  for="node_id">Leaf ID
                    <span data-title="Pick the switch ID">ⓘ</span>
                 </label>
                 </div>
@@ -64,7 +64,7 @@
                    </label>
                 </div>
              </div>
-             <input type="submit" value="Add Node" id="add_node" class="btn btn--wide" name="button">
+             <input type="submit" value="Add Leaf" id="add_node" class="btn btn--wide" name="button">
 
           </div>
        </div>

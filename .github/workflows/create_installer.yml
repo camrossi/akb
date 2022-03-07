@@ -25,7 +25,7 @@ jobs:
           path: packer
       - name: Start Build
         run: | 
-          packer build -var "version=${{ github.run_number }}"
+          packer build -var "version=${{ github.run_number }}" .
       - name: Export OVA
         run: | 
           ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/nkt_installer-${{ github.run_number }} /nfs-share/www/nkt/nkt_installer-${{ github.run_number }}.ova

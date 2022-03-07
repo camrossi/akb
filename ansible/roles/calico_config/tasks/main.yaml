@@ -3,12 +3,16 @@
   hosts: localhost
   connection: local 
   tasks:
-    - name: shell
-      shell: 'pwd'
+    - name: create static calico directory if it does not exist
+      file:
+          path: "$HOME/akb-main/terraform/static/calico/"
+          state: directory
+      tags:
+        - calico
     - name: Template files
       template:
-          src: ../../calico/templates/{{ item }}
-          dest: "../../../../terraform/static/calico/{{ item }}"
+          src: "$HOME/akb-main/ansible/roles/calico/templates/{{ item }}"
+          dest: "$HOME/akb-main/terraform/static/calico/{{ item }}"
       with_items:
         - BGPPassSecret.yaml
         - IPPool.yaml
@@ -17,4 +21,4 @@
         - calico-typha.yaml
         - calico-typha-v46.yaml   
       tags:
-        - calico     
+        - calico   

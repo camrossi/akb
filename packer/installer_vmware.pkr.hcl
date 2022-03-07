@@ -9,11 +9,6 @@ packer {
 # The tempalte Need to have:
 ##apt install open-vm-tools
 
-
-
-# "timestamp" template function replacement
-locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
-
 # source blocks are analogous to the "builders" in json templates. They are used
 # in build blocks. A build block runs provisioners and post-processors on a
 # source. Read the documentation for source blocks here:
@@ -30,7 +25,7 @@ source "vsphere-clone" "clone" {
   username       = "administrator@vsphere.local"
   password     = "123Cisco123!"
   vcenter_server = "vc1.cam.ciscolabs.com"
-  vm_name        = "nkt-${local.timestamp}"
+  vm_name        = "nkt_installer-${var.version}"
   ssh_username = "cisco"
   ssh_password = "123Cisco123"
 }

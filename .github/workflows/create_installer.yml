@@ -1,0 +1,36 @@
+# This is a basic workflow to help you get started with Actions
+
+name: create_intaller_ova
+
+# Controls when the workflow will run
+on:
+  release:
+    types: [published]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build_ova:
+    # The type of runner that the job will run on
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: packer
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - name: Start Build
+        run: | 
+          packer build -var "version=${{ github.run_number }}"
+      - name: Export OVA
+        run: | 
+          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/nkt_installer-${{ github.run_number }} /nfs-share/www/nkt/nkt_installer-${{ github.run_number }}.ova
+       - name: Set permission for OVA
+        run: | 
+          chmod 777 /nfs-share/www/nkt/nkt_installer-github.${{ github.run_number }}.ova
+   

@@ -343,12 +343,16 @@ def create():
                 print(e)
                 config = []
         elif fabric_type == "vxlan_evpn":
-            config = create_tf_vars(fabric_type,
-                                    vc,
-                                    ndfc,
-                                    overlay,
-                                    calico_nodes,
-                                    cluster)
+            try:
+                config = create_tf_vars(fabric_type,
+                                        vc,
+                                        ndfc,
+                                        overlay,
+                                        calico_nodes,
+                                        cluster)
+            except Exception as e:
+                print(e)
+                config = []
         else:
             config = json.dumps({
                 "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"

@@ -20,6 +20,9 @@ jobs:
         working-directory: packer/packer
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - uses: actions/checkout@v2
+        with:
+          path: packer
       - name: Start Build
         run: | 
           packer build -var "version=${{ github.run_number }}"

@@ -138,7 +138,7 @@ def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_po
                 "http_proxy_status": http_proxy_status if http_proxy_status else "", 
                 "http_proxy": http_proxy,
                 "ubuntu_apt_mirror" : ubuntu_apt_mirror,
-                "sandbox_status" : False if sandbox_status == "on" else True #I ask if there is internet access so on means there is internet
+                "sandbox_status" : True if sandbox_status == "on" else False
                 }
     return cluster
 
@@ -764,7 +764,7 @@ def l3out():
                 return turbo.stream(
                     turbo.replace(render_template('_vrf.html', vrfs=vrfs, contracts=contracts),
                                   target='vrf'))
-        elif button == "Add Node":
+        elif button == "Add Leaf":
             if req.get("anchor_nodes") != "":
                 try:
                     anchor_nodes = json.loads(req.get("anchor_nodes"))

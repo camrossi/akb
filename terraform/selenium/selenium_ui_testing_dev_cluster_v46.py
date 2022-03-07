@@ -94,7 +94,7 @@ except ValueError as e:
     print("Loading took too much time!")
 
 elem = driver.find_element(By.ID,'vrf_name')
-elem.send_keys("calico_dev_v4/vrf")
+elem.send_keys("calico_dev_v46/vrf")
 elem = driver.find_element(By.ID,'contract')
 elem.send_keys("common/calico_dev")
 elem = driver.find_element(By.ID,'physical_dom')

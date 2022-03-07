@@ -24,5 +24,11 @@ jobs:
         with:
           path: packer
       - name: Start Build
-        run: 
-          echo ${{github.ref_name}}
+        run: | 
+          packer build -var "version=${{github.ref_name}}" .
+      - name: Export OVA
+        run: | 
+          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/nkt_installer-${{github.ref_name}} /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
+      - name: Set permission for OVA
+        run: | 
+          chmod 777 /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova

@@ -354,6 +354,7 @@ def create():
                                         cluster)
             except Exception as e:
                 print(e)
+                config = []
         else:
             config = json.dumps({
                 "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"

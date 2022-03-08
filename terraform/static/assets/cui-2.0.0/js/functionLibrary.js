@@ -8,7 +8,9 @@ const tags = [
 ];
 function saveInput() {
   var inputs, index;
-
+  var path = window.location.pathname;
+  var page = path.split("/").pop();
+  console.log(page);
   for (const tag of tags) {
     // collects all the elements in the HTML with the given tag
     inputs = document.getElementsByTagName(tag[0]);
@@ -27,7 +29,7 @@ function saveInput() {
       ) {
         // console.log(currentElem)
         if (tag.length === 1 || (tag.length > 1 && tag[1] === currentElem.type))
-          sessionStorage.setItem(currentElem.id, currentElem.value);
+          sessionStorage.setItem(page + " " + currentElem.id, currentElem.value);
       } else if (
         tag[0] === "input" &&
         tag[1] === "checkbox" &&
@@ -37,7 +39,10 @@ function saveInput() {
         // if (currentElem.
         // console.log(currentElem);
         // console.log(currentElem.checked);
-        sessionStorage.setItem(currentElem.id, currentElem.checked);
+        sessionStorage.setItem(
+          page + " " + currentElem.id,
+          currentElem.checked
+        );
 
         //   console.log(currentElem.tagName)
       }
@@ -47,6 +52,9 @@ function saveInput() {
 }
 function loadInput() {
   var inputs, index;
+  var path = window.location.pathname;
+  var page = path.split("/").pop();
+  console.log(page);
   // console.log("load attempt")
   for (const tag of tags) {
     inputs = document.getElementsByTagName(tag[0]);
@@ -63,10 +71,12 @@ function loadInput() {
       ) {
         // console.log(currentElem);
         if (
-          sessionStorage.getItem(currentElem.id) !== null &&
+          sessionStorage.getItem(page + " " + currentElem.id) !== null &&
           (tag.length === 1 || (tag.length > 1 && tag[1] === currentElem.type))
         ) {
-          currentElem.value = sessionStorage.getItem(currentElem.id);
+          currentElem.value = sessionStorage.getItem(
+            page + " " + currentElem.id
+          );
         }
       } else if (
         tag[0] === "input" &&
@@ -74,7 +84,7 @@ function loadInput() {
         currentElem.tagName === "INPUT" &&
         currentElem.type === "checkbox"
       ) {
-        if (sessionStorage.getItem(currentElem.id) === "true")
+        if (sessionStorage.getItem(page + " " + currentElem.id) === "true")
           currentElem.click();
       }
     }

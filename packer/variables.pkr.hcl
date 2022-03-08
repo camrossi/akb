@@ -1,0 +1,3 @@
+variable "version" {
+    type = string
+}

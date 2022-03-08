@@ -8,3 +8,4 @@ terraform/cluster.tfvars
 *.csr 
 apic.yaml
 ansible/roles/calico/files/calicoctl
+plan

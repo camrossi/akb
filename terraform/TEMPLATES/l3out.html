@@ -269,7 +269,11 @@
                   </div>
 
          <p></p><p></p>
-         {% include "_anchor_nodes.html" %}    
+
+         <div id="dummy">
+            {% include "_anchor_nodes.html" %}    
+         </div>
+
 
          <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
             <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
@@ -309,17 +313,55 @@
 <!-- End Main Content -->
 </div>
 <script>
-   function updateAnchorNodeIPv4(button) {
-    document.getElementById('node_ipv4').value = document.getElementById('ipv4_cluster_subnet').value
-    console.log("ipv4")
+   function updateAnchorNodeIPv4(button, condition) {
+      if (condition === true) {
+         if (document.getElementById('node_ipv4').value === null || document.getElementById('node_ipv4').value === "") {
+            document.getElementById('node_ipv4').value = document.getElementById('ipv4_cluster_subnet').value
+            console.log("ipv4")
+         }
+         else
+            console.log(document.getElementById('ipv4_cluster_subnet').value)
+      }
+      else  {
+         document.getElementById('node_ipv4').value = document.getElementById('ipv4_cluster_subnet').value
+         console.log("ipv4")
+      }
    }
 
-   function updateAnchorNodeIPv6(button) {
-      document.getElementById('node_ipv6').value = document.getElementById('ipv6_cluster_subnet').value
-      console.log("ipv6")
+   function updateAnchorNodeIPv6(button, condition) {
+      if (condition === true) {
+         if (document.getElementById('node_ipv6').value === null || document.getElementById('node_ipv6').value === "") {
+            document.getElementById('node_ipv6').value = document.getElementById('ipv6_cluster_subnet').value
+            console.log("ipv6")
+         }
+         else
+            console.log(document.getElementById('ipv6_cluster_subnet').value)
+      }
+      else {
+         document.getElementById('node_ipv6').value = document.getElementById('ipv6_cluster_subnet').value
+         console.log("ipv6")
+      }
    }
    updateAnchorNodeIPv4();
    updateAnchorNodeIPv6();
+
+   // Create a mutation observer for IPv4 and IPv6
+   // const IPv4 = document.getElementById('node_ipv4')
+   // const IPv6 = document.getElementById('node_ipv6_subnet')
+   const dummy = document.getElementById('dummy')
+
+   const observer = new MutationObserver((mutationsList, observer) => {
+      for (const mutation of mutationsList) {
+         console.log(mutation.type)
+         if (mutation.type === "childList") {
+            updateAnchorNodeIPv4(null, true);
+            updateAnchorNodeIPv6(null, true);
+         }
+      }
+      console.log('Mutation observer body is being ran!')
+   })
+
+   observer.observe(dummy, { attributes: true, childList: true, subtree: true })
 </script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>

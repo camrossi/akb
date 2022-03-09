@@ -8,8 +8,8 @@ const tags = [
 ];
 function saveInput() {
   var inputs, index;
-  var path = window.location.pathname;
-  var page = path.split("/").pop();
+  const path = window.location.pathname;
+  const page = path.split("/").pop();
   console.log(page);
   for (const tag of tags) {
     // collects all the elements in the HTML with the given tag
@@ -52,9 +52,11 @@ function saveInput() {
 }
 function loadInput() {
   var inputs, index;
-  var path = window.location.pathname;
-  var page = path.split("/").pop();
-  console.log(page);
+  // console.log(JSON.stringify(sessionStorage, null, 2));
+
+  const path = window.location.pathname;
+  const page = path.split("/").pop();
+  // console.log(page);
   // console.log("load attempt")
   for (const tag of tags) {
     inputs = document.getElementsByTagName(tag[0]);
@@ -77,6 +79,50 @@ function loadInput() {
           currentElem.value = sessionStorage.getItem(
             page + " " + currentElem.id
           );
+        }
+      } else if (
+        tag[0] === "input" &&
+        tag[1] === "checkbox" &&
+        currentElem.tagName === "INPUT" &&
+        currentElem.type === "checkbox"
+      ) {
+        if (sessionStorage.getItem(page + " " + currentElem.id) === "true")
+          currentElem.click();
+      }
+    }
+  }
+  // console.log("Loaded saved inputs from local storage.");
+}
+
+function loadInputLimit(limitArr) {
+  var inputs, index;
+  console.log(JSON.stringify(sessionStorage, null, 2));
+
+  const path = window.location.pathname;
+  const page = path.split("/").pop();
+  console.log(page);
+  // console.log("load attempt")
+  for (const tag of limitArr) {
+    inputs = document.getElementsByTagName(tag[0]);
+    for (index = 0; index < inputs.length; ++index) {
+      currentElem = inputs[index];
+      if (
+        tag.length === 1 ||
+        !(
+          tag[0] === "input" &&
+          tag[1] === "checkbox" &&
+          currentElem.tagName === "INPUT" &&
+          currentElem.type === "checkbox"
+        )
+      ) {
+        console.log(currentElem);
+        if (
+          sessionStorage.getItem(page + " " + currentElem.id) !== null &&
+          (tag.length === 1 || (tag.length > 1 && tag[1] === currentElem.type))
+        ) {
+          const retrieved = sessionStorage.getItem(page + " " + currentElem.id);
+          currentElem.value = retrieved;
+          console.log(retrieved)
         }
       } else if (
         tag[0] === "input" &&

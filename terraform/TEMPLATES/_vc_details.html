@@ -48,7 +48,7 @@
          <label for="vm_templates">Select the VM templates for your K8s Cluster:
             <span data-title="Must be deployed on vCenter">ⓘ</span> 
          </label>
-         <input list="vms_list" id="vm_templates" name="vm_templates" />
+         <input list="vms_list" id="vm_templates" name="vm_templates"/>
          <datalist id="vms_list">
             {% for o in vm_templates %}
             <option value="{{ o }}">

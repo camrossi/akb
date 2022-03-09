@@ -1,56 +1,7 @@
 <!doctype html>
 <html lang="en">
 
-<script>
-   function loadInputVCenter() {
-      // console.log(JSON.stringify(sessionStorage, null, 2))
-      dcElem = document.getElementById("dc");
 
-      // load in the vCenter DC Name
-      retrievedVal = sessionStorage.getItem(page + " " + "dc")
-      if (retrievedVal !== null && retrievedVal !== "") {
-         dcElem.value = retrievedVal;
-         dcElem.form.requestSubmit();
-         console.log("if condition ran")
-         // setTimeout( () => { 
-         //    const templates = document.getElementById("vm_templates")
-         //    // if (templates.value !== sessionStorage.getItem(page + " " + currentElem.id))
-         //    loadInputLimit([["input", "list"]]);
-         // }, 2000)
-      }
-      else 
-         console.log("No saved value for vCenter DC Name")
-         
-
-      // load the rest of the page's options based on the vCenter DC Name picked
-      // dcElem.form.requestSubmit();
-   }
-   // window.onload = function() {
-   //    // console.log(e)
-   //    loadInputVCenter();
-   // }
-   // document.addEventListener("load", function(e) {
-   //    // console.log("readystatechange event fired")
-   //    console.log(e)
-   //    loadInputVCenter();
-   // });
-
-   document.addEventListener('turbo:load', function () {
-      // console.log("readystatechange event fired")
-      console.log("turbo:load fired");
-      loadInputVCenter();
-
-      const vcTurboFrame = document.getElementById("vc");
-      console.log(vcTurboFrame)
-      vcTurboFrame.addEventListener('turbo:frame-load', function () {
-         console.log("VC turbo frame was loaded");
-      });
-   });
-
-
-
-      
-</script>
       
 
 <head>
@@ -91,8 +42,64 @@
 </head>
 
 <form name="tenantForm" method="post" action="/vcenter">
+<script>
+   function loadInputVCenter() {
+      // console.log(JSON.stringify(sessionStorage, null, 2))
+      dcElem = document.getElementById("dc");
+      
+      const path = window.location.pathname;
+      const page = path.split("/").pop();
 
+      // load in the vCenter DC Name
+      retrievedVal = sessionStorage.getItem(page + " " + "dc")
+      if (retrievedVal !== null && retrievedVal !== "") {
+         dcElem.value = retrievedVal;
+         dcElem.form.requestSubmit();
+         console.log("if condition ran")
+      }
+      else 
+         console.log("No saved value for vCenter DC Name")
+   }
+
+   document.addEventListener('turbo:load', function () {
+      console.log("turbo:load fired");
+      loadInputVCenter();
+
+      const vcTurboFrame = document.getElementById("vc");
+      console.log(vcTurboFrame)
+
+      const path = window.location.pathname;
+      const page = path.split("/").pop();
+
+      const dummyC = document.getElementById('dummy_container')
+
+      const observer = new MutationObserver((mutationsList, observered) => {
+         console.log('Mutation observer body is being ran!')
+         loadInput();
+         observer.disconnect();
+         
+         delete observer;
+         // observered.disconnect()
+
+      })
+      // observer.disconnect();
+      // setTimeout( () => {
+      //    observer.disconnect();
+      // } , 2000)
+      observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
+      document.getElementById("vc").addEventListener('turbo:frame-render', function () {
+         console.log("VC turbo frame was loaded");
+      });
+      document.getElementById("dummy_container").addEventListener('turbo:frame-render', function () {
+         console.log("VC turbo frame was loaded");
+      });
+   });
+
+
+      
+</script>
   <body class="cui cui--animated cui--compressed" data-theme="">
+
    <div id="oneui">
       <!-- Main Content -->
       <header class="header" id="_uid818d10e3">
@@ -181,80 +188,10 @@
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script> -->
+   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script> -->
+   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script> -->
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
-   <script>
-
-
-
-      
-      const path = window.location.pathname;
-      const page = path.split("/").pop();
-
-
-      const dummyC = document.getElementById('dummy_container')
-
-      const observer = new MutationObserver((mutationsList, observer) => {
-         // for (const mutation of mutationsList) {
-         //    console.log(mutation.type)
-         //    // if (mutation.type === "childList") {
-         //    //    // updateAnchorNodeIPv4(null, true);
-         //    //    // updateAnchorNodeIPv6(null, true);
-         //    // }
-         // }
-         console.log('Mutation observer body is being ran!')
-         loadInput();
-         // observer.disconnect();
-      })
-
-      observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
-
-         // const dummyC1 = document.getElementById('vms_list')
-
-         // const observer1 = new MutationObserver((mutationsList1, observer1) => {
-         //    // for (const mutation of mutationsList) {
-         //    //    console.log(mutation.type)
-         //    //    // if (mutation.type === "childList") {
-         //    //    //    // updateAnchorNodeIPv4(null, true);
-         //    //    //    // updateAnchorNodeIPv6(null, true);
-         //    //    // }
-         //    // }
-         //    console.log('Mutation observer body is being ran! Observer 1')
-         //    loadInput();
-         //    // observer.disconnect();
-         // })
-
-         // observer1.observe(dummyC1, { attributes: true, childList: true, subtree: true })
-
-
-      // function loadInputVCenter() {
-      //    // console.log(JSON.stringify(sessionStorage, null, 2))
-      //    dcElem = document.getElementById("dc");
-
-      //    // load in the vCenter DC Name
-      //    retrievedVal = sessionStorage.getItem(page + " " + "dc")
-      //    if (retrievedVal !== null && retrievedVal !== "") {
-      //       dcElem.value = retrievedVal;
-      //       dcElem.form.requestSubmit();
-      //       console.log("if condition ran")
-      //       // setTimeout( () => { 
-      //       //    const templates = document.getElementById("vm_templates")
-      //       //    // if (templates.value !== sessionStorage.getItem(page + " " + currentElem.id))
-      //       //    loadInputLimit([["input", "list"]]);
-      //       // }, 2000)
-      //    }
-      //    else 
-      //       console.log("No saved value for vCenter DC Name")
-            
-
-      //    // load the rest of the page's options based on the vCenter DC Name picked
-      //    // dcElem.form.requestSubmit();
-      // }
-      // loadInputVCenter();
-
-   </script>
    <div id="canvas"></div>
 </body>
 

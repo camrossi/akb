@@ -198,6 +198,7 @@ def createVCVars(url="", username="", passw="", dc="", datastore="", cluster="",
           "dvs": dvs, "port_group": port_group, "vm_template": vm_template, "vm_folder": vm_folder, "vm_deploy": vm_deploy}
      
 
+
 def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
                         crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status=""):
     try:
@@ -380,7 +381,7 @@ def update_config():
             config = request.json.get("config", "[]")
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
-            return "OK", 200
+            return json.dumps({"msg": "Config update success!"}), 200
         elif fabric_type == "vxlan_evpn":
             config = request.json.get("config", "[]")
             with open('./ndfc/cluster.tfvars', 'w') as f:

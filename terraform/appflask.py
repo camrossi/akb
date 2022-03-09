@@ -55,6 +55,7 @@ def normalize_url(hostname: str) -> str:
 
 def process_fabric_setting(data: dict) -> bool:
     global overlay
+    global ipv5_enabled
     overlay = {}
     try:
         overlay["fabric_name"] = data["fabric_name"]
@@ -99,6 +100,7 @@ def process_fabric_setting(data: dict) -> bool:
             }
 
             overlay["vpc_peers"].append([primary, secondary])
+            ipv6_enabled = overlay["ipv6_enabled"]
     except KeyError as e:
         print(e)
         return False
@@ -615,8 +617,6 @@ def cluster_network():
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
-        if fabric_type == "vxlan_evpn":
-            ipv6_enabled = overlay["ipv6_enabled"]
         if button == "Next":
             if not vc['vm_deploy']:
                 global cluster
@@ -656,7 +656,6 @@ def cluster_network():
         elif fabric_type == "vxlan_evpn":
             ipv4_cluster_subnet = overlay['node_sub']
             k8s_local_as= int(overlay["asn"]) + 1
-            ipv6_enabled = overlay["ipv6_enabled"]
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(ipv4_cluster_subnet)

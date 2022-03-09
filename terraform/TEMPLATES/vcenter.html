@@ -61,38 +61,21 @@
          console.log("No saved value for vCenter DC Name")
    }
 
-   document.addEventListener('turbo:load', function () {
+   const loadListener = document.addEventListener('turbo:load', function () {
       console.log("turbo:load fired");
       loadInputVCenter();
-
-      const vcTurboFrame = document.getElementById("vc");
-      console.log(vcTurboFrame)
-
-      const path = window.location.pathname;
-      const page = path.split("/").pop();
 
       const dummyC = document.getElementById('dummy_container')
 
       const observer = new MutationObserver((mutationsList, observered) => {
-         console.log('Mutation observer body is being ran!')
+         // console.log('Mutation observer body is being ran!')
          loadInput();
          observer.disconnect();
-         
-         delete observer;
-         // observered.disconnect()
+
+         document.removeEventListener('turbo:load', null)
 
       })
-      // observer.disconnect();
-      // setTimeout( () => {
-      //    observer.disconnect();
-      // } , 2000)
       observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
-      document.getElementById("vc").addEventListener('turbo:frame-render', function () {
-         console.log("VC turbo frame was loaded");
-      });
-      document.getElementById("dummy_container").addEventListener('turbo:frame-render', function () {
-         console.log("VC turbo frame was loaded");
-      });
    });
 
 
@@ -184,10 +167,10 @@
       </main>
       <!-- End Main Content -->
    </div>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script> -->
    <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script> -->
    <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script> -->
    <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script> -->

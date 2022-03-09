@@ -11,10 +11,7 @@
     - ingress.yaml
     - metric_server.yaml
     - goldpinger.yaml
-<<<<<<< HEAD
     - local-storage.yaml
-=======
->>>>>>> 6a3828ec4c8e197ca5fc79a943a3d71def433980
   tags:
     - k8s_addons
 
@@ -25,10 +22,7 @@
     force: yes
   with_items:
     - vkaci.yaml.j2
-<<<<<<< HEAD
     - neo4j-values.yaml
-=======
->>>>>>> 6a3828ec4c8e197ca5fc79a943a3d71def433980
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
@@ -146,7 +140,6 @@
     state: present
   tags:
     - k8s_addons
-<<<<<<< HEAD
 
 - name: add local DNS entry for Neo4j
   lineinfile:
@@ -169,5 +162,3 @@
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
-=======
->>>>>>> 6a3828ec4c8e197ca5fc79a943a3d71def433980

@@ -84,11 +84,7 @@ resource "aci_external_network_instance_profile" "default" {
 
 resource "aci_l3_ext_subnet" "node" {
   external_network_instance_profile_dn = aci_external_network_instance_profile.default.id
-<<<<<<< HEAD
   ip                                   = var.l3out.ipv4_cluster_subnet
-=======
-  ip                                   = var.k8s_cluster.node_sub
->>>>>>> 6a3828ec4c8e197ca5fc79a943a3d71def433980
   scope                                = var.l3out.def_ext_epg_scope
 }
 

@@ -192,13 +192,16 @@ def tf_plan():
 @app.route('/tf_apply', methods=['GET', 'POST'])
 def tf_apply():
         g = proc.Group()
-        with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl.load(fp)
-        if current_config['vc']['vm_deploy'] == False:
-            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
-        else:
-            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan && \
-                ansible-playbook -b ../ansible/roles/calico_config/tasks/main.yaml -i ../ansible/inventory/nodes.ini"])
+        g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
+        
+        #with open("cluster.tfvars", 'r') as fp:
+        #    current_config = hcl.load(fp)
+        
+        #if current_config['vc']['vm_deploy'] == False:
+        #    g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
+        #else:
+        #    g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan && \
+        #        ansible-playbook -b ../ansible/roles/calico_config/tasks/main.yaml -i ../ansible/inventory/nodes.ini"])
         return Response( read_process(g), mimetype='text/event-stream' )
 
 

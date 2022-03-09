@@ -4,9 +4,13 @@
 *.swp
 .DS_Store
 terraform/cluster.tfvars
+<<<<<<< HEAD
 *.crt
 *.key
 *.csr 
 apic.yaml
 ansible/roles/calico/files/calicoctl
 plan
+=======
+ansible/roles/calico/files/calicoctl
+>>>>>>> 6a3828ec4c8e197ca5fc79a943a3d71def433980

@@ -110,10 +110,17 @@
                      </div>
                   </div>
                   <div class="col-md-8 flex-column-reverse">
+<<<<<<< HEAD
                            <label>Terraform Output:
                               <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
                            </label>
                            <iframe id='iframe' src=""                                                         ></iframe>
+=======
+                      <label>Terraform Output:
+                          <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
+                      </label>
+                      <iframe id='iframe' src=""></iframe>
+>>>>>>> 6a3828ec4c8e197ca5fc79a943a3d71def433980
                   </div>
                </div>
             </div>
@@ -172,9 +179,12 @@
        if (button.value === 'Apply') {
            document.getElementById('iframe').src = "{{ url_for("tf_apply") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
        }
+<<<<<<< HEAD
    }
    function autoscrollDown() {
       document.querySelector()
+=======
+>>>>>>> 6a3828ec4c8e197ca5fc79a943a3d71def433980
    }
 </script>
 <script>

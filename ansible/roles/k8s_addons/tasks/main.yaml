@@ -11,6 +11,7 @@
     - ingress.yaml
     - metric_server.yaml
     - goldpinger.yaml
+    - local-storage.yaml
   tags:
     - k8s_addons
 
@@ -22,7 +23,6 @@
   with_items:
     - vkaci.yaml.j2
     - neo4j-values.yaml
-    - local-storage.yaml
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
@@ -114,6 +114,7 @@
 
 - name: Expose Neo4j
   shell: kubectl patch svc  my-neo4j-neo4j -p '{"spec":{"type":"NodePort","externalIPs":["{{ neo4j_ip }}"]}}'
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
@@ -139,7 +140,6 @@
     state: present
   tags:
     - k8s_addons
-<<<<<<< HEAD
 
 - name: add local DNS entry for Neo4j
   lineinfile:
@@ -148,6 +148,7 @@
     regexp: .*my-neo4j-neo4j
     state: present
   delegate_to: localhost
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
@@ -158,7 +159,6 @@
     regexp: .*visibility
     state: present
   delegate_to: localhost
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
-=======
->>>>>>> add modules for k8s node,etc

@@ -25,7 +25,6 @@
     - calico
 
 - name: Download Calicoctl on the installer VM if missing
-  environment: "{{ proxy_env }}"
   run_once: true
   delegate_to: localhost
   get_url:          

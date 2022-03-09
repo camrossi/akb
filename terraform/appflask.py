@@ -17,14 +17,9 @@ import random
 import string
 from datetime import datetime
 import concurrent.futures
+import hcl
 from ndfc import NDFC, Fabric
 from jinja2 import Template
-l3out = {}
-vc = {}
-ndfc = {}
-apic = {}
-cluster = {}
-overlay = {}
 
 
 # app = Flask(__name__)

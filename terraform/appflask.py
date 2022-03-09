@@ -1219,7 +1219,8 @@ def login():
             url = apic['url'] + '/acimeta/aci-meta.json'
             try:
                 r = requests.get(url, verify=False, allow_redirects=True, timeout=5)
-            except:
+            except Exception as e:
+                print(e)
                 flash("Unable to connect to APIC", error)
                 return render_template('login.html')
             home = os.path.expanduser("~")

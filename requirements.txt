@@ -13,5 +13,5 @@ python-dateutil
 turbo_flask
 pyVmomi
 netaddr
-jinja2
 pyhcl
+jinja2

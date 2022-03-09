@@ -123,88 +123,45 @@
                   </tr>
                   -->
                   <tr>
-                     <td>
-                        <div class="container">
-                           <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
-                        </div>
-                    </div>
-                </header>
-                <div class="flexrow">
-                    <div class="cell"></div>
-                    <div class="cell"> </div>
-                </div>
-                <div class="container bg-gray">
-                    <h2>ACI Login details</h2>
-                    <p>
-                    <br> Specify the credentials to login your ACI fabric.
-                    </p>
-                </div>
-                <div class="container">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                    {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        <span>{{ message }}</span>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-                    {% endwith %}
-
-                    <table class="table table--compressed table--selectable table--wrap c1990" id="_uid829dc898">
-
-                        <tbody>
-                            <tr>
-                                <td>Fabric IP or Host Name:</td>
-                                <td><input type="text" size=25 name="fabric"></td>
-                            </tr>
-                            <tr>
-                                <td>Username (with Admin Privilege):</td>
-                                <td><input type="text" size=25 name="username" value="admin"></td>
-                            </tr>
-                            <tr>
-                                <td>Password:</td>
-                                <td><input type="password" size=25 name="password"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="container">
-                                        <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <table width="20%" bgcolor="0099CC" align="center">
+                      <td>
+                          <div class="container">
+                              <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
+                          </div>
+                      </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+         <table width="20%" bgcolor="0099CC" align="center">
 
 
 
-                </table>
-                <br><br><br><br><br><br>
-                <div class="container">
-                    <footer class="footer footer--tertiary" id="_uidca388897">
-                        <div class="footer__links">
-                            <ul class="list list--inline" id="_uid08010aa3">
-                                <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
-                                                                                                            id="_uidbb5636c3">Contacts</a></li>
-                                <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
-                                                                                                    id="_uid92d9bfeb">Feedback</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
-                                                                                            id="_uidcbd80f09">Help</a></li>
-                                <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
-                                                                                              id="_uid134ab5bc">Site Map</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
-                                                                                                              id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
-                                                                                                          id="_uide8b9adf9">Privacy Statement</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
-                                                                                                                  id="_uid5580971c">Cookie Policy</a></li>
-                                <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
-                                                                                                        id="_uidbe7db422">Trademarks</a></li>
-                            </ul>
-                        </div>
-                    </footer>
-                </div>
+         </table>
+         <br><br><br><br><br><br>
+         <div class="container">
+             <footer class="footer footer--tertiary" id="_uidca388897">
+                 <div class="footer__links">
+                     <ul class="list list--inline" id="_uid08010aa3">
+                         <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
+                                                                                                     id="_uidbb5636c3">Contacts</a></li>
+                         <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
+                                                                                             id="_uid92d9bfeb">Feedback</a></li>
+                         <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
+                                                                                     id="_uidcbd80f09">Help</a></li>
+                         <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
+                                                                                       id="_uid134ab5bc">Site Map</a></li>
+                         <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
+                                                                                                       id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                         <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
+                                                                                                   id="_uide8b9adf9">Privacy Statement</a></li>
+                         <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
+                                                                                                           id="_uid5580971c">Cookie Policy</a></li>
+                         <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
+                                                                                                 id="_uidbe7db422">Trademarks</a></li>
+                     </ul>
+                 </div>
+             </footer>
+         </div>
 
 
          <div class="form-group base-margin-bottom"></div>

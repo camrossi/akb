@@ -164,7 +164,7 @@ class Fabric:
                               item["vrf"],
                               vlan_id=template_config['vlanId'],
                               gateway=template_config['gatewayIpAddress'],
-                              gateway_v6=template_config['gatewayIpV6Address'],
+                              gateway_v6=template_config.get('gatewayIpV6Address'),
                               template_config=template_config)
                 result_list.append(net)
 

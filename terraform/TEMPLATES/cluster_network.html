@@ -55,7 +55,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/cluster_network">
+<form id="form_cluster_network" name="tenantForm" method="post" action="/cluster_network">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -241,11 +241,20 @@
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
 <script>
    loadInput();
 </script>
 <div id="canvas"></div>
 
 </body>
+<script>
+    $("#submit").on("click", function(){
+        var url = "{{ url_for("cluster_network")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        console.log(url);
+        $("#form_cluster_network").attr("action", url);
+        $("#form_cluster_network").submit();
+    });
+</script>
 
 </html>

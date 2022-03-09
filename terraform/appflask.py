@@ -42,7 +42,9 @@ def get_random_string(length):
 
 def get_fabric_type(request: request) -> str:
     # get fabric type from url parameters
-    fabric_type = request.args.get("fabric_type") if request.args.get("fabric_type") else "aci"
+    fabric_type = request.args.get("fabric_type", None)
+    if not fabric_type:
+        fabric_type = "aci"
     return fabric_type.lower()
 
 
@@ -378,7 +380,7 @@ def update_config():
             config = request.json.get("config", "[]")
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
-            return "OK", 200
+            return json.dumps({"msg": "Config update success!"}), 200
         elif fabric_type == "vxlan_evpn":
             config = request.json.get("config", "[]")
             with open('./ndfc/cluster.tfvars', 'w') as f:
@@ -588,15 +590,14 @@ def cluster():
                 ipv6_cluster_subnet = overlay["node_sub_v6"]
 
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
-            cluster = createClusterVars(req.get("control_plane_vip"), l3out['ipv4_cluster_subnet'], l3out['ipv6_cluster_subnet'], req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"),req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
+            cluster = createClusterVars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
             req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"),
             req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
             if fabric_type == "aci":
                 return redirect('/cluster_network')
             elif fabric_type == "vxlan_evpn":
-                return redirect(f'/create?fabric_type={fabric_type}')
-            return redirect('/cluster_network')
+                return redirect(f'/cluster_network?fabric_type={fabric_type}')
         elif button == "Previous":
             return redirect('/calico_nodes')
     if request.method == 'GET':
@@ -604,7 +605,6 @@ def cluster():
             ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
         elif fabric_type == "vxlan_evpn":
             ipv4_cluster_subnet = overlay["node_sub"]
-            ipv6_enabled = overlay["ipv6_enabled"]
 
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
 
@@ -613,11 +613,14 @@ def cluster():
 
 @app.route('/cluster_network', methods=['GET', 'POST'])
 def cluster_network():
+    fabric_type = get_fabric_type(request)
 
     # app.logger.info(apic+apic_password+apic_username)
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
+        if fabric_type == "vxlan_evpn":
+            ipv6_enabled = overlay["ipv6_enabled"]
         if button == "Next":
             if not vc['vm_deploy']:
                 global cluster
@@ -642,14 +645,23 @@ def cluster_network():
                 cluster['cluster_svc_subnet_v6'] = ""
                 cluster['external_svc_subnet_v6'] = ""
             
-            return redirect('/create')
+            return redirect(f'/create?fabric_type={fabric_type}')
         elif button == "Previous" and vc['vm_deploy']:
-            return redirect('/cluster')
+            return redirect(f'/cluster?fabric_type={fabric_type}')
         elif button == "Previous" and not vc['vm_deploy']:
-            return redirect('/l3out')
+            if fabric_type == "aci":
+                return redirect('/l3out')
+            elif fabric_type == "vxlan_evpn":
+                return redirect('/fabric')
     if request.method == 'GET':
-        ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
-        k8s_local_as= int(l3out['local_as'])+1
+        if fabric_type == "aci":
+            ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+            k8s_local_as= int(l3out['local_as'])+1
+        elif fabric_type == "vxlan_evpn":
+            ipv4_cluster_subnet = overlay['node_sub']
+            k8s_local_as= int(overlay["asn"]) + 1
+            ipv6_enabled = overlay["ipv6_enabled"]
+
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(ipv4_cluster_subnet)
 
@@ -682,19 +694,18 @@ def cluster_network():
         if fabric_type == "aci":
             return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
         elif fabric_type == "vxlan_evpn":
-            return render_template(
-                'cluster.html',
-                ipv4_cluster_subnet=overlay["node_sub"],
-                ipv6_cluster_subnet=overlay["node_sub_v6"],
-                api_ip=api_ip,
-                k8s_ver=k8s_versions(),
-                ipv4_pod_sub=ipv4_pod_sub,
-                ipv6_pod_sub=ipv6_pod_sub,
-                ipv4_svc_sub=ipv4_svc_sub,
-                ipv6_svc_sub=ipv6_svc_sub,
-                ipv4_ext_svc_sub=ipv4_ext_svc_sub,
-                ipv6_ext_svc_sub=ipv6_ext_svc_sub,
-                local_as=int(overlay["asn"]) + 1)
+            return render_template('cluster_network.html',
+                                   ipv4_cluster_subnet=overlay["node_sub"],
+                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
+                                   ipv4_pod_sub=ipv4_pod_sub,
+                                   ipv6_pod_sub=ipv6_pod_sub,
+                                   ipv4_svc_sub=ipv4_svc_sub,
+                                   ipv6_svc_sub=ipv6_svc_sub,
+                                   ipv4_ext_svc_sub=ipv4_ext_svc_sub,
+                                   ipv6_ext_svc_sub=ipv6_ext_svc_sub,
+                                   k8s_local_as=k8s_local_as,
+                                   vm_deploy=vc['vm_deploy'])
+
 
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
@@ -1255,9 +1266,9 @@ def login():
         if fabric_type == "vxlan_evpn":
             global ndfc
             ndfc = {}
-            ndfc["url"] = normalize_url(request.form["nd"])
-            ndfc["username"] = request.form["username"]
-            ndfc["password"] = request.form["password"]
+            ndfc["url"] = normalize_url(request.json["url"])
+            ndfc["username"] = request.json["username"]
+            ndfc["password"] = request.json["password"]
             ndfc["platform"] = "nd"  # set to nd stattically
             inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
             if not inst_ndfc.logon():
@@ -1335,12 +1346,9 @@ def get_page():
     if request.method == "POST":
         req = request.form
         button = req.get("button")
-        fabric_type_selectd = req.get("fabric_type")
+        fabric_type = req.get("fabric_type")
         if button == "Next":
-            if fabric_type_selectd == "Select Fabric Type" or fabric_type_selectd == "ACI":
-                return redirect('/login?fabric_type=aci')
-            elif fabric_type_selectd == "NDFC/VXLAN_EVPN":
-                return redirect('/login?fabric_type=vxlan_evpn')
+            return redirect(f'/login?fabric_type={fabric_type}')
     if request.method == "GET":
         tf_state_aci = "terraform.tfstate"
         tf_state_ndfc = "./ndfc/terraform.tfstate"

@@ -47,41 +47,6 @@
 </head>
 
 <form name="mainForm" method="post" action="/intro">
-    <body class="cui styleguide cui--animated cui--compressed" data-theme="">
-        <main>
-            <div id="oneui">
-                <!-- Main Content -->
-                <header class="header" id="_uid818d10e3">
-                    <div class="container">
-                        <div class="header-panels">
-                            <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
-                                                                                                     id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                                <div class="header__title">ACI Kubernetes Bootstrapper</div>
-                            </div>
-                            <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
-                                                                                                     data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
-                                                                                                     href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
-                                                                                                     data-hreftitle="Source Code" title="Source Code" class="header-item"
-                                                                                                                                                      id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self"
-                                                                                                                                                                                                             data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues"
-                                                                                                                                                                                                             href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue"
-                                                                                                                                                                                                                                                                            title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
-                        </div>
-                    </div>
-                </header>
-                <div class="flexrow">
-                    <div class="cell"></div>
-                    <div class="cell"> </div>
-                </div>
-                <div class="container bg-gray">
-                    <h2>AKB Project Information</h2>
-                    <p>
-                    <br> This is the ACI Kubernetes Bootstrapper Project.
-                    <br> Our goal is to provide a simple and automated way to deploy
-                    a Kubernetes cluster and integrate it with ACI. Currently we support Calico as CNI plugin.
-                    <br> 
-                    If you are familiar with AKB press next, otherwise is recommended you open the documentation!
-
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
          <!-- Main Content -->
@@ -122,13 +87,12 @@
                     </p>
                     <div class="row base-margin-bottom">
                         <div class="col-md-2">
-                            <div class="form-group dropdown">
+                            <div class="form-group ">
                                 <div class="form-group__text select">
-                                    <input id="fabric_type" name="fabric_type" value="Select Fabric Type">
-                                </div>
-                                <div class="dropdown__menu">
-                                    <a value="aci" class="selected">ACI</a>
-                                    <a value="vxlan_evpn">NDFC/VXLAN_EVPN</a>
+                                    <select id="fabric_type" name="fabric_type" value="Select Fabric Type">
+                                        <option value="aci" class="selected">ACI</option>
+                                        <option value="vxlan_evpn">NDFC/VXLAN_EVPN</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -184,7 +148,7 @@
         })
         $("#btn_doc").on("click", function(){
             var fabric_type = $("#fabric_type").val();
-            if (fabric_type == "NDFC/VXLAN_EVPN") {
+            if (fabric_type == "vxlan_evpn") {
                 window.open('docs/ndfc','_blank');
             } else {
                 window.open('docs/doc','_blank');

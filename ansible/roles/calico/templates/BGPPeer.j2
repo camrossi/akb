@@ -8,12 +8,12 @@ spec:
   peerIP: "{{ leaf.primary_ip }}"
   asNumber: {{ aci_as }}
   nodeSelector: rack_id == "{{ leaf.rack_id }}"
-  {% if bgp_pass %}
+{% if bgp_pass %}
   password:
     secretKeyRef:
       name: bgp-secrets
       key: rr-password
-  {% endif %}
+{% endif %}
 
 {% if leaf.primary_ipv6 %}
 ---
@@ -25,11 +25,11 @@ spec:
   peerIP: "{{ leaf.primary_ipv6 }}"
   asNumber: {{ aci_as }}
   nodeSelector: rack_id == "{{ leaf.rack_id }}"
-  {% if bgp_pass %}
+{% if bgp_pass %}
   password:
     secretKeyRef:
       name: bgp-secrets
       key: rr-password
-  {% endif %}
+{% endif %}
 {% endif %}
 {% endfor %}

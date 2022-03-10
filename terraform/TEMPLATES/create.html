@@ -12,6 +12,14 @@
       href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+    <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
    <style>
       .chevron ul.tabs li.active a {
          background-color: #017cad !important;
@@ -36,6 +44,10 @@
          flex-wrap: wrap !important;
          display: flex !important;
          justify-content: center !important;
+      }
+
+      textarea {
+          font-family: monospace;
       }
    </style>
 </head>
@@ -82,12 +94,22 @@
             </p>
          </div>
          <div class="container">
+            <div id="alert_success" class="alert alert--success" style="display: none">
+                <div class="alert__icon icon-check-outline"></div>
+                <div id="alert_success_msg" class="alert__message">Config update success!</div>
+            </div>
+            <div id="alert_fail" class="alert alert--warning" style="display: none">
+                <div class="alert__icon icon-warning-outline"></div>
+                <div id="alert_fail_msg" class="alert__message">Config update failed!</div>
+            </div>
+        </div>
+         <div class="container">
             <div class="form-group__text">
                <div class="row">
                   <div class="col-md-4">
                      <div class="form-group base-margin-bottom">
                         <div class="form-group__text">
-                           <textarea rows="25" class="textarea" name="config"
+                           <textarea rows="30" class="textarea" name="config"
                               id="config">{{ config }}</textarea><label>Config:</label>
                         </div>
                      </div>
@@ -105,7 +127,7 @@
 
          <div class="container">
             <input type="submit" value="Previous" class="btn btn--wide" name="button">
-            <input type="submit" value="Update Config" class="btn btn--wide" name="button">
+            <input type="button" id="btn_update_config" value="Update Config" class="btn btn--wide" name="button">
             <br><br>
             <input type="button" value="Plan" id="plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
             <input type="button" value="Apply" id="apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
@@ -150,25 +172,37 @@
 </div>
 <script>
    function updateiFrame(button) {
-
-      if (button.value === 'Plan') {
-         document.getElementById('iframe').src = "{{ url_for("tf_plan") }}"
-      }
-      if (button.value === 'Apply') {
-         document.getElementById('iframe').src = "{{ url_for("tf_apply") }}"
-      }
+       if (button.value === 'Plan') {
+           document.getElementById('iframe').src = "{{ url_for("tf_plan") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
+       }
+       if (button.value === 'Apply') {
+           document.getElementById('iframe').src = "{{ url_for("tf_apply") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
+       }
    }
    function autoscrollDown() {
       document.querySelector()
    }
 </script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+<script>
+    $(document).ready(function () {
+        $("#btn_update_config").click(function (e) {
+            var update_url = "{{ url_for("update_config")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+            $.ajax({
+                url: update_url,  
+                dataType: 'json',
+                type: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify({ config: $("#config").val()}),
+                success: function (result, status, xhr) {
+                    $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
+                },
+                error: function (xhr, status, error) {
+                    $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                }
+            });
+        });
+    })
+</script>
 <div id="canvas"></div>
 
 </body>

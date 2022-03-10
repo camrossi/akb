@@ -6,7 +6,6 @@
     dest: /tmp/{{ item }}
     force: yes
   with_items:
-    - BGPPassSecret.yaml
     - IPPool.yaml
     - BGPConfiguration.yaml
     - BGPPeer.j2
@@ -16,14 +15,23 @@
   tags:
     - calico
 
+- name: Copy BGPPassSecret manifests
+  template:
+    src: BGPPassSecret.yaml
+    dest: /tmp/BGPPassSecret.yaml
+    force: yes
+  when: bgp_pass
+  tags:
+    - calico
+
 - name: Download Calicoctl on the installer VM if missing
-  environment: "{{ proxy_env }}"
   run_once: true
   delegate_to: localhost
   get_url:          
     url: https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64
     dest: ./roles/calico/files/calicoctl
     force: no
+  environment: "{{ proxy_env }}"
   tags:
     - calico
 
@@ -111,6 +119,7 @@
   retries: 10
   until: res is success
   any_errors_fatal: true
+  when: bgp_pass
   tags:
     - calico
 

@@ -48,6 +48,10 @@
          display: flex !important;
          justify-content: center !important;
       }
+
+      textarea {
+          font-family: monospace;
+      }
    </style>
 </head>
 
@@ -90,24 +94,60 @@
 
             <div class="container">
                <div class="form-group__text">
-                  <div class="form-group base-margin-bottom">
-                     <div id="output"></div>
-                  <div class="form-group__text"><textarea rows="25" class="textarea" name="cluster"
-                     id="cluster">{{ config }}</textarea><label>Current Config</label>
+                   <div class="row">
+                       <div class="col-md-4">
+                           <div class="form-group base-margin-bottom">
+                               <div class="form-group__text">
+                                   <textarea rows="30" class="textarea" name="config"
+                                                                        id="cluster">{{ config }}</textarea><label>Config:</label>
+                               </div>
+                           </div>
+                       </div>
+                       <div class="col-md-8 flex-column-reverse">
+                           <label>Terraform Output:
+                               <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
+                           </label>
+                           <iframe id='iframe' src=""></iframe>
+                       </div>
                    </div>
-
-                  </div>
+                   <!--<div class="form-group base-margin-bottom">-->
+                       <!--<div id="output"></div>-->
+                       <!--<div class="form-group__text"><textarea rows="25" class="textarea" name="cluster"-->
+                                                                                          <!--id="cluster">{{ config }}</textarea><label>Current Config</label>-->
+                       <!--</div>-->
+                   <!--</div>-->
                </div>
             </div>
       <div class='streaming'>
             <p id="streaming_text"></p>
       </div>
 
-      <div class="container">
-         <input id="destroy" type="submit" value="Destroy" class="btn btn--wide" name="button" onclick="clicked(event)">
-      </div>
    </div>
 </form>
+<div class="container">
+    <!--<input id="destroy" type="submit" value="Destroy" class="btn btn--wide" name="button" onclick="clicked(event)">-->
+    <button id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
+    <div class="modal modal--small hide" id="confirm_modal">
+        <div class="modal__dialog">
+            <div class="modal__content">
+                <a class="modal__close" onclick="closeModal('confirm_modal')"><span class="icon-close"></span></a>
+                <div class="modal__header">
+                    <div class="modal__title">Confirm</div>
+                </div>
+                <div class="modal__body">
+                    <div class="alert alert--info">
+                        <div class="alert__icon icon-info-outline"></div>
+                        <div class="alert__message">Destroy existing cluster?</div>
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button id="btn_destroy_cancel"class="btn btn--ghost" onclick="closeModal('confirm_modal')">Cancel</button>
+                    <button id="btn_destroy_confirm" class="btn" >Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 </div>
 </div>
@@ -151,6 +191,16 @@
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
+<script>
+    $(document).ready(function () {
+        $("#btn_destroy_confirm").click(function (e) {
+            var update_url = "{{ url_for("destroy")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+            $("#confirm_modal").addClass('hide');
+            $("#iframe").attr('src',update_url);
+        });
+    })
+</script>
 <div id="canvas"></div>
 
 </body>

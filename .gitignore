@@ -10,3 +10,4 @@ terraform/cluster.tfvars
 apic.yaml
 ansible/roles/calico/files/calicoctl
 plan
+__pycache__

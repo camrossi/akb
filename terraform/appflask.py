@@ -197,7 +197,7 @@ def createVCVars(url="", username="", passw="", dc="", datastore="", cluster="",
 
 
 def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
-                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status=""):
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status=""):
     try:
         ingress_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
         visibility_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
@@ -234,8 +234,9 @@ def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_po
                 "http_proxy_status": http_proxy_status if http_proxy_status else "",
                 "http_proxy": http_proxy,
                 "ubuntu_apt_mirror" : ubuntu_apt_mirror,
-                "sandbox_status" : True if sandbox_status == "on" else False
-                }
+                "sandbox_status" : True if sandbox_status == "on" else False,
+                "eBPF_status" : True if eBPF_status == "on" else False,
+                } 
     return cluster
 
 ### DOCUMENTATION START ####

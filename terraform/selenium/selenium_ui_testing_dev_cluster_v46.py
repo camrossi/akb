@@ -193,4 +193,4 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-#driver.quit()
+driver.quit()

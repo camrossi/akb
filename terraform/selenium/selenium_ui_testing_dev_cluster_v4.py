@@ -184,3 +184,4 @@ assert "Cluster Network" in driver.title
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
+driver.quit()

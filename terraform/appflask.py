@@ -275,12 +275,14 @@ def tf_plan():
     g = proc.Group()
     # cwd = os.getcwd
     if fabric_type == "aci":
-        if not vc['vm_deploy']:
+        with open("cluster.tfvars", 'r') as fp:
+            current_config = hcl.load(fp)
+        if not current_config['vc']['vm_deploy']:
             if os.path.exists("vms.tf"):
                 os.rename("vms.tf","vms.tf.ignore")
             if os.path.exists("outputs.tf"):
                 os.rename("outputs.tf","outputs.tf.ignore")     
-        if vc['vm_deploy']:
+        if current_config['vc']['vm_deploy']:
             if os.path.exists("vms.tf.ignore"):
                 os.rename("vms.tf.ignore","vms.tf")
             if os.path.exists("outputs.tf.ignore"):
@@ -303,14 +305,11 @@ def tf_apply():
     fabric_type = get_fabric_type(request)
     g = proc.Group()
     if fabric_type == "aci":
-        if vc['vm_deploy']:
-            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
-        else:
-            g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan && \
-                ansible-playbook -b ../ansible/roles/calico_config/tasks/main.yaml -i ../ansible/inventory/nodes.ini"])
+        g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
     elif fabric_type == "vxlan_evpn":
         g.run(["bash", "-c", "terraform -chdir=ndfc apply -auto-approve -no-color plan"])
     return Response( read_process(g), mimetype='text/event-stream' )
+
 
 
 @app.route('/create', methods=['GET', 'POST'])
@@ -1302,13 +1301,15 @@ def existing_cluster():
         #p = g.run("ls")
         return Response(read_process(g), mimetype='text/event-stream')
     else:
+
         if fabric_type == "aci":
             try:
                 f = open("cluster.tfvars")
+                current_config =  f.read()
                 # Do something with the file
             except IOError:
                 return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
-            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=f.read())
+            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config)
         elif fabric_type == "vxlan_evpn":
             ndfc_tfvars = "./ndfc/cluster.tfvars"
             if not os.path.exists(ndfc_tfvars):
@@ -1335,6 +1336,7 @@ def destroy():
                "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
+
 
 
 

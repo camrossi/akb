@@ -84,7 +84,12 @@
             <p>
                <br> Please review the final configuration before applying it.
                <br> If you know what you are doing you can edit it manually as well.
-               <br> Note: if you chance the config you must click on Update Config to apply it!!!!<br><br>
+               <br> Notes: 
+               <ul>
+                  <li>if you change the config manullay you must click on Update Config to apply it!!!!</li>
+                  <!-- <li>Downloading the Calico Manifest will work only once the Apply process is completed. If you click it before you will get a file not found error. We will enhance this in a future release!</li> -->
+               </ul>
+               <br>
 
             </p>
          </div>
@@ -124,8 +129,9 @@
             <input type="submit" value="Previous" class="btn btn--wide" name="button">
             <input type="button" id="btn_update_config" value="Update Config" class="btn btn--wide" name="button">
             <br><br>
-            <input type="button" value="Plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
-            <input type="button" value="Apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
+            <input type="button" value="Plan" id="plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
+            <input type="button" value="Apply" id="apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
+          <!--  <input type="button" title="The manifest are gonna be available only after the Apply operation" value="Download Calico Manifests" class="btn btn--wide" name="button" onclick="window.open('../static/calico/calico_manifests.zip','_blank')"> -->
          </div>
       </div>
 </form>

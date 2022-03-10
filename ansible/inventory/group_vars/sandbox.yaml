@@ -21,3 +21,4 @@ http_proxy_status: false
 dns_domain : cam.ciscolabs.com
 ubuntu_apt_mirror : ubuntu.mirror.digitalpacific.com.au/archive/
 docker_mirror: "10.67.185.120:5000"
+proxy_env: {}

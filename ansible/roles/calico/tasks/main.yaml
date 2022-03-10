@@ -9,7 +9,6 @@
     - IPPool.yaml
     - BGPConfiguration.yaml
     - BGPPeer.j2
-    - Node.j2
     - calico-typha.yaml
     - calico-typha-v46.yaml
   tags:
@@ -97,7 +96,6 @@
     - IPPool.yaml
     - BGPConfiguration.yaml
     - BGPPeer.j2
-    - Node.j2
   register: res
   retries: 100
   until: res is success

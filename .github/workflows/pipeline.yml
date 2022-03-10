@@ -73,7 +73,7 @@ jobs:
           curl http://10.67.185.120:5004/tf_plan
       - name: Terraform apply
         run: | 
-           curl http://10.67.185.120:5003/tf_apply
+           curl http://10.67.185.120:5004/tf_apply
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
@@ -82,4 +82,4 @@ jobs:
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
       - name: Terraform destroy and delete APIC user
         run: | 
-          curl -X POST http://10.67.185.120:5003/existing_cluster
+          curl -X POST http://10.67.185.120:5004/existing_cluster

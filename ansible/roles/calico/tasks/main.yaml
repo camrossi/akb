@@ -12,6 +12,7 @@
     - BGPPeer.j2
     - calico-typha.yaml
     - calico-typha-v46.yaml
+    - kubernetes-services-endpoint.yaml
   tags:
     - calico
 
@@ -52,12 +53,44 @@
   tags:
     - calico
 
+- name: eBPF - Create kubernetes-services-endpoint
+  shell: kubectl apply -f /tmp/kubernetes-services-endpoint.yaml
+  register: res
+  retries: 10
+  until: res is success
+  when: eBPF_status
+  any_errors_fatal: true
+  tags:
+    - calico
+
+- name: eBPF - Disable kube-proxy
+  shell: |
+    kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
+  register: res
+  retries: 10
+  until: res is success
+  when: eBPF_status
+  any_errors_fatal: true
+  tags:
+    - calico
+
 - name: Apply Calico CNI
   shell: kubectl apply -f /tmp/calico-typha.yaml
   register: res
   retries: 10
   until: res is success
   when: pod_subnet and not pod_subnet_v6
+  any_errors_fatal: true
+  tags:
+    - calico
+
+- name: eBPF - Enable eBPF mode
+  shell: |
+    calicoctl patch felixconfiguration default --patch='{"spec": {"bpfEnabled": true}}'
+  register: res
+  retries: 10
+  until: res is success
+  when: eBPF_status
   any_errors_fatal: true
   tags:
     - calico

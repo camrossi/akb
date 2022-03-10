@@ -86,7 +86,9 @@
 - name: Add Neo4J helm Repo
   shell: helm repo add neo4j https://helm.neo4j.com/neo4j
   environment: "{{ proxy_env }}"
-  when: not sandbox_status
+  when:
+    - not sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
@@ -101,13 +103,17 @@
   shell: helm install my-neo4j neo4j/neo4j-standalone -f /tmp/neo4j-values.yaml
   environment: "{{ proxy_env }}"
   ignore_errors: yes
-  when: not sandbox_status
+  when: 
+    - not sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
 - name: helm install Neo4J 
   shell: helm install my-neo4j neo4j-standalone-4.4.3.tgz  -f /tmp/neo4j-values.yaml
-  when: sandbox_status
+  when:
+    - not sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   ignore_errors: yes
   tags:
     - k8s_addons

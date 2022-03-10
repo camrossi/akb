@@ -112,7 +112,7 @@
 - name: helm install Neo4J 
   shell: helm install my-neo4j neo4j-standalone-4.4.3.tgz  -f /tmp/neo4j-values.yaml
   when:
-    - not sandbox_status
+    - sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
   ignore_errors: yes
   tags:

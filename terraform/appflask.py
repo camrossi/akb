@@ -984,13 +984,8 @@ def existing_cluster():
     if request.method == "POST":
         g = proc.Group()
         #Check if there are VMs deployed if no vms calico_nodes == null
-        with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl.load(fp)
-        if current_config['calico_nodes'] == 'null':
-            g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
-        else:
-            g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
-            ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
+        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
+        ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
         #p = g.run("ls")
         return Response( read_process(g), mimetype= 'text/event-stream' )
     else:

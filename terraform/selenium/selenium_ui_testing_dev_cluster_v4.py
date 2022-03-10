@@ -49,7 +49,7 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://10.67.185.120:5001")
+driver.get("http://10.67.185.120:5003")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
@@ -131,13 +131,13 @@ except ValueError as e:
     print("Loading took too much time!")
 
 elem = driver.find_element(By.ID,'datastore')
-elem.send_keys("ESXi1_SSD")
+elem.send_keys("ESXi3_SSD")
 select = Select(driver.find_element(By.ID,'cluster'))
 select.select_by_visible_text("Cluster1")
 elem = driver.find_element(By.ID,'port_group')
 elem.send_keys("ACI/calico_dev_v4/vlan-11")
 elem = driver.find_element(By.ID,'vm_templates')
-elem.send_keys("Ubuntu21SandBox")
+elem.send_keys("NKT-Ubuntu-Template")
 elem = driver.find_element(By.ID,'vm_folder')
 elem.send_keys("CalicoDev_v4")
 elem = driver.find_element(By.ID,"submit")
@@ -184,3 +184,4 @@ assert "Cluster Network" in driver.title
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
+driver.quit()

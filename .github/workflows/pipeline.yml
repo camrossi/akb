@@ -5,7 +5,7 @@ name: testing-pipeline
 # Controls when the workflow will run
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [synchronize, opened, reopened, edited]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -31,28 +31,23 @@ jobs:
           python3 appflask.py 5003 &
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless ${{ github.run_id }}
-      - name: Terraform init
-        run: | 
-          terraform init
+          python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
       - name: Terraform plan
         run: | 
-          terraform plan -var-file="cluster.tfvars" -out=plan
+          curl -s http://10.67.185.120:5003/tf_plan
       - name: Terraform apply
         run: | 
-          terraform apply "plan"
+          curl -s http://10.67.185.120:5003/tf_apply
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
-      - name: Terraform destroy
+      - name: Terraform destroy and delete APIC user
         run: | 
-          terraform destroy -auto-approve -var-file='cluster.tfvars'
-      - name: Delete APIC User
-        run: | 
-          ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'   
+          curl -s -X POST http://10.67.185.120:5003/existing_cluster
+  
   
   nkt-testing-v46:
     # The type of runner that the job will run on
@@ -73,24 +68,18 @@ jobs:
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
-      - name: Terraform init
-        run: | 
-          terraform init
       - name: Terraform plan
         run: | 
-          terraform plan -var-file="cluster.tfvars" -out=plan
+          curl -s http://10.67.185.120:5004/tf_plan
       - name: Terraform apply
         run: | 
-          terraform apply "plan"
+           curl -s http://10.67.185.120:5004/tf_apply
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
-      - name: Terraform destroy
+      - name: Terraform destroy and delete APIC user
         run: | 
-          terraform destroy -auto-approve -var-file='cluster.tfvars'
-      - name: Delete APIC User
-        run: | 
-          ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'
+          curl -s -X POST http://10.67.185.120:5004/existing_cluster

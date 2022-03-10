@@ -412,6 +412,7 @@ def calico_nodes():
             ipv6 = req.get("ipv6")
             natip = req.get("natip")
             rack_id = req.get("rack_id")
+            print(hostname)
             if not is_valid_hostname(hostname):
                 return calico_nodes_error(calico_nodes, "Error: Ivalid Hostname")
 
@@ -520,7 +521,7 @@ def is_valid_hostname(hostname):
     if hostname[-1] == ".":
         # strip exactly one dot from the right, if present
         hostname = hostname[:-1]
-    allowed = re.compile("(?!-)[a-zA-Z0-9]{1,63}(?<!-)$", re.IGNORECASE)
+    allowed = re.compile("(?!-)[\-a-zA-Z0-9]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(x) for x in hostname.split("."))
 
 
@@ -581,8 +582,8 @@ def cluster():
         if button == "Next":
             global cluster
             if fabric_type == "aci":
-                ipv4_cluster_subnet = l3out['ipv4_cluster_subnet'],
-                ipv6_cluster_subnet = l3out['ipv6_cluster_subnet'],
+                ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
+                ipv6_cluster_subnet = l3out['ipv6_cluster_subnet']
             elif fabric_type == "vxlan_evpn":
                 ipv4_cluster_subnet = overlay["node_sub"]
                 ipv6_cluster_subnet = overlay["node_sub_v6"]
@@ -1358,8 +1359,6 @@ def get_page():
                 state_aci = json.load(f)
             if state_aci['resources'] != []:
                 return redirect('/existing_cluster')
-            else:
-                return render_template('intro.html')
 
         if os.path.exists(tf_state_ndfc):
             with open('./ndfc/terraform.tfstate', 'r') as f:
@@ -1368,8 +1367,7 @@ def get_page():
             if state_ndfc['resources'] != []:
                 return redirect('/existing_cluster?fabric_type=vxlan_evpn')
             # If the resources are not present go to intro
-            else:
-                return render_template('intro.html')
+        return render_template('intro.html')
 
 
 if __name__ == "__main__":

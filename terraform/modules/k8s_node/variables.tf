@@ -73,6 +73,7 @@ variable "k8s_cluster" {
     http_proxy             = string
     ubuntu_apt_mirror      = string
     sandbox_status         = bool
+    eBPF_status            = bool
   })
 }
 variable "ansible_dir" {

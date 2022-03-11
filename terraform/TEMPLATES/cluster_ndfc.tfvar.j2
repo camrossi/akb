@@ -1,0 +1,109 @@
+fabric_type = "{{ fabric_type }}"
+
+vc = {
+  "url" : "{{vc.url}}",
+  "username" : "{{vc.username}}",
+  "pass" : "{{vc.pass}}",
+  "dc" : "{{vc.dc}}",
+  "datastore" : "{{vc.datastore}}",
+  "cluster" : "{{vc.cluster}}",
+  "dvs" : "{{vc.dvs}}",
+  "port_group" : "{{vc.port_group}}",
+  "vm_template" : "{{vc.vm_template}}",
+  "vm_folder" : "{{vc.vm_folder}}"
+}
+
+ndfc = {
+  "username" : "{{ndfc.username}}",
+  "password" : "{{ndfc.password}}",
+  "url" : "{{ndfc.url}}",
+  "platform" : "{{ndfc.platform}}"
+}
+
+overlay = {
+  "fabric_name" : "{{overlay.fabric_name}}",
+  "asn" : "{{overlay.asn}}"
+  "vrf" : "{{overlay.vrf}}",
+  "ibgp_peer_vlan" : {{overlay.ibgp_peer_vlan}},
+  "bgp_passwd" : "",
+  "k8s_route_map" : "{{overlay.k8s_route_map}}",
+  "route_tag" : {{overlay.route_tag}},
+  "vpc_peers" : [
+    {%- for peer in overlay.vpc_peers %}
+      [
+        {%- for sw in peer  %}
+        {
+          "hostname" : "{{sw.hostname}}",
+          "loopback_id" : {{sw.loopback_id}} 
+          "loopback_ipv4" : "{{sw.loopback_ipv4}}",
+          "loopback_ipv6" : "{{sw.loopback_ipv6}}",
+          "ibgp_svi_ipv4" : "{{sw.ibgp_svi_ipv4}}"
+          "ibgp_peer_ipv4" : "{{sw.ibgp_peer_ipv4}}",
+          "ibgp_svi_ipv6" : "",
+          "ibgp_peer_ipv6" : ""
+        },
+        {%- endfor %}
+      ],
+    {%- endfor %}
+  ]
+}
+
+bgp_peers = [
+  {%- for lo in overlay.loopback_ipv4%}
+  {
+    "node_id" : {{ loop.index }},
+    "ip" : "{{overlay.loopback_ipv4[loop.index - 1]}}",
+    "ipv6" : "{{overlay.loopback_ipv6[loop.index - 1]}}",
+    "peer_asn" : "{{overlay.asn}}",
+    "rack_id" : 1
+  },
+  {%- endfor %}
+]
+
+calico_nodes = [
+  {%- for node in calico_nodes %}
+  {
+    "hostname" : "{{node.hostname}}",
+    "ip" : "{{node.ip}}",
+    "ip_gateway" : "{{overlay.gateway_v4}}"
+    "ipv6" : "{{node.ipv6}}",
+    "ipv6_gateway" : "{{overlay.gateway_v6}}"
+    "natip" : "",
+    "rack_id" : "1"
+  },
+  {%- endfor  %}
+]
+
+k8s_cluster = {
+  "control_plane_vip" : "{{cluster.control_plane_vip}}",
+  "vip_port" : "{{cluster.vip_port}}",
+  "ipv6_enabled" : {{overlay.ipv6_enabled | lower}},
+  "pod_subnet" : "{{cluster.pod_subnet}}",
+  "pod_subnet_v6" : "{{cluster.pod_subnet_v6}}",
+  "cluster_svc_subnet" : "{{cluster.cluster_svc_subnet}}",
+  "cluster_svc_subnet_v6" : "{{cluster.cluster_svc_subnet_v6}}",
+  "external_svc_subnet" : "{{cluster.external_svc_subnet}}",
+  "external_svc_subnet_v6" : "{{cluster.external_svc_subnet_v6}}",
+  "local_as" : "{{cluster.local_as}}",
+  "peer_as" : "{{overlay.asn}}",
+  "bgp_passwd" : "{{cluster.bgp_passwd}}"
+  "ingress_ip" : "{{cluster.ingress_ip}}",
+  "kubeadm_token" : "{{cluster.kubeadm_token}}",
+  "node_sub" : "{{cluster.node_sub}}",
+  "node_sub_v6" : "{{cluster.node_sub_v6}}",
+  "ntp_server" : "{{cluster.ntp_server}}",
+  "dns_domain" : "{{overlay.dns_domain}}",
+  "dns_servers" : ["{{overlay.dns_servers}}"],
+  "kube_version" : "{{cluster.kube_version}}",
+  "crio_version" : "{{cluster.crio_version}}",
+  "OS_Version" : "{{cluster.OS_Version}}",
+  "haproxy_image" : "{{cluster.haproxy_image}}",
+  "keepalived_image" : "{{cluster.keepalived_image}}",
+  "keepalived_router_id" : "{{cluster.keepalived_router_id}}",
+  "time_zone" : "{{cluster.time_zone}}",
+  "docker_mirror" : "{{cluster.docker_mirror}}",
+  "http_proxy_status" : "{{cluster.http_proxy_status}}",
+  "http_proxy" : "{{cluster.http_proxy}}",
+  "ubuntu_apt_mirror" : "{{cluster.ubuntu_apt_mirror}}",
+  "sandbox_status" : {{cluster.sandbox_status | lower}} 
+}

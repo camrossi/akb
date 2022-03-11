@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+
+
+<head>
+   <meta charset="utf-8">
+   <title>NDFC - Day0</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <link rel="stylesheet" type="text/css"
+      href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+   <style>
+      .chevron ul.tabs li.active a {
+         background-color: #017cad !important;
+         opacity: 1 !important;
+         color: #ffffff;
+         box-shadow: none !important;
+      }
+
+      .chevron ul.tabs li a {
+         height: 56px min-width: 90% !important;
+         padding: 10px 6px;
+         background-color: #ffffff;
+         opacity: 1 !important;
+         color: #58585d;
+         text-align: center;
+         position: relative;
+         line-height: 16px;
+         font-size: 12px;
+         cursor: pointer;
+         flex: 1 !important;
+         flex-shrink: 1 !important;
+         flex-wrap: wrap !important;
+         display: flex !important;
+         justify-content: center !important;
+      }
+   </style>
+</head>
+
+<form name="tenantForm" method="post" action="/docs/doc">
+
+   <body class="cui cui--animated cui--compressed" data-theme="">
+      <div id="oneui">
+         <!-- Main Content -->
+         <header class="header" id="_uid818d10e3">
+            <div class="container">
+               <div class="header-panels">
+                  <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
+                        id="_uid5a704e92"><span class="icon-cisco"></span></a>
+                     <div class="header__title">Nexus Kubernetes Tools</div>
+                  </div>
+                  <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
+                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
+                        href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
+                        data-hreftitle="Source Code" title="Source Code" class="header-item"
+                        id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self"
+                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues"
+                        href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue"
+                        title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
+               </div>
+            </div>
+         </header>
+         <div class="flexrow">
+            <div class="cell"></div>
+            <div class="cell"> </div>
+         </div>
+         <div class="container bg-gray">
+            <div class="col-md-12">
+                <header>
+                    <h1 class="page-title">VXLAN EVPN and Calico Architecture</h1>
+                </header>
+                <div class="page-body">
+                    <p id="1a4a776e-1273-4cfc-8ecb-4eed1db95ec2" class="text-size-16">
+                    This tool implements Calico Network on Kubernetes cluster based on the <em>AS-per-Cluster</em> in <a href="https://www.cisco.com/c/en/us/td/docs/dcn/whitepapers/cisco-nx-os-calico-network-design.html"><strong>Cisco NX-OS Calico Network Design White Paper</strong></a>, section <strong>Deploy Calico over VXLAN EVPN fabrics </strong>with a little variation. This tool under the hood uses Terraform to push configuration to fabric through Nexus Dashboard Fabric Controller(NDFC) and deploy Kubernetes(K8s) Virtual Machines. Ansible is used to configure K8s VMs, bootstrap and provision K8s Cluster.
+                    </p>
+                    <h2 id="f05c7bd9-79ed-4793-b450-54e7d1c65135" class="">High Level Architecture</h2>
+                    <p id="6571d860-c2d3-47c6-9ba7-e3996ea52ff6" class="text-size-16" >
+                    As best practice suggested by Cisco, all leaf switches are in the same AS while all Kubernetes nodes are in another AS. An eBGP session is established between the node IP of each Kubernetes node and the loopback address of the local leaf switch. To simplify the BGP configuration on Calico, same peer of loopback addresses will be used on all vPC Peers as they are local to each leaf switch and should not be advertised to EVPN address family. As result, iBGP peering in user VRF is needed between vPC peer. 
+                    </p>
+                    <div class="flex flex-center">
+                        <div class="col-md-8 panel panel--bordered panel--raised panel--loose">
+                        <figure id="821aa161-12ba-48ae-a99e-fcc2a26d3c94" class="image">
+                            <a href="{{ url_for('static', filename='images/vxlan_evpn.png') }}">
+                                <img style="width:2156px" src="{{ url_for('static', filename='images/vxlan_evpn.png') }}"/>
+                            </a>
+                        </figure>
+                    </div>
+                    </div>
+                    <p id="7b9d271d-7ce0-4bd0-a88d-df0059cde483" class="text-size-16">
+                    Please refer to <a href="https://www.cisco.com/c/en/us/td/docs/dcn/whitepapers/cisco-nx-os-calico-network-design.html"><strong>Cisco NX-OS Calico Network Design White Paper</strong></a><strong> </strong>for detail design consideration.</p>
+                    <h2 id="d61e2e20-37f4-4e0f-8f1e-60d1520beb52" class="">Prerequisite</h2>
+                    <p id="5e42e081-af72-4814-901d-cd1c7cabbabe" class="text-size-16">
+                    The Kubernetes cluster needs to have allocated the following subnets:
+                    <div class="indented">
+                        <ul id="c5421f40-f0fe-4552-bf77-4066aad3227a" class="bulleted-list">
+                            <li style="list-style-type:disc">Node Subnet: Use for the Kubernetes nodes. This subnet must have internet access</li>
+                        </ul>
+                        <ul id="c5db6388-4e4f-4c1a-b424-7cafc0a9fb00" class="bulleted-list">
+                            <li style="list-style-type:disc">POD Subnet: Does not requires internet access, advertised outside of ACI</li>
+                        </ul>
+                        <ul id="7c389f1d-5017-45cd-a4b6-5c2ed445ef4a" class="bulleted-list">
+                            <li style="list-style-type:disc">
+                                Cluster Service Subnet: Used to expose the Kubernetes services. Does not requires internet access, advertised outside of ACI</li>
+                        </ul>
+                        <ul id="2a8ce2f4-0ffc-4109-9be9-3d6b5a9079ec" class="bulleted-list">
+                            <li style="list-style-type:disc">Cluster External Service Subnet: Used to expose the Kubernetes services. Does not require internet access, advertised outside of ACI</li>
+                        </ul>
+                    </div>
+                    </p>
+                    <p id="fd7b7190-3171-4537-9478-31150cf17a0c" class="">
+                    Network and VRF used for node connectivity need pre-configured on NDFC with IPv4 gateway(IPv6 is optional). This tool will acquire the subnet configured under Network and use it for Node Subnet. Additional resources are needed as follow:
+                    </p>
+                    <ul id="1059e225-eabb-4978-82e5-b10460583fde" class="bulleted-list">
+                        <li style="list-style-type:disc">loopback addresses(IPv4 and IPv6), used for eBGP peer on leaf switches to K8s Nodes</li>
+                    </ul>
+                    <ul id="ca4d7ade-ca2b-4a61-a267-44db0187f9ff" class="bulleted-list">
+                        <li style="list-style-type:disc">loopback ID, same loopback ID will be used on all leaf switches</li>
+                    </ul>
+                    <ul id="a6c1e482-b765-4d3a-914f-00e83d9c4cad" class="bulleted-list">
+                        <li style="list-style-type:disc"> SVI address and one infra VLAN, used for iBGP peering between between vPC peer</li>
+                    </ul>
+                    <ul id="fcc6a090-76f7-4c16-9512-60f3a842e0f7" class="bulleted-list">
+                        <li style="list-style-type:disc">Route-map name and route tag, used for filtering routes to Kubernetes Nodes</li>
+                    </ul>
+                    <p id="01efad2b-0dd2-4c86-b255-548a41855e67" class="text-size-16">Other common requirements, please refer to this <a href="/docs/prereqaci">doc</a>.</p></div>
+            </div>
+         </div>
+         </div>
+
+            </p>
+            <br><br><br><br><br><br>
+         </div>
+
+
+         <div class="container">
+            <footer class="footer footer--tertiary" id="_uidca388897">
+               <div class="footer__links">
+                  <ul class="list list--inline" id="_uid08010aa3">
+                     <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
+                           id="_uidbb5636c3">Contacts</a></li>
+                     <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
+                           id="_uid92d9bfeb">Feedback</a></li>
+                     <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
+                           id="_uidcbd80f09">Help</a></li>
+                     <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
+                           id="_uid134ab5bc">Site Map</a></li>
+                     <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
+                           id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                     <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
+                           id="_uide8b9adf9">Privacy Statement</a></li>
+                     <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
+                           id="_uid5580971c">Cookie Policy</a></li>
+                     <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
+                           id="_uidbe7db422">Trademarks</a></li>
+                  </ul>
+               </div>
+            </footer>
+         </div>
+
+
+
+         <div class="form-group base-margin-bottom"></div>
+         <main class="c549">
+            <div></div>
+         </main>
+         <!-- End Main Content -->
+      </div>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+      <div id="canvas"></div>
+      <script>
+         $(document).ready(function () {
+            $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
+               var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
+               var myChart = Highcharts.chart(val, JSON.parse(finalJson));
+            })
+         })
+         $('#canvas').on('click', function () {
+            html2canvas(document.body, {}).then(canvas => {
+               html2canvas(document.body, {}).then(canvas => {
+                  document.body.appendChild(canvas);
+                  getCanvas = canvas;
+                  var imgageData = getCanvas.toDataURL('image/png');
+                  var newData = imgageData.replace(
+                     /^data:image\/png/,
+                     'data:application/octet-stream'
+                  );
+                  // console.log(newData);
+                  document.getElementById('canvas').setAttribute("data-title", newData);
+                  /**
+                   * remove canvas and link after download
+                   */
+                  document.querySelector('canvas').remove();
+               });
+            });
+         });
+      </script>
+   </body>
+
+</html>

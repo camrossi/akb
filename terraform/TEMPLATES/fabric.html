@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>NKT - NDFC Fabric</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" type="text/css"
+                               href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
+        <style>
+        .chevron ul.tabs li.active a {
+            background-color: #017cad !important;
+            opacity: 1 !important;
+            color: #ffffff;
+            box-shadow: none !important;
+        }
+        .chevron ul.tabs li a {
+            height: 56px min-width: 90% !important;
+            padding: 10px 6px;
+            background-color: #ffffff;
+            opacity: 1 !important;
+            color: #58585d;
+            text-align: center;
+            position: relative;
+            line-height: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            flex: 1 !important;
+            flex-shrink: 1 !important;
+            flex-wrap: wrap !important;
+            display: flex !important;
+            justify-content: center !important;
+        }
+        </style>
+    </head>
+
+    <body class="cui cui--animated cui--compressed" data-theme="">
+        <div id="oneui">
+            <!-- Main Content -->
+            <header class="header" id="_uid818d10e3">
+                <div class="container">
+                    <div class="header-panels">
+                        <div class="header-panel">
+                            <a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92">
+                                <span class="icon-cisco"></span>
+                            </a>
+                             <div class="header__title">Nexus Kubernetes Tools</div>
+                        </div>
+                        <div class="header-panel header-panel--right">
+                            <a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a>
+                            <a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="flexrow">
+                <div class="cell"></div>
+                <div class="cell"> </div>
+            </div>
+
+            <div class="container bg-gray">
+                <h2>Fabric Details</h2>
+                <p>
+                <br> AKB will provision necessary configtiion to this fabric
+                <br> Same peer of loopbacks will be configured on selected VPC peers in user vrf to peer with k8s nodes
+                <br> Calico BGP nodes will advertise the node, pod and services subnets to VXLAN EVPN fabric
+                <br> <b>Note</b>: The VRF and Network needs to be pre-configured on Fabric
+                <br> This is done to ensure you can re-use pre-existing infrastructure and minimize the risk of
+                accidental deletions.
+
+                </p>
+
+            </div>
+            <div id="alert_fail" class="alert alert--warning" style="display: none">
+                <div class="alert__icon icon-warning-outline"></div>
+                <div id="alert_fail_msg" class="alert__message"></div>
+            </div>
+            <form id="mainForm" name="mainForm">
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <input list="datalist_fabric" id="fabric" name="fabric"/>
+                            <datalist id="datalist_fabric">
+                                {% for f in fabrics %}
+                                <option data-asn="{{ f.asn }}" id="{{ f.fabric_name }}" value="{{ f.fabric_name }}">
+                                {% endfor %}
+                            </datalist>
+                            <label for="fabric">Fabric Name:
+                                <span data-title="Fabric Kubernetes cluster connected to">ⓘ </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="div_asn" class="container" style="display: none">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <label for="fabric_asn">Fabric AS Number:
+                                <span data-title="Fabric ASN number, this is get from fabric configuration">ⓘ</span>
+                            </label>
+                            <input type="text" id="fabric_asn" name="fabric_asn" value="" disabled/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <input list="datalist_vrf" id="vrf" name="vrf">
+                            <datalist id="datalist_vrf">
+                            </datalist>
+                            <label for="vrf">VRF name:
+                                <span data-title="VRF of Cluster"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <input list="datalist_network" id="network" name="network">
+                            <datalist id="datalist_network">
+                            </datalist>
+                            <label for="network">Network Name:
+                                <span data-title="NDFC Newtork of K8s Cluster"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <label for="loopback_id">Loopback ID:
+                                <span data-title="loopback id for bgp neighbor source interface, make sure it is not used on leaf switches">ⓘ</span>
+                            </label>
+                            <input type="number" id="loopback_id" name="loopback_id" value=100>
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <div id="form_loopback" class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <label for="input_lo_ipv4">Loopback Addresses:
+                                <span data-title="loopback addresses for vPC peers, same addresses will be used for all vPC peers">ⓘ</span>
+                            </label>
+                            <input type="text" id="input_lo_ipv4" name="loopback_address" value=>
+                        </div>
+                        <div id="form_loopback_alert" class="form-group__help" role="alert" style="display: none">
+                            <span>Maximum 2 addresses</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="loopback_ipv4" class="container  base-margin-bottom">
+                </div>
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <label
+                                for="bgp_pass">IPv4 Cluster Subnet:
+                                <span data-title="The IPv4 subnet for you cluster. This subnet should be able to be routable and reach internet to pull the container images.">ⓘ</span>
+                            </label>
+                            <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <label for="dns_servers">DNS servers:</label>
+                            <input type="text" id="dns_servers" name="dns_servers">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div class="form-group base-margin-bottom">
+                        <div class="form-group__text">
+                            <label for="dns_domain">DNS Domain:
+                                <span data-title="Comma separated list for DNS Servers" >ⓘ</span>
+                            </label>
+                            <input type="text" id="dns_domain" name="dns_domain" value="cisco.com">
+                        </div>
+                    </div>
+                </div>
+                <!--advanced tab for L3out-->
+                <div class="form-group base-margin-bottom">
+                    <div class="form-group__text"></div>
+                </div>
+                <div class="container">
+                    <div class="checkbox form-group form-group--inline c8041">
+                        <label class="checkbox">
+                            <input id="adv_chck" type="checkbox" style="margin:0;">
+                            <span id='advanced' class="checkbox__input"></span>
+                            <span class="checkbox__label hidden-xs">Advanced BGP Settings</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="checkbox-checked" style="display: none" >
+                    <div class="container">
+                        <div class="form-group base-margin-bottom">
+                            <div class="form-group__text">
+                                <label for="ibgp_peer_vlan">vPC iBGP Peer VLAN:
+                                    <span data-title="VLAN used for iBGP neighborship between vPC peer">ⓘ</span>
+                                </label>
+                                <input type="text" id="ibgp_peer_vlan" name="ibgp_peer_vlan" value=3965 type="number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="form-group base-margin-bottom">
+                            <div class="form-group__text">
+                                <input  id="route_map" name="route_map" value="k8s_route_map_filter_out">
+                                <label for="route-map"> Route-map of BGP filter
+                                    <span data-title="Route-map for filtering route to k8s node">ⓘ</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="form-group base-margin-bottom">
+                            <div class="form-group__text">
+                                <input  id="loopback_route_tag" name="loopback_route_tag" value=65535 type="number">
+                                <label for="loopback_route_tag"> Route Tag of loopback
+                                    <span data-title="Route Tag used for filer loopback address, prevent from being advertise to Kubernetes Nodes">ⓘ</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="checkbox form-group base-margin-bottom">
+                            <label class="checkbox">
+                                <input id="enable_ipv6" type="checkbox" >
+                                <span  class="checkbox__input"></span>
+                                <span class="checkbox__label hidden-xs">Enable IPv6 of K8s Cluster</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="container_ipv6" class="container" style="display: none">
+                        <div class="form-group base-margin-bottom">
+                            <div class="form-group__text">
+                                <label for="ipv6_cluster_subnet">IPv6 Cluster Subnet:
+                                    <span data-title="The IPv6 subnet for you cluster. Get from selected network">ⓘ</span>
+                                </label>
+                                <input type="text" id="ipv6_cluster_subnet" name="ipv6_cluster_subnet" value="">
+                            </div>
+                        </div>
+                        <div id="form_loopbackv6" class="form-group base-margin-bottom">
+                            <div class="form-group__text">
+                                <label for="input_lo_ipv6">IPv6 Loopback Addresses:
+                                    <span data-title="IPv6 loopback addresses for vPC peers, same addresses will be used for all vPC peers">ⓘ</span>
+                                </label>
+                                <input type="text" id="input_lo_ipv6" name="loopback_address" value=>
+                            </div>
+                            <div id="form_loopbackv6_alert" class="form-group__help" role="alert" style="display: none">
+                                <span>Maximum 2 addresses</span>
+                            </div>
+                        </div>
+                        <div id="loopback_ipv6" class="container  base-margin-bottom">
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="form-group base-margin-bottom">
+                            <div class="form-group__text">
+                                <label for="bgp_pass" >Password for BGP neighbors:
+                                    <span data-title="Default 123Cisco123">ⓘ</span>
+                                </label>
+                                <input type="text" id="bgp_pass" name="bgp_pass" value="Not Supported Yet" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container ">
+                    <div class="panel panel--bordered-top panel--bordered-bottom">
+                        <div class="row ">
+                            <div class="col-md-6">
+                                <div class="form-group base-margin-bottom">
+                                    <div class="form-group__text ">
+                                        <select id="vpc_peer" name="vpc_peer">
+                                            <!--<option name="{{ o }}">{{ o }} </option>-->
+                                        </select><label for="vpc_peer">vPC Peer</label>
+                                    </div>
+                                </div>
+                                <div class="form-group base-margin-bottom">
+                                    <div class="form-group__text"><input type="text" name="rack_id" id="rack_id" value=1>
+                                        <label >Rack ID
+                                            <span data-title="Select a alphanumeric value to identify your rack ID. This Rack ID is matched against the K8s node Rack ID. eBGP peering is automatically configuerd between anchor nodes and K8s nodes with the same Rack ID. ">ⓘ</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group base-margin-bottom">
+                                    <div class="form-group__text">
+                                        <input type="text" name="primary" id="primary" value="" disabled/>
+                                        <label for="primary">vPC Primary:
+                                            <span data-title="Primary of selected vpc peer">ⓘ</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group base-margin-bottom">
+                                    <div class="form-group__text">
+                                        <input type="text" name="primary_ipv4" id="primary_ipv4" value="192.168.10.1/30"/>
+                                        <label >SVI IPv4 of Primary:
+                                            <span data-title="IPv4 address of SVI used for iBGP peer between vPC Peer">ⓘ</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group base-margin-bottom">
+                                    <div class="form-group__text">
+                                        <input type="text" name="secondary" id="secondary" value="" disabled/>
+                                        <label  for="secondary">vPC secondary:
+                                            <span data-title="Secondary of selected vpc peer">ⓘ</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group base-margin-bottom">
+                                    <div class="form-group__text">
+                                        <input type="text" name="secondary_ipv4" id="secondary_ipv4" value="192.168.10.2/30"/>
+                                        <label >SVI IPv4 of Secondary:
+                                            <span data-title="IPv4 address of SVI used for iBGP peer between vPC Peer">ⓘ</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <input type="botton" value="Add Node" id="add_node" class="btn btn--wide" name="button"/>
+                            </div>
+                            <div id="leaf_switches" class="col-md-6 base-margin-top" value="">
+                            </div>
+                        </div>
+                    </div>
+                <p/><p/>
+
+            </form>
+            <div class="container">
+                <input type="button" value="Previous" class="btn btn--wide" name="button">
+                <input id="next" type="button" value="Next" class="btn btn--wide" name="button">
+            </div>
+    </body>
+    <div class="container">
+        <footer class="footer footer--tertiary" id="_uidca388897">
+            <div class="footer__links">
+                <ul class="list list--inline" id="_uid08010aa3">
+                    <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
+                                                                                                id="_uidbb5636c3">Contacts</a></li>
+                    <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
+                                                                                        id="_uid92d9bfeb">Feedback</a></li>
+                    <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank" id="_uidcbd80f09">Help</a></li>
+                    <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank" id="_uid134ab5bc">Site Map</a>
+                    </li>
+                    <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
+                                                                                                  id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                    <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
+                                                                                              id="_uide8b9adf9">Privacy Statement</a></li>
+                    <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
+                                                                                                      id="_uid5580971c">Cookie Policy</a></li>
+                    <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
+                                                                                            id="_uidbe7db422">Trademarks</a></li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+    <div class="form-group base-margin-bottom"></div>
+    <!-- End Main Content -->
+    <script>
+
+        function gather_farbic_input () {
+            var fabric_name = $("#fabric").val();
+            var asn = $("#fabric_asn").val();
+            var vrf = $("#vrf").val();
+            var network = $("#network").val();
+            var loopback_id = $("#loopback_id").val();
+            var loopback_ipv4 = $("#loopback_ipv4").data("lo_ipv4_addrs");
+            var loopback_ipv6 = $("#loopback_ipv6").data("lo_ipv6_addrs");
+            var gateway_v4 = $("#" + network).data("gateway_v4");
+            var gateway_v6 = $("#" + network).data("gateway_v6");
+            var node_sub = $("#ipv4_cluster_subnet").val();
+            var dns_servers = $("#dns_servers").val();
+            var dns_domain = $("#dns_domain").val();
+            var ibgp_peer_vlan = $("#ibgp_peer_vlan").val();
+            var k8s_route_map = $("#route_map").val();
+            var route_tag = $("#loopback_route_tag").val();
+            var ipv6_enabled = $("#enable_ipv6").prop("checked");
+            var node_sub_v6 = $("#ipv6_cluster_subnet").val();
+            var bgp_pass = ""; // seet to emplty untiil it is supported
+
+            var vpc_peers = []
+            $("#leaf_switches").children().each(function() {
+                var peer = {
+                    primary: $(this).data("primary"),
+                    secondary: $(this).data("secondary"),
+                    primary_ipv4: $(this).data("primary_ipv4"),
+                    secondary_ipv4: $(this).data("secondary_ipv4")
+                }
+                vpc_peers.push(peer);
+
+            });
+            var data = {
+                fabric_name: fabric_name,
+                asn: asn,
+                vrf: vrf,
+                network: network,
+                loopback_id: loopback_id,
+                loopback_ipv4: loopback_ipv4,
+                loopback_ipv6: loopback_ipv6,
+                gateway_v4: gateway_v4.split("/")[0],
+                gateway_v6: gateway_v6.split("/")[0],
+                node_sub_v6: node_sub_v6,
+                node_sub: node_sub,
+                dns_servers: dns_servers,
+                dns_domain: dns_domain,
+                ibgp_peer_vlan: ibgp_peer_vlan,
+                k8s_route_map: k8s_route_map,
+                route_tag: route_tag,
+                ipv6_enabled: ipv6_enabled,
+                bgp_pass: bgp_pass,
+                vpc_peers: vpc_peers
+            }
+            console.log(data);
+            return data
+        };
+
+        $(document).ready(function() {
+            $("#loopback_ipv4").data("lo_ipv4_addrs", [])
+            $("#loopback_ipv6").data("lo_ipv6_addrs", [])
+            $(window).keydown(function(e){
+                if(e.key == "Enter") {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            $("#adv_chck").click(function(){
+                if ( $(this).prop("checked") ) {
+                    $("#checkbox-checked").fadeIn(200);
+                } else {
+                    $("#checkbox-checked").fadeOut(200);
+                };
+            });
+
+            $("#network").change(function(){
+                var network = $(this).val();
+                $("#ipv4_cluster_subnet").val($("#" + network).data("subnet_v4"));
+                $("#ipv6_cluster_subnet").val($("#" + network).data("subnet_v6"));
+            });
+            $("#vrf").change(function(){
+                var vrf_name = $(this).val();
+                var fabric_name = $("#fabric").val();
+                var query_url = "{{ url_for("query_ndfc")}}"
+                $.ajax({
+                    url: query_url,
+                    type: 'get',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: {
+                        fabric_type: getUrlParameter('fabric_type'),
+                        fabric_name: fabric_name,
+                        query_network: true,
+                        vrf_name: vrf_name
+                    },
+                    success: function (result, status, xhr) {
+                        $.each(result, function(index, value){
+                            var option = '<option id="' + value["name"] + '"value="' + value["name"] +'">'
+                            var option_net = $(option).appendTo($("#datalist_network"));
+                            $(option_net).data("subnet_v4", value["subnet_v4"]);
+                            $(option_net).data("subnet_v6", value["subnet_v6"]);
+                            $(option_net).data("gateway_v4", value["gateway_v4"]);
+                            $(option_net).data("gateway_v6", value["gateway_v6"]);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                });
+
+            });
+
+            $("#fabric").change(function(){
+                var fabric_name = this.value;
+                $("#fabric_asn").val($("#" + this.value).attr("data-asn"));
+                $("#div_asn").fadeIn(300);
+                var query_url = "{{ url_for("query_ndfc")}}"
+                $.ajax({
+                    url: query_url,
+                    type: 'get',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: {
+                        fabric_type: getUrlParameter('fabric_type'),
+                        fabric_name: fabric_name,
+                        query_vrf: true
+                    },
+                    success: function (result, status, xhr) {
+                        $.each(result, function(index, value){
+                            $('<option value="' + value +'">').appendTo($("#datalist_vrf"));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                });
+
+                $.ajax({
+                    url: query_url,
+                    type: 'get',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: {
+                        fabric_type: getUrlParameter('fabric_type'),
+                        fabric_name: fabric_name,
+                        query_vrf: false,
+                        query_inv: true
+                    },
+                    success: function (result, status, xhr) {
+                        $.each(result, function(index, value){
+                            var vpc_peer = value.primary + "/" + value.secondary;
+                            var opt_peer = '<option value="' + vpc_peer + '">' + vpc_peer + '</option>';
+                            $(opt_peer).appendTo($("#vpc_peer"));
+                        });
+                        var vpc_selected = $("#vpc_peer").find(":selected").val();
+                        $("#primary").val(vpc_selected.split("/")[0]);
+                        $("#secondary").val(vpc_selected.split("/")[1]);
+                    },
+                    error: function (xhr, status, error) {
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                });
+            });
+
+            $("#vpc_peer").change(function(){
+                var vpc_selected = $("#vpc_peer").find(":selected").val();
+                $("#primary").val(vpc_selected.split("/")[0]);
+                $("#secondary").val(vpc_selected.split("/")[1]);
+            });
+
+            $("#input_lo_ipv4").on("keyup", function(e){
+                if (e.key == "Enter") {
+                    var count_lo = $("#loopback_ipv4").children().length;
+                    if ( count_lo >= 2 ) {
+                        $("#form_loopback_alert").show();
+                        $("#form_loopback").addClass("form-group--error");
+                        return false
+                    };
+
+                    var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
+                    if (lo_ipv4_addrs == null) {
+                        lo_ipv4_addrs = []
+                        $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+                    };
+
+                    var ip_addr = $(this).value;
+                    var ipv4_addr = $("#input_lo_ipv4").val();
+                    var lo_label = '<span class="label label--info label--raised base-margin-left"><span>' + ipv4_addr + '</span> <span class="icon-close"></span></span>';
+                    var label_ipv4 = $(lo_label).appendTo("#loopback_ipv4");
+                    label_ipv4.data("ipv4", ipv4_addr);
+                    lo_ipv4_addrs.push(ipv4_addr);
+                    $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+                    $(this).val("");
+                }
+            });
+
+            $("#loopback_ipv4").on("click", ".icon-close", function(){
+                var ipv4  = $(this).parent().data("ipv4");
+                var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
+                var new_lo_ipv4_addrs = lo_ipv4_addrs.filter(function(v){
+                    return v != ipv4;
+                });
+                $("#loopback_ipv4").data("lo_ipv4_addrs", new_lo_ipv4_addrs);
+                $(this).parent().remove();
+                var count_lo = $("#loopback_ipv4").children().length;
+                if ( count_lo < 2 ) {
+                    $("#form_loopback_alert").hide();
+                    $("#form_loopback").removeClass("form-group--error");
+                    return false
+                };
+            });
+
+            $("#input_lo_ipv6").on("keyup", function(e){
+                if (e.key == "Enter") {
+                    var count_lo = $("#loopback_ipv6").children().length;
+                    if ( count_lo >= 2 ) {
+                        $("#form_loopbackv6_alert").show();
+                        $("#form_loopbackv6").addClass("form-group--error");
+                        return false
+                    };
+
+                    var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
+                    if (lo_ipv6_addrs == null) {
+                        lo_ipv6_addrs = []
+                        $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+                    };
+
+                    var ipv6_addr = $("#input_lo_ipv6").val();
+                    var lo_label = '<span class="label label--info label--raised base-margin-left"><span>' + ipv6_addr + '</span> <span class="icon-close"></span></span>';
+                    var label_ipv6 = $(lo_label).appendTo("#loopback_ipv6");
+                    label_ipv6.data("ipv6", ipv6_addr);
+                    lo_ipv6_addrs.push(ipv6_addr);
+                    $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+                    $(this).val("");
+                }
+            });
+
+            $("#loopback_ipv6").on("click", ".icon-close", function(){
+                var ipv6  = $(this).parent().data("ipv6");
+                var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
+                var new_lo_ipv6_addrs = lo_ipv6_addrs.filter(function(v){
+                    return v != ipv6;
+                });
+                $("#loopback_ipv6").data("lo_ipv6_addrs", new_lo_ipv6_addrs);
+                $(this).parent().remove();
+                var count_lo = $("#loopback_ipv6").children().length;
+                if ( count_lo < 2 ) {
+                    $("#form_loopbackv6_alert").hide();
+                    $("#form_loopbackv6").removeClass("form-group--error");
+                    return false
+                };
+            });
+
+            $("#enable_ipv6").on("change", function() {
+                if ($(this).prop("checked")) {
+                    $("#container_ipv6").fadeIn(500);
+                }else {
+                    $("#container_ipv6").fadeOut(500);
+                };
+            });
+
+            $("#leaf_switches").on("click", ".icon-close", function(){
+                $(this).parent().remove();
+            });
+
+            $("#primary_ipv4").on("blur", function (e){
+                var this_svi = $(this).val();
+                var peer_svi = next_ip(this_svi);
+                $("#secondary_ipv4").val(peer_svi);
+            });
+
+            $("#add_node").on("click", function(e){
+                var dup = false;
+                $("#leaf_switches").children("span[class~='label']").each( function(){
+                    if ($(this).data("primary") == $("#primary").val()) {
+                        console.log("duplicate vpc peer!")
+                        dup = true
+                    };
+                });
+
+                if (dup) { return false};
+
+                var line1 = '<span class="label label--raised label--large label--primary base-margin-left"><span class="text-size-12">';
+                var line2 = $("#primary").val() + "(" + $("#primary_ipv4").val() +")<br>";
+                var line3 = $("#secondary").val() + "(" + $("#secondary_ipv4").val() +")<br>";
+                var line4 = '</span><span class="icon-close"></span></span>';
+                var label_peers = [line1,line2,line3,line4].join("");
+                var peer = $(label_peers).appendTo($("#leaf_switches"))
+                peer.data("primary", $("#primary").val());
+                peer.data("secondary", $("#secondary").val());
+                peer.data("primary_ipv4", $("#primary_ipv4").val());
+                peer.data("secondary_ipv4", $("#secondary_ipv4").val());
+            });
+
+            $("#next").on("click", function(e){
+                var data = gather_farbic_input();
+                var url = "/fabric?fabric_type=vxlan_evpn"
+                $.ajax({
+                    url: url,
+                    type: 'post',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function (result, status, xhr) {
+                        $(location).attr('href',"{{ url_for("vcenterlogin") }}?fabric_type=vxlan_evpn");
+                    },
+                    error: function (xhr, status, error) {
+                        $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+                    }
+                });
+            });
+        });
+
+    </script>
+</html>

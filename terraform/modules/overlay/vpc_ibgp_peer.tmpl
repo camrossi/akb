@@ -1,0 +1,30 @@
+vlan ${ibgp_peer_vlan}
+  name ${vrf}_ibgp_peering_vlan
+!
+interface Vlan${ibgp_peer_vlan}
+  mtu 9000
+  no shutdown
+  vrf member ${vrf}
+  no ip redirects
+  ip address ${ibgp_svi_ipv4}
+  no ipv6 redirects
+!
+router bgp ${asn}
+  vrf ${vrf}
+    address-family ipv4 unicast
+      network ${loopback_ipv4}/32
+    neighbor ${ibgp_peer_ipv4}
+      update-source Vlan3965
+      remote-as ${asn}
+      address-family ipv4 unicast
+    neighbor ${k8s_node_subnetv4}
+      remote-as ${k8s_cluster_asn}
+      update-source loopback${loopback_id}
+      ebgp-multihop 16
+      %{ if bgp_passwd != "" }%
+      password ${bgp_passwd}
+      %{ endif }
+      address-family ipv4 unicast
+        as-override
+        disable-peer-as-check
+        route-map ${k8s_route_map} out

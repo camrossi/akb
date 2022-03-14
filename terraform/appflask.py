@@ -124,7 +124,7 @@ def create_tf_vars(fabric_type: str,
     return tf_vars
 
 
-def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, dns_servers, dns_domain, anchor_nodes):
+def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, anchor_nodes):
     def_ext_epg_scope = []
     floating_ip = ""
     secondary_ip = ""
@@ -158,7 +158,6 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
             print(e)
             pass
 
-    dns_servers = list(dns_servers.split(","))
     anchor_nodes = json.loads(anchor_nodes)
     l3out = {
         "name": name,
@@ -181,8 +180,6 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
         "max_node_prefixes": "500",
         'contract': contract.split('/')[1],
         'contract_tenant': contract.split('/')[0],
-        "dns_servers": dns_servers,
-        "dns_domain": dns_domain,
         "anchor_nodes": anchor_nodes,
         "ipv4_cluster_subnet": ipv4_cluster_subnet,
         "ipv6_cluster_subnet": ipv6_cluster_subnet,
@@ -197,7 +194,7 @@ def createVCVars(url="", username="", passw="", dc="", datastore="", cluster="",
 
 
 def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
-                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status=""):
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain=""):
     try:
         ingress_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
         visibility_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
@@ -206,7 +203,7 @@ def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_po
         ingress_ip = ""
         visibility_ip = ""
         neo4j_ip = ""
-
+    dns_servers = list(dns_servers.split(","))
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
                 "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else None,
                 "pod_subnet": ipv4_pod_sub, 
@@ -236,6 +233,8 @@ def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_po
                 "ubuntu_apt_mirror" : ubuntu_apt_mirror,
                 "sandbox_status" : True if sandbox_status == "on" else False,
                 "eBPF_status" : True if eBPF_status == "on" else False,
+                "dns_domain" : dns_domain,
+                "dns_servers" : dns_servers
                 } 
     return cluster
 
@@ -274,20 +273,27 @@ def doc_ndfc():
 def tf_plan():
     fabric_type = get_fabric_type(request)
     g = proc.Group()
-    # cwd = os.getcwd
+    
+    # Get the current dir
+    cwd = os.getcwd()
     if fabric_type == "aci":
         with open("cluster.tfvars", 'r') as fp:
             current_config = hcl.load(fp)
         if not current_config['vc']['vm_deploy']:
+            #Change to the VM module directory
+            os.chdir("modules/k8s_node")
             if os.path.exists("vms.tf"):
                 os.rename("vms.tf","vms.tf.ignore")
             if os.path.exists("outputs.tf"):
-                os.rename("outputs.tf","outputs.tf.ignore")     
+                os.rename("outputs.tf","outputs.tf.ignore")
+            os.chdir(cwd)
         if current_config['vc']['vm_deploy']:
+            os.chdir("modules/k8s_node")
             if os.path.exists("vms.tf.ignore"):
                 os.rename("vms.tf.ignore","vms.tf")
             if os.path.exists("outputs.tf.ignore"):
                 os.rename("outputs.tf.ignore","outputs.tf")
+            os.chdir(cwd)
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
@@ -455,10 +461,10 @@ def calico_nodes():
 
             missing_rack = True
             for anchor_node in l3out["anchor_nodes"]:
-                if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(anchor_node['primary_ip']).ip:
+                if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(anchor_node['ip']).ip:
                     return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IP overlaps with the primary IP of anchor node " + anchor_node['node_id'],)
                 if ipv6_enabled:
-                    if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(anchor_node['primary_ipv6']).ip:
+                    if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(anchor_node['ipv6']).ip:
                         return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IPv6 overlaps with the primary IPv6 of anchor node " + anchor_node['node_id'])
                 # Check that there is at least one switch in the same rack ID as the node I am adding
                 if rack_id == anchor_node['rack_id']:
@@ -587,12 +593,11 @@ def cluster():
             elif fabric_type == "vxlan_evpn":
                 ipv4_cluster_subnet = overlay["node_sub"]
                 ipv6_cluster_subnet = overlay["node_sub_v6"]
-
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
-            cluster = createClusterVars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"),
-            req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
-            req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"),
-            req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"))
+            cluster = createClusterVars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
+            req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"), req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
+            req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
+            req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"))
             if fabric_type == "aci":
                 return redirect('/cluster_network')
             elif fabric_type == "vxlan_evpn":
@@ -945,7 +950,7 @@ def l3out():
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: The VRF is configured with BD Enforcement. This will result in the eBGP peering not to form. Please Disable BD Enforcement under the VRF before continuing")
 
             l3out = createl3outVars(req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
-                "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("dns_servers"), req.get("dns_domain"), req.get("anchor_nodes"))
+                "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("anchor_nodes"))
             if vc['vm_deploy']:
                 return redirect('/vcenterlogin')
             else:
@@ -997,12 +1002,6 @@ def l3out():
 
             # I check here also the other parameters
 
-            for dns in req.get("dns_servers").split(','):
-                try:
-                    # Use the Netwrok to ensure that the mask is always present
-                    ipaddress.IPv4Address(dns)
-                except ValueError as e:
-                    return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Invalid DNS Server: " + str(e))
             try:
                 # Use the Netwrok to ensure that the mask is always present
                 ipaddress.IPv4Network(
@@ -1058,14 +1057,14 @@ def l3out():
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Node ID:" + req.get("node_id"))
                 if anchor_node['rtr_id'] == req.get("rtr_id"):
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Router ID:" + req.get("rtr_id"))
-                if anchor_node['primary_ip'] == node_ipv4:
+                if anchor_node['ip'] == node_ipv4:
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Node Primary IPv4:" + req.get("node_ipv4"))
                 if ipv6_enabled:
-                    if anchor_node['primary_ipv6'] == node_ipv6:
+                    if anchor_node['ipv6'] == node_ipv6:
                         return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Duplicated Node Primary IPv6:" + req.get("node_ipv6"))
 
             anchor_nodes.append({"pod_id": req.get("pod_id"), "rack_id": req.get("rack_id"), "node_id": req.get(
-                "node_id"), "rtr_id": req.get("rtr_id"), "primary_ip": node_ipv4, "primary_ipv6": node_ipv6})
+                "node_id"), "rtr_id": req.get("rtr_id"), "ip": node_ipv4, "ipv6": node_ipv6})
             if turbo.can_stream():
                 return turbo.stream(
                     turbo.update(render_template('_anchor_nodes.html', pod_ids=session['pod_ids'], nodes_id=session['nodes_id'], rtr_id=str(rtr_id_counter + 1), anchor_nodes=json.dumps(anchor_nodes, indent=4)),

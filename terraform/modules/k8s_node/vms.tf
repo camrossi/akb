@@ -36,11 +36,6 @@ data "vsphere_network" "network" {
   distributed_virtual_switch_uuid = data.vsphere_distributed_virtual_switch.dvs.id
 }
 
-resource "tls_private_key" "ansible_key" {
-  algorithm = "RSA"
-  rsa_bits  = 2048
-}
-
 resource "vsphere_virtual_machine" "vm" {
   for_each = { for v in var.calico_nodes : v.hostname => v }
     lifecycle {

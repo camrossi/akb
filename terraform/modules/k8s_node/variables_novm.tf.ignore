@@ -1,20 +1,11 @@
 variable "controller" {
   type = object({
   username          = string
-  password          = string
   cert_name         = string
   private_key       = string
   url               = string
   oob_ips           = string
   })
-    default = {
-    username = ""
-    url = ""
-    password = ""
-    cert_name = ""
-    private_key = ""
-    oob_ips = ""
-  }
 }
 
 variable "fabric" {
@@ -43,7 +34,6 @@ variable "vc" {
     vm_folder   = string
   })
 }
-
 variable "calico_nodes" {
   type = list(object({
     hostname     = string
@@ -54,11 +44,12 @@ variable "calico_nodes" {
   }))
 }
 
+
 variable "bgp_peers" {
   type = list(object({
     node_id  = number
-    ip   = string
-    ipv6 = string
+    primary_ip   = string
+    primary_ipv6 = string
     rack_id  = number
   }))
 }
@@ -102,4 +93,5 @@ variable "k8s_cluster" {
 }
 variable "ansible_dir" {
   type    = string
+  default = "../../ansible/"
 }

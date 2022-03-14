@@ -96,7 +96,9 @@ variable "k8s_cluster" {
     cluster_svc_subnet_v6  = string
     external_svc_subnet    = string
     external_svc_subnet_v6 = string
-    ingress_ip             = string
+    ingress_ip          = string
+    neo4j_ip            = string
+    visibility_ip       = string    
     ntp_server             = string
     dns_servers            = list(string)
     dns_domain             = string
@@ -107,6 +109,7 @@ variable "k8s_cluster" {
     ubuntu_apt_mirror      = string
     sandbox_status         = bool
     eBPF_status            = bool
+
   })
 }
 

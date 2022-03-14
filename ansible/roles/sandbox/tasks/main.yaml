@@ -20,8 +20,8 @@
    - osixia/keepalived:latest
    - kubernetesui/dashboard:v2.2.0
    - kubernetesui/metrics-scraper:v1.0.6
-   - quay.io/camillo/vkaci:0.1
-   - quay.io/camillo/vkaci-init:0.1
+   - quay.io/camillo/vkaci:0.2
+   - quay.io/camillo/vkaci-init:0.2
    - k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1
    - k8s.gcr.io/ingress-nginx/controller:v1.1.1
    - neo4j:4.4.3
@@ -72,10 +72,44 @@
   tags:
     - sandbox
 
+- name: Add SSH Public Key in known_hosts
+  authorized_key:
+    user: "{{ ansible_user }}"
+    key: "{{ lookup('file', 'id_rsa.pub') }}"
+    state: present
+  tags:
+    - sandbox
+
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+  tags:
+    - sandbox
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  tags:
+    - sandbox
+
+- name: Add sudoers users to wheel group
+  user:
+    name="{{ ansible_user }}"
+    groups=wheel
+    append=yes
+    state=present
+  tags:
+    - sandbox
+
 - name: Restore default apt mirror on ubuntu
   template:
     src: ../k8s_nodes/templates/sources.list.j2
     dest: /etc/apt/sources.list
     backup: yes
   tags:
-    - k8s_nodes
+    - sandbox

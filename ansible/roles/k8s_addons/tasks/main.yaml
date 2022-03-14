@@ -32,7 +32,7 @@
   when: "groups['k8s_workers'] | length < 3"
   ignore_errors: yes
   tags:
-    - k8s_addons1
+    - k8s_addons
 
 - name: Create guestbook ns
   shell: kubectl create ns gb
@@ -146,27 +146,5 @@
     path: ~{{ ansible_ssh_user }}/.bashrc
     line: source <(kubectl completion bash)
     state: present
-  tags:
-    - k8s_addons
-
-- name: add local DNS entry for Neo4j
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ neo4j_ip }} my-neo4j-neo4j"
-    regexp: .*my-neo4j-neo4j
-    state: present
-  delegate_to: localhost
-  when: fabric_type is not defined or fabric_type == "aci"
-  tags:
-    - k8s_addons
-
-- name: add local DNS entry for Visibility UI
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ visibility_ip }} visibility"
-    regexp: .*visibility
-    state: present
-  delegate_to: localhost
-  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons

@@ -12,6 +12,33 @@ terraform {
     }
   }
 }
+module "k8s_node" {
+  source       = "./modules/k8s_node"
+  
+  vc           = var.vc
+  calico_nodes = var.calico_nodes
+  k8s_cluster  = var.k8s_cluster
+  bgp_peers    = var.l3out.anchor_nodes
+  controller   = {
+    username = var.apic.username
+    url = var.apic.url
+    cert_name = var.apic.cert_name
+    private_key = var.apic.private_key
+    oob_ips = var.apic.oob_ips
+    password = ""
+  }
+  fabric  = {
+    type  = "aci"
+    ip = var.l3out.secondary_ip
+    ipv6 = var.l3out.secondary_ipv6
+    ipv6_enabled = var.l3out.ipv6_enabled
+    as =  var.l3out.local_as
+    bgp_pass = var.l3out.bgp_pass
+    vrf_tenant = var.l3out.vrf_tenant
+    vrf_name   =  var.l3out.vrf_name
+  }
+ ansible_dir = "../ansible"
+}
 
 provider "aci" {
   # cisco-aci user name

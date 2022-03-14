@@ -23,14 +23,8 @@ resource "local_file" "AnsibleConfig" {
       vrf_tenant   = var.fabric.vrf_tenant
       vrf_name     = var.fabric.vrf_name
       controller   = var.controller
-      ssh_private_key = abspath(local_file.private_key.filename)
+      ssh_private_key = "${var.ansible_dir}/roles/sandbox/files/id_rsa"
     }
   )
   filename = "../ansible/inventory/group_vars/all.yml"
-}
-
-resource "local_file" "private_key" {
-  content         = tls_private_key.ansible_key.private_key_pem
-  filename        = "${var.ansible_dir}/roles/sandbox/files/id_rsa"
-  file_permission = "0600"
 }

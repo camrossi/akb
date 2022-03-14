@@ -55,7 +55,7 @@ def normalize_url(hostname: str) -> str:
 
 def process_fabric_setting(data: dict) -> bool:
     global overlay
-    global ipv5_enabled
+    global ipv6_enabled
     overlay = {}
     try:
         overlay["fabric_name"] = data["fabric_name"]

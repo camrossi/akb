@@ -26,6 +26,7 @@
 
 - name: Download Calicoctl on the installer VM if missing
   run_once: true
+  become: false
   delegate_to: localhost
   get_url:          
     url: https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64

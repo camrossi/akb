@@ -7,7 +7,7 @@ resource "aci_l3out_floating_svi" "floating_svi" {
   for_each                     = { for v in var.l3out.anchor_nodes : v.node_id => v }
   node_dn                      = "topology/pod-${each.value.pod_id}/node-${each.value.node_id}"
   encap                        = "vlan-${var.l3out.vlan_id}"
-  addr                         = each.value.primary_ip
+  addr                         = each.value.ip
   autostate                    = "enabled"
   encap_scope                  = "local"
   if_inst_t                    = "ext-svi"

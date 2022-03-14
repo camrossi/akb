@@ -52,7 +52,7 @@ spec:
     spec:
        containers:
        - name: vkaci
-         image: quay.io/camillo/vkaci:0.1
+         image: quay.io/camillo/vkaci:0.2
          imagePullPolicy: IfNotPresent
          ports:
          - containerPort: 50000
@@ -72,6 +72,8 @@ spec:
              value: "{{ vrf_name }}"
            - name: NEO4J_URL
              value: neo4j://my-neo4j-neo4j:7687
+           - name: NEO4J_BROWSER_URL
+             value:  neo4j://{{ neo4j_ip }}:7687
            - name: NEO4J_USER
              value: neo4j
            - name: NEO4J_PASSWORD
@@ -83,7 +85,7 @@ spec:
              mountPath: "/root/.aci-meta"
        initContainers:
        - name: init-vkaci
-         image: quay.io/camillo/vkaci-init:0.1
+         image: quay.io/camillo/vkaci-init:0.2
          imagePullPolicy: IfNotPresent
          command: ['sh', '-c', "python3 init.py"]
          env:

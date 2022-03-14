@@ -9,15 +9,15 @@ external_svc_subnet_v6: ${k8s_cluster.external_svc_subnet_v6}
 
 aci_as: ${as}
 calico_as:  ${k8s_cluster.local_as}
-apic_username : ${apic.username}
-apic_cert_name : ${apic.cert_name}
-apic_private_key: ${apic.private_key}
-apic_oob_ips :  ${apic.oob_ips}
+apic_username : ${controller.username}
+apic_cert_name : ${controller.cert_name}
+apic_private_key: ${controller.private_key}
+apic_oob_ips :  ${controller.oob_ips}
 vrf_tenant: ${vrf_tenant}
 vrf_name: ${vrf_name}
 
-anchor_nodes:
-%{ for node in anchor_nodes ~}
+bgp_peers:
+%{ for node in bgp_peers ~}
   - id: ${node.node_id}
     primary_ip: ${split("/",node.primary_ip)[0]}
     primary_ipv6: ${split("/",node.primary_ipv6)[0]}
@@ -25,3 +25,4 @@ anchor_nodes:
 %{ endfor ~}
 
 bgp_pass: ${bgp_pass}
+eBPF_status: ${k8s_cluster.eBPF_status}

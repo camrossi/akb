@@ -12,7 +12,33 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build_ova:
+  build_nkt_node_template:
+    # The type of runner that the job will run on
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ansible
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: packer
+      - name: Set up govc
+        run: | 
+          export GOVC_URL=administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com && export GOVC_INSECURE=True
+      - name: Create Snapshot
+        run: | 
+          govc snapshot.create -vm=NKT_K8sNode_Template PreBuild
+      - name: Prepare Template
+        run: | 
+          ansible-playbook -b -i inventory/sandbox.ini prepare_sandbox_template.yaml     
+      - name: Export NKT K8s Node Template
+        run: | 
+          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com/STLD/vm/Templates/NKT_K8sNode_Template /nfs-share/www/nkt/NKT_K8sNode_Template-${{github.ref_name}}.ova     
+      - name: Delete Snapshot
+        run: | 
+          govc snapshot.remove -vm=NKT_K8sNode_Template PreBuild      
+  build_installer_ova:
     # The type of runner that the job will run on
     runs-on: self-hosted
     defaults:
@@ -28,7 +54,7 @@ jobs:
           packer build -var "version=${{github.ref_name}}" .
       - name: Export OVA
         run: | 
-          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/nkt_installer-${{github.ref_name}} /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
+          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/NKT_Installer_Template-${{github.ref_name}} /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
       - name: Set permission for OVA
         run: | 
           chmod 777 /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova

@@ -14,17 +14,17 @@ packer {
 # source. Read the documentation for source blocks here:
 # https://www.packer.io/docs/templates/hcl_templates/blocks/source
 source "vsphere-clone" "clone" {
-  template            = "Ubutu21Desktop"
+  template            = "NKT_Installer_Template"
   linked_clone = true
   boot_wait            = "10s"
   datacenter = "STLD"
   cluster = "Cluster"
-  host = "esxi3.cam.ciscolabs.com"
-  datastore = "ESXi3_SSD"
+  host = "esxi5.cam.ciscolabs.com"
+  datastore = "BM01"
   insecure_connection  = true
   username       = "administrator@vsphere.local"
   password     = "123Cisco123!"
-  vcenter_server = "vc1.cam.ciscolabs.com"
+  vcenter_server = "vc2.cam.ciscolabs.com"
   vm_name        = "nkt_installer-${var.version}"
   ssh_username = "cisco"
   ssh_password = "123Cisco123"
@@ -54,8 +54,12 @@ build {
       "rm terraform_1.1.6_linux_amd64.zip",
       "cd akb-main/terraform",
       "terraform init -upgrade",
+      "sudo rm -fr /etc/netplan/01-network-manager-all.yaml",
       "sudo cp /home/cisco/akb-main/packer/nkt.service /etc/systemd/system/nkt.service",
-      "sudo systemctl enable  nkt.service && sudo systemctl start nkt.service", 
+      "sudo cp /home/cisco/akb-main/packer/vapp_customize.service /etc/systemd/system/vapp_customize.service",
+      "sudo systemctl enable nkt.service && sudo systemctl start nkt.service",
+      "sudo cp /home/cisco/akb-main/packer/vapp_customize.service /etc/systemd/system/vapp_customize.service",
+      "sudo systemctl enable vapp_customize.service",
     ]
   }
 }

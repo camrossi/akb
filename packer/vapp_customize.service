@@ -1,0 +1,12 @@
+[Unit]
+Description=Nexus Kubernetes Tools
+Before=network-pre.target
+Wants=network-pre.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/cisco/akb-main/packer/vapp_customize.sh
+WorkingDirectory=/home/cisco/akb-main/packer
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root

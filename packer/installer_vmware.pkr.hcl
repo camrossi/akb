@@ -58,6 +58,7 @@ build {
       "sudo rm -fr /etc/netplan/01-network-manager-all.yaml",
       "sudo cp /home/cisco/akb/packer/nkt.service /etc/systemd/system/nkt.service",
       "sudo cp /home/cisco/akb/packer/vapp_customize.service /etc/systemd/system/vapp_customize.service",
+      "chmod +x /home/cisco/akb/packer/vapp_customize.sh",
       "sudo systemctl enable nkt.service && sudo systemctl start nkt.service",
       "sudo cp /home/cisco/akb/packer/vapp_customize.service /etc/systemd/system/vapp_customize.service",
       "sudo systemctl enable vapp_customize.service",

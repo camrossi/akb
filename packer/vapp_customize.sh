@@ -1,6 +1,7 @@
 #!/bin/bash -x
 
-if [ -e /root/ran_customization ]; then
+if [ -e /root/ran_customization ]
+then
     exit
 else
     NETPLAN_CONFIG_FILE="/etc/netplan/01-netcfg.yaml"
@@ -13,7 +14,8 @@ else
     ##################################
     ### No User Input, assume DHCP ###
     ##################################
-    if [ -z "${IP_ADDRESS_PROPERTY}" ]; then
+    if [ -z "${IP_ADDRESS_PROPERTY}" ]
+    then
         cat > ${NETPLAN_CONFIG_FILE} << __CUSTOMIZE_NETPLAN__
 network:
     version: 2

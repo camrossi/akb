@@ -4,8 +4,8 @@ Before=network-pre.target
 Wants=network-pre.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/cisco/akb-main/packer/vapp_customize.sh
-WorkingDirectory=/home/cisco/akb-main/packer
+ExecStart=/home/cisco/akb/packer/vapp_customize.sh
+WorkingDirectory=/home/cisco/akb/packer
 StandardOutput=inherit
 StandardError=inherit
 Restart=always

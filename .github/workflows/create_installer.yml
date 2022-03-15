@@ -21,7 +21,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
-      - name: Set up govc
+      
       - name: Create Snapshot
         run: | 
           govc snapshot.create -vm=NKT_K8sNode_Template PreBuild

@@ -25,12 +25,18 @@ jobs:
       - name: Create Snapshot
         run: | 
           govc snapshot.create -vm=NKT_K8sNode_Template PreBuild
+      - name: Power On NKT_K8sNode_Template
+        run: | 
+          govc vm.power -on=true NKT_K8sNode_Template
       - name: Prepare Template
         run: | 
           ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml     
       - name: Export NKT K8s Node Template
         run: | 
           ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com/STLD/vm/Templates/NKT_K8sNode_Template /nfs-share/www/nkt/NKT_K8sNode_Template-${{github.ref_name}}.ova     
+      - name: Power Off NKT_K8sNode_Template
+        run: | 
+          govc vm.power -s=true NKT_K8sNode_Template
       - name: Delete Snapshot
         run: | 
           govc snapshot.remove -vm=NKT_K8sNode_Template PreBuild      

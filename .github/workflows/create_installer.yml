@@ -12,6 +12,7 @@ on:
 env:
   GOVC_URL: administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com
   GOVC_INSECURE: True
+  ANSIBLE_HOST_KEY_CHECKING: False
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

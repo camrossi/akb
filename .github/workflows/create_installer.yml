@@ -13,8 +13,10 @@ env:
   GOVC_URL: administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com
   GOVC_INSECURE: True
   ANSIBLE_HOST_KEY_CHECKING: False
+  DC: STLD
+  VM_FOLDER: Templates
   NKT_TEMPLATE: NKT_K8sNode_Template
-
+  DESTINATION_PATH: /nfs-share/www/nkt
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build_nkt:
@@ -39,11 +41,15 @@ jobs:
       
       - name: Power Off Node Template and wait for OS ShutDown
         run: | 
-          govc vm.power -s $NKT_TEMPLATE 
+          govc vm.power -s $NKT_TEMPLATE && govc object.collect -s "/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE" -runtime.powerState poweredOff
       
       - name: Export NKT K8s Node Template
         run: | 
-          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com/STLD/vm/Templates/$NKT_TEMPLATE /nfs-share/www/nkt/$NKT_TEMPLATE-${{github.ref_name}}.ova     
+          ovftool vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE/$NKT_TEMPLATE/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
+
+      - name: Set permission for NKT K8s Node Template
+        run: | 
+          chmod 777 $DESTINATION_PATH/nkt_template.ova
 
       - name: Delete K8s Node Template Snapshot
         run: | 
@@ -51,12 +57,12 @@ jobs:
       
       - name: Start Installer Build
         run: | 
-          packer build -var "version=${{github.ref_name}}" packer/
+          packer build -var "version=${{github.ref_name}}" packer
       
       - name: Export Installer OVA
         run: | 
-          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/NKT_Installer_Template-${{github.ref_name}} /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
+          ovftool vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE/NKT_Installer_Template-${{github.ref_name}} $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
       
       - name: Set permission for Installer OVA
         run: | 
-          chmod 777 /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
+          chmod 777 $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova

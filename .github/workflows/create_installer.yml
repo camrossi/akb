@@ -27,21 +27,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Create Snapshot for K8s Node Template
-        run: | 
-          govc snapshot.create -vm=$NKT_TEMPLATE PreBuild
-      
-      - name: Power On K8s Node Template
-        run: | 
-          govc vm.power -on $NKT_TEMPLATE
-      
+##      - name: Create Snapshot for K8s Node Template
+#        run: | 
+#          govc snapshot.create -vm=$NKT_TEMPLATE PreBuild
+#      
+#      - name: Power On K8s Node Template
+#        run: | 
+#          govc vm.power -on $NKT_TEMPLATE
+#      
 #      - name: Prepare K8s Node Template
 #        run: | 
 #          ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml 
       
-      - name: Power Off Node Template and wait for OS ShutDown
-        run: | 
-          govc vm.power -s $NKT_TEMPLATE && govc object.collect -s "/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE" -runtime.powerState poweredOff
+#      - name: Power Off Node Template and wait for OS ShutDown
+#        run: | 
+#          govc vm.power -s $NKT_TEMPLATE && govc object.collect -s "/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE" -runtime.powerState poweredOff
       
       - name: Export NKT K8s Node Template
         run: | 

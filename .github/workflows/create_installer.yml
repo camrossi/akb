@@ -35,9 +35,9 @@ jobs:
         run: | 
           govc vm.power -on $NKT_TEMPLATE
       
-      - name: Prepare K8s Node Template
-        run: | 
-          ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml 
+#      - name: Prepare K8s Node Template
+#        run: | 
+#          ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml 
       
       - name: Power Off Node Template and wait for OS ShutDown
         run: | 
@@ -45,7 +45,7 @@ jobs:
       
       - name: Export NKT K8s Node Template
         run: | 
-          ovftool vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE/$NKT_TEMPLATE/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
+          ovftool vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
 
       - name: Set permission for NKT K8s Node Template
         run: | 

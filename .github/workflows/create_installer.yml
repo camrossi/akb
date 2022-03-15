@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-##      - name: Create Snapshot for K8s Node Template
+#      - name: Create Snapshot for K8s Node Template
 #        run: | 
 #          govc snapshot.create -vm=$NKT_TEMPLATE PreBuild
 #      
@@ -42,18 +42,18 @@ jobs:
 #      - name: Power Off Node Template and wait for OS ShutDown
 #        run: | 
 #          govc vm.power -s $NKT_TEMPLATE && govc object.collect -s "/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE" -runtime.powerState poweredOff
-      
-      - name: Export NKT K8s Node Template
-        run: | 
-          ovftool -o vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
-
-      - name: Set permission for NKT K8s Node Template
-        run: | 
-          chmod 777 $DESTINATION_PATH/nkt_template.ova
-
-      - name: Delete K8s Node Template Snapshot
-        run: | 
-          govc snapshot.remove -vm=$NKT_TEMPLATE PreBuild      
+#      
+#      - name: Export NKT K8s Node Template
+#        run: | 
+#          ovftool -o vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
+#
+#      - name: Set permission for NKT K8s Node Template
+#        run: | 
+#          chmod 777 $DESTINATION_PATH/nkt_template.ova
+#
+#      - name: Delete K8s Node Template Snapshot
+#        run: | 
+#          govc snapshot.remove -vm=$NKT_TEMPLATE PreBuild      
       
       - name: Start Installer Build
         run: | 

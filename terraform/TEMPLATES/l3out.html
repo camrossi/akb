@@ -100,7 +100,7 @@
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <input list="l3out_tenant_list" id="l3out_tenant" name="l3out_tenant"
-                     onchange="this.form.requestSubmit()" />
+                     onchange="if(this.value.length>0) this.form.requestSubmit()" />
                   <datalist id="l3out_tenant_list">
                      {% for o in tenants %}
                      <option value="{{ o }}">

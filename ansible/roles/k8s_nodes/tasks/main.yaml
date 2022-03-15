@@ -4,6 +4,7 @@
     path: "{{ ansible_ssh_private_key_file }}"
     mode: '0600'
   delegate_to: localhost
+  become: false
 - name: Wait for the nodes to be reachable
   wait_for_connection:
     connect_timeout: 10

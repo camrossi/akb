@@ -1,7 +1,7 @@
 ---
 - name: set ssh_key permission
   file:
-    path: "{{ ansible_ssh_private_key_file }}"
+    path: "{{ansible_ssh_private_key_file}}"
     mode: '0600'
   delegate_to: localhost
   become: false

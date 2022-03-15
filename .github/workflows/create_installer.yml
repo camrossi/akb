@@ -24,30 +24,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Create Snapshot
+      - name: Create Snapshot for K8s Node Template
         run: | 
           govc snapshot.create -vm=NKT_K8sNode_Template PreBuild
-      - name: Power On NKT_K8sNode_Template
+      
+      - name: Power On K8s Node Template
         run: | 
           govc vm.power -on -wait=true NKT_K8sNode_Template
-      - name: Prepare Template
+      
+      - name: Prepare K8s Node Template
         run: | 
-          ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml     
+          ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml 
+      
+      - name: Power Off Node Template
+        run: | 
+          govc vm.power -s -wait=true NKT_K8sNode_Template    
+      
       - name: Export NKT K8s Node Template
         run: | 
           ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com/STLD/vm/Templates/NKT_K8sNode_Template /nfs-share/www/nkt/NKT_K8sNode_Template-${{github.ref_name}}.ova     
-      - name: Power Off NKT_K8sNode_Template
-        run: | 
-          govc vm.power -s -wait=true NKT_K8sNode_Template
-      - name: Delete Snapshot
+
+      - name: Delete K8s Node Template Snapshot
         run: | 
           govc snapshot.remove -vm=NKT_K8sNode_Template PreBuild      
-      - name: Start Build
+      
+      - name: Start Installer Build
         run: | 
           packer build -var "version=${{github.ref_name}}" packer/
-      - name: Export OVA
+      
+      - name: Export Installer OVA
         run: | 
           ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/NKT_Installer_Template-${{github.ref_name}} /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
-      - name: Set permission for OVA
+      
+      - name: Set permission for Installer OVA
         run: | 
           chmod 777 /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova

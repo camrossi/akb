@@ -15,3 +15,4 @@ pyVmomi
 netaddr
 pyhcl
 jinja2
+pytest

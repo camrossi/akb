@@ -1,4 +1,3 @@
-from distutils.util import strtobool
 import json
 import sys
 from logging import error
@@ -12,7 +11,7 @@ from pyaci import Node, options, filters
 import ipaddress
 import re
 from shelljob import proc
-from distutils.version import LooseVersion
+from packaging.version import Version
 import random
 import string
 from datetime import datetime
@@ -46,6 +45,8 @@ def get_fabric_type(request: request) -> str:
 def normalize_url(hostname: str) -> str:
     if hostname.startswith('http://'):
         url = hostname.replace("http://", "https://")
+    elif hostname.startswith("https://"):
+        url = hostname
     else:
         url = "https://" + hostname
     if url.endswith('/'):
@@ -527,7 +528,7 @@ def is_valid_hostname(hostname):
     if hostname[-1] == ".":
         # strip exactly one dot from the right, if present
         hostname = hostname[:-1]
-    allowed = re.compile("(?!-)[\-a-zA-Z0-9]{1,63}(?<!-)$", re.IGNORECASE)
+    allowed = re.compile("(?!-)[-a-zA-Z0-9]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(x) for x in hostname.split("."))
 
 
@@ -551,7 +552,7 @@ def k8s_versions():
             # This is the version
             # package.split('\n')[0:2][1].split(':')[1].strip()
             versions.append(package.split('\n')[0:2][1].split(':')[1].strip())
-    return sorted(versions, key=LooseVersion, reverse=True)
+    return sorted(versions, key=Version, reverse=True)
 
 
 class BetterIPv6Network(ipaddress.IPv6Network):
@@ -1198,13 +1199,7 @@ def login():
         req = request.form
         button = req.get("button")
         if button == "Login":
-            if request.form['fabric'].startswith('http://'):
-                apic['url'] = request.form['fabric'].replace("http://", "https://")
-            else:
-                apic['url'] = "https://" + request.form['fabric']
-            if apic['url'].endswith('/'):
-                apic['url'] = apic['url'][:-1]
-
+            apic['url'] = normalize_url(request.form['fabric'])
             apic['username'] = request.form['username']
             apic['password'] = request.form['password']
             apic['nkt_user'] = "nkt_user_" + get_random_string(6) #request.form['nkt_user']

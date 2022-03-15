@@ -1,5 +1,5 @@
 [Unit]
-Description=Nexus Kubernetes Tools
+Description=Set IP from vApps Options
 Before=network-pre.target
 Wants=network-pre.target
 
@@ -10,3 +10,5 @@ StandardOutput=inherit
 StandardError=inherit
 Restart=always
 User=root
+[Install]
+WantedBy=multi-user.target

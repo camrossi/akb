@@ -45,7 +45,7 @@ jobs:
       
       - name: Export NKT K8s Node Template
         run: | 
-          ovftool vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
+          ovftool vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
 
       - name: Set permission for NKT K8s Node Template
         run: | 

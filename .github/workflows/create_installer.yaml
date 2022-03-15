@@ -10,7 +10,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 env:
-  GOVC_URL: administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com
   GOVC_INSECURE: True
   ANSIBLE_HOST_KEY_CHECKING: False
   DC: STLD

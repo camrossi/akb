@@ -162,5 +162,12 @@
         $("#form_calio_node").attr("action", url);
         $("#form_calio_node").submit();
     });
+
+    $("#add_node").on("click", function(){
+        var url = "{{ url_for("calico_nodes")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        console.log(url);
+        $("#form_calio_node").attr("action", url);
+        $("#form_calio_node").submit();
+    });
 </script>
 </html>

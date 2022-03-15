@@ -41,7 +41,7 @@ build {
       "sudo apt update",
       "sudo apt upgrade -y",
       "sudo apt install -y python3-pip sshpass",
-      "wget https://github.com/camrossi/akb/archive/refs/heads/main.zip",
+      "wget https://github.com/camrossi/akb/archive/refs/heads/${var.version}.zip",
       "unzip -o main.zip",
       "rm main.zip",
       "sudo pip3 install -Ur akb-main/requirements.txt",

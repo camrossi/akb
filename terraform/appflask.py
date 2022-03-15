@@ -504,7 +504,9 @@ def calico_nodes():
                     if fabric_type == "aci":
                         ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
                     elif fabric_type == "vxlan_evpn":
-                        ip = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
+                        host = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
+                        prefixlen = str(ipaddress.IPv4Network(overlay['node_sub']).prefixlen)
+                        ip = f"{host}/{prefixlen}"
                     ipv6 = ""
                     natip = ""
                     rack_id = "1"
@@ -899,7 +901,7 @@ def vcenter():
 
         dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
-        return render_template('vcenter.html', dcs=dcs.values(), )
+        return render_template('vcenter.html', dcs=dcs.values(), fabric_type=fabric_type)
 
 
 def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):

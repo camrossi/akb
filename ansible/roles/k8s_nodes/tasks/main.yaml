@@ -1,7 +1,7 @@
 ---
 - name: set ssh_key permission
   file:
-    path: {{ ansible_ssh_private_key_file }}
+    path: "{{ ansible_ssh_private_key_file }}"
     mode: '0600'
   delegate_to: localhost
 - name: Wait for the nodes to be reachable
@@ -222,7 +222,6 @@
   retries: 100
   until: apt_res is success
   any_errors_fatal: true
-  when: apt_upgrade is defined and apt_upgrade
   tags:
     - k8s_nodes
     - apt_upgrade

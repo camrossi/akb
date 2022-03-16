@@ -70,7 +70,11 @@ jobs:
 #      - name: Set permission for Installer OVA
 #        run: | 
 #          chmod 777 $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
-
+      
+      - name: Compress OVA
+        run: | 
+          pigz $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
+          
       - name: Upload to Sydney S3
         run: | 
           bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-sydney
@@ -78,3 +82,8 @@ jobs:
       - name: Upload to Paris S3
         run: | 
           bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-paris
+
+      - name: Delete parts
+        run: | 
+          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz.part-*
+          

@@ -117,7 +117,7 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
-                  <select id="dc" name="dc" onchange="this.form.requestSubmit()">
+                  <select id="dc" name="dc" onchange="if(this.value.length>0) this.form.requestSubmit()">
                      <option disabled selected value> -- select a DC -- </option>
                      {% for o in dcs %}
                      <option name="{{ o }}">{{ o }} </option>

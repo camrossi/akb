@@ -55,7 +55,7 @@ def normalize_url(hostname: str) -> str:
 
 def process_fabric_setting(data: dict) -> bool:
     global overlay
-    global ipv5_enabled
+    global ipv6_enabled
     overlay = {}
     try:
         overlay["fabric_name"] = data["fabric_name"]
@@ -356,6 +356,8 @@ def create():
                                         overlay,
                                         calico_nodes,
                                         cluster)
+                with open('./ndfc/cluster.tfvars', 'w') as f:
+                    f.write(config)
             except Exception as e:
                 print(e)
                 config = []
@@ -433,12 +435,17 @@ def calico_nodes():
                 return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 can't be the broadcast address " + ip)
             if ipaddress.IPv4Network(ip, strict=False).network_address == ipaddress.IPv4Interface(ip).ip:
                 return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 can't be the network address " + ip)
-            if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]):
-                return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet: " + l3out["ipv4_cluster_subnet"])
-            if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["floating_ip"]).ip:
-                return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the floating_ip " + l3out["floating_ip"])
-            if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["secondary_ip"]).ip:
-                return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ip " + l3out["secondary_ip"])
+            if fabric_type == "aci":
+                if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]):
+                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet: " + l3out["ipv4_cluster_subnet"])
+                if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["floating_ip"]).ip:
+                    return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the floating_ip " + l3out["floating_ip"])
+                if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["secondary_ip"]).ip:
+                    return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ip " + l3out["secondary_ip"])
+            elif fabric_type == "vxlan_evpn":
+                if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(overlay["node_sub"]):
+                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the selected Network Subnet: " + overlay["node_sub"])
+
             if ipv6_enabled:
                 try:
                     # Use the Netwrok to ensure that the mask is always present
@@ -449,28 +456,34 @@ def calico_nodes():
                     return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 can't be the broadcast address " + ipv6)
                 if ipaddress.IPv6Network(ipv6, strict=False).network_address == ipaddress.IPv6Interface(ipv6).ip:
                     return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 can't be the network address " + ipv6)
-                if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]):
-                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet: " + l3out["ipv6_cluster_subnet"])
-                if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["floating_ipv6"]).ip:
-                    return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the floating_ipv6 " + l3out["floating_ipv6"])
-                if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["secondary_ipv6"]).ip:
-                    return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ipv6 " + l3out["secondary_ipv6"])
+                if fabric_type == "aci":
+                    if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]):
+                        return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet: " + l3out["ipv6_cluster_subnet"])
+                    if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["floating_ipv6"]).ip:
+                        return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the floating_ipv6 " + l3out["floating_ipv6"])
+                    if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["secondary_ipv6"]).ip:
+                        return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ipv6 " + l3out["secondary_ipv6"])
+                elif fabric_type == "vxlan_evpn":
+                    if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(overlay["node_sub_v6"]):
+                        return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the Selected Network Subnet: " + overlay["node_sub_v6"])
 
             if rack_id == "":
                 return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack is mandatory")
 
             missing_rack = True
-            for anchor_node in l3out["anchor_nodes"]:
-                if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(anchor_node['ip']).ip:
-                    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IP overlaps with the primary IP of anchor node " + anchor_node['node_id'],)
-                if ipv6_enabled:
-                    if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(anchor_node['ipv6']).ip:
-                        return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IPv6 overlaps with the primary IPv6 of anchor node " + anchor_node['node_id'])
-                # Check that there is at least one switch in the same rack ID as the node I am adding
-                if rack_id == anchor_node['rack_id']:
-                    missing_rack = False
-            if missing_rack:
-                return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack ID does not match the Rack ID of any anchor nodes " + rack_id)
+            if fabric_type == "aci":
+                for anchor_node in l3out["anchor_nodes"]:
+                    if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(anchor_node['ip']).ip:
+                        return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IP overlaps with the primary IP of anchor node " + anchor_node['node_id'],)
+                    if ipv6_enabled:
+                        if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(anchor_node['ipv6']).ip:
+                            return calico_nodes_error(req.get("calico_nodes"), "The Calico Node IPv6 overlaps with the primary IPv6 of anchor node " + anchor_node['node_id'])
+                    # Check that there is at least one switch in the same rack ID as the node I am adding
+                    if rack_id == anchor_node['rack_id']:
+                        missing_rack = False
+                if missing_rack:
+                    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack ID does not match the Rack ID of any anchor nodes " + rack_id)
+
 
             #if local_as == "":
             #    return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Local AS is mandatory")
@@ -504,7 +517,9 @@ def calico_nodes():
                     if fabric_type == "aci":
                         ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
                     elif fabric_type == "vxlan_evpn":
-                        ip = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
+                        host = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
+                        prefixlen = str(ipaddress.IPv4Network(overlay['node_sub']).prefixlen)
+                        ip = f"{host}/{prefixlen}"
                     ipv6 = ""
                     natip = ""
                     rack_id = "1"
@@ -899,7 +914,7 @@ def vcenter():
 
         dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
-        return render_template('vcenter.html', dcs=dcs.values(), )
+        return render_template('vcenter.html', dcs=dcs.values(), fabric_type=fabric_type)
 
 
 def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):

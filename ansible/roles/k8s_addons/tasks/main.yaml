@@ -94,7 +94,9 @@
 
 - name: helm repo update
   shell: helm repo update
-  when: not sandbox_status
+  when: 
+    - not sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   environment: "{{ proxy_env }}"
   tags:
     - k8s_addons

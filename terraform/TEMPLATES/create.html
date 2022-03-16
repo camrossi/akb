@@ -16,9 +16,9 @@
     <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
     <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
     <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
+    <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script> -->
+    <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script> -->
+    <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script> -->
     <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
    <style>
       .chevron ul.tabs li.active a {
@@ -53,7 +53,6 @@
 </head>
 
 <form name="tenantForm" method="post" action="/create">
-
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
          <!-- Main Content -->
@@ -118,7 +117,7 @@
                            <label>Terraform Output:
                               <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
                            </label>
-                           <iframe id='iframe' src=""                                                         ></iframe>
+                           <iframe id='iframe' src=""                                                        onChange="console.log();" ></iframe>
                   </div>
                </div>
             </div>
@@ -179,9 +178,6 @@
            document.getElementById('iframe').src = "{{ url_for("tf_apply") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
        }
    }
-   function autoscrollDown() {
-      document.querySelector()
-   }
 </script>
 <script>
     $(document).ready(function () {
@@ -203,8 +199,28 @@
         });
     })
 </script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
+
 <div id="canvas"></div>
 
 </body>
+<script>
+   window.onload = (event) => {
+      console.log("load event fired");
 
+      const iframe = document.getElementById('iframe').contentWindow.document.body
+      // setTimeout( () => {
+         const observer = new MutationObserver((mutationsList, observered) => {
+            console.log('Mutation observer body is being ran!')
+            autoScroll();
+            // observer.disconnect();
+
+            document.removeEventListener(loadListener, null)
+
+         })
+         observer.observe(iframe, { attributes: true, childList: true, subtree: true })
+         console.log(document.getElementById('iframe').contentWindow.document.body)
+      // }, 1000)
+   };
+</script>
 </html>

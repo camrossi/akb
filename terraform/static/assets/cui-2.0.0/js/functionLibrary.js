@@ -137,3 +137,15 @@ function loadInputLimit(limitArr) {
   }
   // console.log("Loaded saved inputs from local storage.");
 }
+
+let previousScrollTop = 0;
+function autoScroll(input) {
+  const frame = document
+    .querySelector("iframe")
+    .contentWindow.document.querySelector("html");
+  const bottom = frame.scrollHeight;
+  if (frame.scrollTop == previousScrollTop || input !== null) {
+    frame.scrollTo(0, bottom);
+    previousScrollTop = frame.scrollTop;
+  }
+}

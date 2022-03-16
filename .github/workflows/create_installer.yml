@@ -79,10 +79,6 @@ jobs:
         run: | 
           bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz nkt-sydney
           
-      - name: Upload to Paris S3
-        run: | 
-          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz nkt-paris
-
       - name: Delete parts
         run: | 
           rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz.part-*

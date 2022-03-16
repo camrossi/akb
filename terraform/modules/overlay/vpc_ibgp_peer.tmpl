@@ -14,7 +14,7 @@ router bgp ${asn}
     address-family ipv4 unicast
       network ${loopback_ipv4}/32
     neighbor ${ibgp_peer_ipv4}
-      update-source Vlan3965
+      update-source Vlan${ibgp_peer_vlan}
       remote-as ${asn}
       address-family ipv4 unicast
     neighbor ${k8s_node_subnetv4}

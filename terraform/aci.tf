@@ -37,7 +37,7 @@ module "k8s_node" {
     vrf_tenant = var.l3out.vrf_tenant
     vrf_name   =  var.l3out.vrf_name
   }
- ansible_dir = "../../ansible"
+ ansible_dir = "../ansible"
 }
 
 provider "aci" {

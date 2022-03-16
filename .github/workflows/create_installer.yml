@@ -73,8 +73,8 @@ jobs:
 
       - name: Upload to Sydney S3
         run: | 
-          bash packer/aws_upload.sh nkt_installer-${{github.ref_name}}.ova nkt-sydney
+          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-sydney
           
       - name: Upload to Paris S3
         run: | 
-          bash packer/aws_upload.sh nkt_installer-${{github.ref_name}}.ova nkt-paris
+          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-paris

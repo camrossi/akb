@@ -2,6 +2,8 @@
 ansible_user: cisco
 ansible_ssh_private_key_file: ${ ssh_private_key }
 
+fabric_type: ${ fabric_type }
+
 #K8S an Crio Version
 kube_version: ${k8s_cluster.kube_version}            # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
 OS_Version: "${k8s_cluster.OS_Version}"

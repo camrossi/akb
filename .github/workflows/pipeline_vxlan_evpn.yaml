@@ -6,6 +6,7 @@ name: ci-pipeline-vxlan-evpn
 on:
   pull_request:
     types: [synchronize, opened, reopened, edited]
+  push:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -38,12 +39,15 @@ jobs:
       - name: Terraform apply
         run: | 
           curl -s http://localhost:5010/tf_apply
+        continue-on-error: true
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+        continue-on-error: true
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+        continue-on-error: true
       - name: Terraform destroy and delete APIC user
         run: | 
           curl -s -X POST http://localhost:5010/existing_cluster

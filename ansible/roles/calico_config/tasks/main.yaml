@@ -5,14 +5,14 @@
   tasks:
     - name: create static calico directory if it does not exist
       file:
-        path: "$HOME/akb-main/terraform/static/calico/"
+        path: "$HOME/akb/terraform/static/calico/"
         state: directory
       tags:
         - calico_config
     - name: Copy Calico Manifests
       template:
-        src: "$HOME/akb-main/ansible/roles/calico/templates/{{ item }}"
-        dest: "$HOME/akb-main/terraform/static/calico/{{ item }}"
+        src: "$HOME/akb/ansible/roles/calico/templates/{{ item }}"
+        dest: "$HOME/akb/terraform/static/calico/{{ item }}"
       with_items:
         - BGPPassSecret.yaml
         - IPPool.yaml
@@ -24,8 +24,8 @@
         - calico_config
     - name: Archive Calico Manifests
       archive:
-        path: "$HOME/akb-main/ansible/roles/calico/*"
-        dest: "$HOME/akb-main/ansible/roles/calico/calico_manifests.zip"
+        path: "$HOME/akb/ansible/roles/calico/*"
+        dest: "$HOME/akb/ansible/roles/calico/calico_manifests.zip"
         format: zip
       tags:
         - calico_config

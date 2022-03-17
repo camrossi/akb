@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 import sys
 import random
 from time import sleep
@@ -102,8 +101,7 @@ elem.click()
 elem = driver.find_element(By.NAME,"ipv6_cluster_subnet")
 elem.clear()
 elem.send_keys("2001:db8:35::/56")
-#elem = driver.find_element(By.NAME,"vlan_id")
-#elem.send_keys("310")
+
 
 add_anchor_ndoe("1","1","101","1.1.1.101","192.168.35.201","2001:db8:35::201/56")
 add_anchor_ndoe("1","1","102","1.1.1.102","192.168.35.202","2001:db8:35::202/56")

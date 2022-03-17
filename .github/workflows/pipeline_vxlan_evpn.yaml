@@ -6,7 +6,6 @@ name: ci-pipeline-vxlan-evpn
 on:
   pull_request:
     types: [synchronize, opened, reopened, edited]
-  push:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

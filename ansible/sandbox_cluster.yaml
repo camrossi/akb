@@ -14,8 +14,6 @@
       sleep: 5
       delay: 5
       timeout: 5000
-    tags:
-      - k8s_nodes
 
 - hosts: k8s_primary_master
   gather_facts: True
@@ -38,3 +36,14 @@
     - calico
     - k8s_addons
     - ingress-nginx
+
+- hosts: k8s_nodes
+  gather_facts: False
+  tasks:
+  - name: Remove Network Config
+    file: 
+      src: /etc/netplan/00-installer-config.yaml
+      state: absent
+    ignore_errors: true
+    tags:
+      - delete_netplan

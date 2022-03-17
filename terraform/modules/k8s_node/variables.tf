@@ -1,33 +1,33 @@
 variable "controller" {
   type = object({
-  username          = string
-  password          = string
-  cert_name         = string
-  private_key       = string
-  url               = string
-  oob_ips           = string
+    username    = string
+    password    = string
+    cert_name   = string
+    private_key = string
+    url         = string
+    oob_ips     = string
   })
-    default = {
-    username = ""
-    url = ""
-    password = ""
-    cert_name = ""
+  default = {
+    username    = ""
+    url         = ""
+    password    = ""
+    cert_name   = ""
     private_key = ""
-    oob_ips = ""
+    oob_ips     = ""
   }
 }
 
 variable "fabric" {
   type = object({
-    type = string
-    ip   = string
-    ipv6 = string
+    type         = string
+    ip           = string
+    ipv6         = string
     ipv6_enabled = bool
-    as = number
-    bgp_pass = string
-    vrf_tenant = string
-    vrf_name   = string
-    })
+    as           = number
+    bgp_pass     = string
+    vrf_tenant   = string
+    vrf_name     = string
+  })
 }
 variable "vc" {
   type = object({
@@ -46,20 +46,20 @@ variable "vc" {
 
 variable "calico_nodes" {
   type = list(object({
-    hostname     = string
-    ip           = string
-    ipv6         = string
-    natip        = string
-    rack_id      = string
+    hostname = string
+    ip       = string
+    ipv6     = string
+    natip    = string
+    rack_id  = string
   }))
 }
 
 variable "bgp_peers" {
   type = list(object({
-    node_id  = number
-    ip   = string
-    ipv6 = string
-    rack_id  = number
+    node_id = number
+    ip      = string
+    ipv6    = string
+    rack_id = number
   }))
 }
 
@@ -83,9 +83,9 @@ variable "k8s_cluster" {
     cluster_svc_subnet_v6  = string
     external_svc_subnet    = string
     external_svc_subnet_v6 = string
-    ingress_ip          = string
-    neo4j_ip            = string
-    visibility_ip       = string    
+    ingress_ip             = string
+    neo4j_ip               = string
+    visibility_ip          = string
     ntp_server             = string
     dns_servers            = list(string)
     dns_domain             = string
@@ -95,11 +95,11 @@ variable "k8s_cluster" {
     http_proxy             = string
     ubuntu_apt_mirror      = string
     sandbox_status         = bool
-    eBPF_status         = bool
-    dns_servers       = list(string)
-    dns_domain        = string
+    eBPF_status            = bool
+    dns_servers            = list(string)
+    dns_domain             = string
   })
 }
 variable "ansible_dir" {
-  type    = string
+  type = string
 }

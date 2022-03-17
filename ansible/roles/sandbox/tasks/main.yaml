@@ -113,3 +113,11 @@
     backup: yes
   tags:
     - sandbox
+
+- name: remove crio http proxy config
+  file:
+    path: /etc/systemd/system/crio.service.d/http-proxy.conf
+    state: absent
+  when: http_proxy_status == true
+  tags:
+    - sandbox

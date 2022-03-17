@@ -100,7 +100,7 @@
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <input list="l3out_tenant_list" id="l3out_tenant" name="l3out_tenant"
-                     onchange="this.form.requestSubmit()" />
+                     onchange="if(this.value.length>0) this.form.requestSubmit()" />
                   <datalist id="l3out_tenant_list">
                      {% for o in tenants %}
                      <option value="{{ o }}">
@@ -255,10 +255,11 @@
             {% include "_anchor_nodes.html" %}    
          </div>
 
-
-         <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
-            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-            <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
+         <div class="container">
+            <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 0px; margin-right: auto; margin-left: auto;">
+               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+            </div>
          </div>
 </form>
 <div class="container">

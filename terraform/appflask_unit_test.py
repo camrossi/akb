@@ -1,16 +1,38 @@
 
 import pytest
-from appflask import is_valid_hostname, get_random_string, k8s_versions, normalize_url
+from appflask import is_valid_hostname, get_random_string, k8s_versions, normalize_url, get_fabric_type, createVCVars
 
 
-def test_is_valid_hostname():
-    tests = {
-        "": False,
-        get_random_string(255): False,
-        "sammy.cisco.com": True
+class Expando(object):
+    pass
+
+
+def get_request(fabric: str):
+    request = Expando()
+    request.args = {
+        "fabric_type": fabric
     }
-    for hostname, expected in tests.items():
-        assert is_valid_hostname(hostname) == expected
+    return request
+
+
+@pytest.mark.parametrize("input,expected", [
+    ("", False),
+    (get_random_string(255), False),
+    ("sammy.cisco.com", True)
+])
+def test_is_valid_hostname(input, expected):
+    assert is_valid_hostname(input) == expected
+
+
+@pytest.mark.parametrize("input,expected", [
+    (get_request(""), "aci"),
+    (get_request(None), "aci"),
+    (get_request("SAM"), "sam"),
+    (get_request("aci"), "aci"),
+    (None, "aci"),
+])
+def test_get_fabric_type(input, expected):
+    assert get_fabric_type(input) == expected
 
 
 def test_k8s_versions():
@@ -21,15 +43,22 @@ def test_k8s_versions():
     assert result == expected
 
 
-def test_normalize_url():
-    tests = {
-        "192.168.1.1": "https://192.168.1.1",
-        "http://192.168.1.1": "https://192.168.1.1",
-        "http://192.168.1.1/": "https://192.168.1.1",
-        "https://192.168.1.1/": "https://192.168.1.1",
-        "test-url/": "https://test-url"
-    }
-    for url, expected in tests.items():
-        assert normalize_url(url) == expected
+@pytest.mark.parametrize("input,expected", [
+    ("192.168.1.1", "https://192.168.1.1"),
+    ("http://192.168.1.1", "https://192.168.1.1"),
+    ("http://192.168.1.1/", "https://192.168.1.1"),
+    ("test-url/", "https://test-url"),
+])
+def test_normalize_url(input, expected):
+    assert normalize_url(input) == expected
+
+
+def test_create_VCVars():
+    expected = {'url': 'test', 'username': 'test', 'pass': 'test', 'dc': 'test', 'datastore': 'test', 'cluster': 'test',
+                'dvs': 'test', 'port_group': 'test', 'vm_template': 'test', 'vm_folder': 'test', 'vm_deploy': False}
+    result = createVCVars("test", "test", "test", "test",
+                          "test", "test", "test", "test", "test", "test", False)
+    assert result == expected
+
 
 pytest.main()

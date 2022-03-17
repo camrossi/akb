@@ -36,7 +36,7 @@ def get_random_string(length):
 
 def get_fabric_type(request: request) -> str:
     # get fabric type from url parameters
-    fabric_type = request.args.get("fabric_type", None)
+    fabric_type = None if not request else request.args.get("fabric_type", None)
     if not fabric_type:
         fabric_type = "aci"
     return fabric_type.lower()

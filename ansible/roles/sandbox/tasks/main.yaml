@@ -124,7 +124,7 @@
 
 - name: Remove Network Config
   file: 
-    src: /etc/netplan/00-installer-config.yaml
+    path: /etc/netplan/00-installer-config.yaml
     state: absent
   ignore_errors: true
   tags:

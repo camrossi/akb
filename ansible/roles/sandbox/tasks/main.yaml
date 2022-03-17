@@ -122,13 +122,10 @@
   tags:
     - sandbox
 
-- hosts: k8s_nodes
-  gather_facts: False
-  tasks:
-  - name: Remove Network Config
-    file: 
-      src: /etc/netplan/00-installer-config.yaml
-      state: absent
-    ignore_errors: true
-    tags:
-      - delete_netplan
+- name: Remove Network Config
+  file: 
+    src: /etc/netplan/00-installer-config.yaml
+    state: absent
+  ignore_errors: true
+  tags:
+    - sandbox

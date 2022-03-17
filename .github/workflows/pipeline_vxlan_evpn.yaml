@@ -24,10 +24,6 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: clean up
-        run: |
-          echo "Cleaning up previous run"
-          rm -rf "${{ github.workspace }}"
       - uses: actions/checkout@v2
         with:
           path: ndfc
@@ -52,9 +48,12 @@ jobs:
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
         continue-on-error: true
-      - name: Terraform destroy and delete APIC user
+      - name: Terraform destroy
         run: | 
           curl -s -X POST http://localhost:5010/existing_cluster?fabric_type=vxlan_evpn
-      - name: 
-        run: | 
-          curl -s -X POST http://localhost:5010/existing_cluster?fabric_type=vxlan_evpn
+      - name: Clean working directory
+        shell: bash
+        run: |
+          cd $RUNNER_WORKSPACE
+          cd ..
+          rm -r *

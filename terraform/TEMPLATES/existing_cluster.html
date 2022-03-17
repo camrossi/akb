@@ -198,6 +198,7 @@
             var update_url = "{{ url_for("destroy")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
             $("#confirm_modal").addClass('hide');
             $("#iframe").attr('src',update_url);
+            console.log(update_url);
         });
     })
 </script>

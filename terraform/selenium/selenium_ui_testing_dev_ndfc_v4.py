@@ -207,8 +207,9 @@ def main():
         url = args.url
     if args.run_id:
         run_id = args.run_id
-    chrome_driver_args = ' '.join(unknown)
-    chrome_options.add_argument(chrome_driver_args)
+    if unknown: 
+        chrome_driver_args = ' '.join(unknown)
+        chrome_options.add_argument(chrome_driver_args)
 
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)

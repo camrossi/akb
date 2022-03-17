@@ -26,11 +26,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Set Version
-        run: | 
-          echo -n ${{github.ref_name}} > terraform/version.txt
-      
+   
       - name: Power On K8s Node Template
         run: | 
           govc vm.power -on $NKT_TEMPLATE

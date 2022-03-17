@@ -1,5 +1,5 @@
 - name: Pre Pull Kubeadm Images
-  command: kubeadm config images pull
+  command: kubeadm config images pull "{{ kube_version }}"
   tags:
     - sandbox
 

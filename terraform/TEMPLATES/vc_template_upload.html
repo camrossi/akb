@@ -94,10 +94,13 @@
                            {% include '_template_upload_progress.html' %}
                      </div>
             </div>
-            <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
+
+         <div class="container">
+            <div class="navibox">
                <input id="submit" type="submit" value="Upload" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="clicked(event)">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
+         </div>
          </form>
 
          <div class="container">

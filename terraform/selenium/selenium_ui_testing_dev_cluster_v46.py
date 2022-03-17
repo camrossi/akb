@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 import sys
 import random
 from time import sleep
@@ -81,10 +80,6 @@ elem.send_keys("calico_dev_v46")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
 elem.clear()
 elem.send_keys("192.168.35.0/24")
-elem = driver.find_element(By.NAME,"dns_servers")
-elem.send_keys("10.67.185.100")
-elem = driver.find_element(By.NAME,"dns_domain")
-elem.send_keys("cam.ciscolabs.com")
 
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
@@ -106,8 +101,7 @@ elem.click()
 elem = driver.find_element(By.NAME,"ipv6_cluster_subnet")
 elem.clear()
 elem.send_keys("2001:db8:35::/56")
-#elem = driver.find_element(By.NAME,"vlan_id")
-#elem.send_keys("310")
+
 
 add_anchor_ndoe("1","1","101","1.1.1.101","192.168.35.201","2001:db8:35::201/56")
 add_anchor_ndoe("1","1","102","1.1.1.102","192.168.35.202","2001:db8:35::202/56")
@@ -152,7 +146,7 @@ select.select_by_visible_text("Cluster1")
 elem = driver.find_element(By.ID,'port_group')
 elem.send_keys("ACI/calico_dev_v46/vlan-12")
 elem = driver.find_element(By.ID,'vm_templates')
-elem.send_keys("NKT-Ubuntu-Template")
+elem.send_keys("nkt_template")
 elem = driver.find_element(By.ID,'vm_folder')
 elem.send_keys("CalicoDev_v46")
 elem = driver.find_element(By.ID,"submit")
@@ -180,6 +174,10 @@ elem = driver.find_element(By.ID,'advanced')
 elem.click()
 elem = driver.find_element(By.ID,'timezone')
 elem.send_keys("Australia/Sydney")
+elem = driver.find_element(By.NAME,"dns_servers")
+elem.send_keys("10.67.185.100")
+elem = driver.find_element(By.NAME,"dns_domain")
+elem.send_keys("cam.ciscolabs.com")
 elem = driver.find_element(By.ID,'docker_mirror')
 elem.send_keys("10.67.185.120:5000")
 elem = driver.find_element(By.ID,'ntp_server')

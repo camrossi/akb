@@ -65,7 +65,7 @@
                <div class="header-panels">
                   <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
                         id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">Nexus Kubernetes Tools</div>
+                     <div class="header__title">Nexus Kubernetes Tools - Version {{session['version']}}</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
                         data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
@@ -100,7 +100,7 @@
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <input list="l3out_tenant_list" id="l3out_tenant" name="l3out_tenant"
-                     onchange="this.form.requestSubmit()" />
+                     onchange="if(this.value.length>0) this.form.requestSubmit()" />
                   <datalist id="l3out_tenant_list">
                      {% for o in tenants %}
                      <option value="{{ o }}">
@@ -140,25 +140,6 @@
                      <span data-title="The IPv4 subnet for you cluster. This subnet should be able to be routable and reach internet to pull the container images.">ⓘ</span>
                   </label>
                   <input type="text" id="ipv4_cluster_subnet" name="ipv4_cluster_subnet" value="192.168.0.0/24" onchange="updateAnchorNodeIPv4(this)">
-               </div>
-            </div>
-         </div>
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <label for="dns_servers">DNS servers:</label>
-                  <input type="text" id="dns_servers" name="dns_servers">
-               </div>
-            </div>
-         </div>
-         
-         <div class="container">
-            <div class="form-group base-margin-bottom">
-               <div class="form-group__text">
-                  <label for="dns_domain">DNS Domain:
-                     <span data-title="Comma separated list for DNS Servers" >ⓘ</span>
-                  </label>
-                  <input type="text" id="dns_domain" name="dns_domain">
                </div>
             </div>
          </div>
@@ -274,10 +255,11 @@
             {% include "_anchor_nodes.html" %}    
          </div>
 
-
-         <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
-            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-            <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
+         <div class="container">
+            <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 0px; margin-right: auto; margin-left: auto;">
+               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+            </div>
          </div>
 </form>
 <div class="container">

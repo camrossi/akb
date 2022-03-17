@@ -37,10 +37,16 @@
          justify-content: center !important;
       }
    </style>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
+      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
 </head>
 
-<form name="tenantForm" method="post" action="/intro">
-
+<form name="mainForm" method="post" action="/intro">
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
          <!-- Main Content -->
@@ -49,7 +55,7 @@
                <div class="header-panels">
                   <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
                         id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">Nexus Kubernetes Tools</div>
+                     <div class="header__title">Nexus Kubernetes Tools - Version {{session['version']}}</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
                         data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
@@ -77,83 +83,96 @@
                
                
 
-            </p>
-            <div class="container">
-               <input type="button" value="Open Documentation" class="btn btn--wide" onclick="window.open('docs/doc','_blank')">
-               <input type="submit" value="Next" class="btn btn--wide" name="button">
+
+                    </p>
+                    <div class="row base-margin-bottom">
+                        <div class="col-md-2">
+                            <div class="form-group ">
+                                <div class="form-group__text select">
+                                    <select id="fabric_type" name="fabric_type" value="Select Fabric Type">
+                                        <option value="aci" class="selected">ACI</option>
+                                        <option value="vxlan_evpn">NDFC/VXLAN_EVPN</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <input id="btn_doc" type="button" value="Open Documentation" class="btn btn--wide">
+                        <input type="submit" value="Next" class="btn btn--wide" name="button">
+                    </div>
+                    <br>
+                </div>
+
+
+                <div class="container">
+                    <footer class="footer footer--tertiary" id="_uidca388897">
+                        <div class="footer__links">
+                            <ul class="list list--inline" id="_uid08010aa3">
+                                <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
+                                                                                                            id="_uidbb5636c3">Contacts</a></li>
+                                <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
+                                                                                                    id="_uid92d9bfeb">Feedback</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
+                                                                                            id="_uidcbd80f09">Help</a></li>
+                                <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
+                                                                                              id="_uid134ab5bc">Site Map</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
+                                                                                                              id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
+                                                                                                          id="_uide8b9adf9">Privacy Statement</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
+                                                                                                                  id="_uid5580971c">Cookie Policy</a></li>
+                                <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
+                                                                                                        id="_uidbe7db422">Trademarks</a></li>
+                            </ul>
+                        </div>
+                    </footer>
+                </div>
+
+
+
+                <div class="form-group base-margin-bottom"></div>
+                <main class="c549">
+                    <div></div>
+                </main>
+                <!-- End Main Content -->
             </div>
-            <br>
-         </div>
-
-
-         <div class="container">
-            <footer class="footer footer--tertiary" id="_uidca388897">
-               <div class="footer__links">
-                  <ul class="list list--inline" id="_uid08010aa3">
-                     <li><a href="http://www.cisco.com/cisco/web/siteassets/contacts/index.html" target="_blank"
-                           id="_uidbb5636c3">Contacts</a></li>
-                     <li><a href="https://secure.opinionlab.com/ccc01/o.asp?id=jBjOhqOJ" target="_blank"
-                           id="_uid92d9bfeb">Feedback</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/help.html" target="_blank"
-                           id="_uidcbd80f09">Help</a></li>
-                     <li><a href="http://www.cisco.com/c/en/us/about/sitemap.html" target="_blank"
-                           id="_uid134ab5bc">Site Map</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/terms-conditions.html" target="_blank"
-                           id="_uidf3e2c0a6">Terms &amp; Conditions</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html" target="_blank"
-                           id="_uide8b9adf9">Privacy Statement</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/privacy-full.html#cookies" target="_blank"
-                           id="_uid5580971c">Cookie Policy</a></li>
-                     <li><a href="https://www.cisco.com/c/en/us/about/legal/trademarks.html" target="_blank"
-                           id="_uidbe7db422">Trademarks</a></li>
-                  </ul>
-               </div>
-            </footer>
-         </div>
-
-
-
-         <div class="form-group base-margin-bottom"></div>
-         <main class="c549">
-            <div></div>
-         </main>
-         <!-- End Main Content -->
-      </div>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
-      <div id="canvas"></div>
-      <script>
-         $(document).ready(function () {
-            $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
-               var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
-               var myChart = Highcharts.chart(val, JSON.parse(finalJson));
-            })
-         })
-         $('#canvas').on('click', function () {
+            <div id="canvas"></div>
+        </main>
+    </body>
+</form>
+<script>
+    $(document).ready(function () {
+        $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
+            var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
+            var myChart = Highcharts.chart(val, JSON.parse(finalJson));
+        })
+        $("#btn_doc").on("click", function(){
+            var fabric_type = $("#fabric_type").val();
+            if (fabric_type == "vxlan_evpn") {
+                window.open('docs/ndfc','_blank');
+            } else {
+                window.open('docs/doc','_blank');
+            };
+        });
+    })
+    $('#canvas').on('click', function () {
+        html2canvas(document.body, {}).then(canvas => {
             html2canvas(document.body, {}).then(canvas => {
-               html2canvas(document.body, {}).then(canvas => {
-                  document.body.appendChild(canvas);
-                  getCanvas = canvas;
-                  var imgageData = getCanvas.toDataURL('image/png');
-                  var newData = imgageData.replace(
-                     /^data:image\/png/,
-                     'data:application/octet-stream'
-                  );
-                  // console.log(newData);
-                  document.getElementById('canvas').setAttribute("data-title", newData);
-                  /**
-                   * remove canvas and link after download
-                   */
-                  document.querySelector('canvas').remove();
-               });
+                document.body.appendChild(canvas);
+                getCanvas = canvas;
+                var imgageData = getCanvas.toDataURL('image/png');
+                var newData = imgageData.replace(
+                    /^data:image\/png/,
+                    'data:application/octet-stream'
+                );
+                // console.log(newData);
+                document.getElementById('canvas').setAttribute("data-title", newData);
+                /**
+                 * remove canvas and link after download
+                 */
+                document.querySelector('canvas').remove();
             });
-         });
-      </script>
-   </body>
-
+        });
+    });
+</script>
 </html>

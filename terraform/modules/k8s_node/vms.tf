@@ -37,7 +37,10 @@ data "vsphere_network" "network" {
 }
 
 resource "vsphere_virtual_machine" "vm" {
-  for_each                    = { for v in var.calico_nodes : v.hostname => v }
+  for_each = { for v in var.calico_nodes : v.hostname => v }
+    lifecycle {
+    ignore_changes = [vapp, ]
+  }
   name                        = each.value.hostname
   resource_pool_id            = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id                = data.vsphere_datastore.datastore.id
@@ -47,9 +50,15 @@ resource "vsphere_virtual_machine" "vm" {
   scsi_type                   = data.vsphere_virtual_machine.template.scsi_type
   folder                      = var.vc.vm_folder
   wait_for_guest_net_routable = true
+  wait_for_guest_net_timeout = 10
+
   network_interface {
     network_id   = data.vsphere_network.network.id
     adapter_type = data.vsphere_virtual_machine.template.network_interface_types[0]
+  }
+
+  cdrom {
+    client_device = true
   }
 
   disk {
@@ -66,28 +75,36 @@ resource "vsphere_virtual_machine" "vm" {
     customize {
       linux_options {
         host_name = each.value.hostname
-        domain    = var.l3out.dns_domain
+        domain    = var.k8s_cluster.dns_domain
       }
 
       network_interface {
         ipv4_address = split("/", each.value.ip)[0]
         ipv4_netmask = split("/", each.value.ip)[1]
-        ipv6_address = var.l3out.ipv6_enabled ? split("/", each.value.ipv6)[0] : null
-        ipv6_netmask = var.l3out.ipv6_enabled ? split("/", each.value.ipv6)[1] : null
+        ipv6_address = var.fabric.ipv6_enabled ? split("/", each.value.ipv6)[0] : null
+        ipv6_netmask = var.fabric.ipv6_enabled ? split("/", each.value.ipv6)[1] : null
       }
-      dns_server_list = var.l3out.dns_servers
-      ipv4_gateway    = split("/", var.l3out.secondary_ip)[0]
-      ipv6_gateway    = var.l3out.ipv6_enabled ? split("/", var.l3out.secondary_ipv6)[0] : null
+      dns_server_list = var.k8s_cluster.dns_servers
+      ipv4_gateway    = split("/", var.fabric.ip)[0]
+      ipv6_gateway    = var.fabric.ipv6_enabled ? split("/", var.fabric.ipv6)[0] : null
 
     }
   }
+    #vapp {
+    #properties = {
+    #  instance-id = each.value.hostname
+    #  public-keys = tls_private_key.ansible_key.public_key_openssh
+    #  password = "123Cisco123"
+    #}
+  #}
 }
+
 
 resource "null_resource" "cluster" {
   count      = var.k8s_cluster.sandbox_status ? 0 : 1
   depends_on = [local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm]
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/cluster.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ${var.ansible_dir}/inventory/nodes.ini ${var.ansible_dir}/cluster.yaml"
   }
 
 }
@@ -96,7 +113,6 @@ resource "null_resource" "sandbox_cluster" {
   count      = var.k8s_cluster.sandbox_status ? 1 : 0
   depends_on = [local_file.AnsibleInventory, local_file.AnsibleConfig, vsphere_virtual_machine.vm]
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/sandbox_cluster.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ${var.ansible_dir}/inventory/nodes.ini ${var.ansible_dir}/sandbox_cluster.yaml"
   }
-
 }

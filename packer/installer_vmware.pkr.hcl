@@ -14,17 +14,17 @@ packer {
 # source. Read the documentation for source blocks here:
 # https://www.packer.io/docs/templates/hcl_templates/blocks/source
 source "vsphere-clone" "clone" {
-  template            = "Ubutu21Desktop"
+  template            = "NKT_Installer_Template"
   linked_clone = true
   boot_wait            = "10s"
   datacenter = "STLD"
   cluster = "Cluster"
-  host = "esxi3.cam.ciscolabs.com"
-  datastore = "ESXi3_SSD"
+  host = "esxi5.cam.ciscolabs.com"
+  datastore = "BM01"
   insecure_connection  = true
   username       = "administrator@vsphere.local"
   password     = "123Cisco123!"
-  vcenter_server = "vc1.cam.ciscolabs.com"
+  vcenter_server = "vc2.cam.ciscolabs.com"
   vm_name        = "nkt_installer-${var.version}"
   ssh_username = "cisco"
   ssh_password = "123Cisco123"
@@ -38,23 +38,30 @@ build {
 
   provisioner "shell" {
     inline = [
-      "sudo apt update",
-      "sudo apt upgrade -y",
-      "sudo apt install -y python3-pip sshpass",
-      "wget https://github.com/camrossi/akb/archive/refs/heads/main.zip",
-      "unzip main.zip",
-      "rm main.zip",
-      "sudo pip3 install -Ur akb-main/requirements.txt",
+      #"sudo apt update",
+      #"sudo apt upgrade -y",
+      #"sudo apt install -y python3-pip",
+      "wget https://github.com/camrossi/akb/archive/refs/heads/${var.version}.zip",
+      "unzip -o ${var.version}.zip",
+      "rm ${var.version}.zip",
+      "mv akb-${var.version} akb",
+      "sudo pip3 install -Ur akb/requirements.txt",
       "sudo ansible-galaxy collection install cisco.aci",
-      "wget http://192.168.66.120/nkt/nkt_template.ova -O akb-main/terraform/static/vm_templates/nkt_template.ova",
+      "wget http://192.168.66.120/nkt/nkt_template.ova -O akb/terraform/static/vm_templates/nkt_template.ova",
       "wget https://releases.hashicorp.com/terraform/1.1.6/terraform_1.1.6_linux_amd64.zip",
+      "wget  https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64 -O akb/ansible/roles/calico/files/calicoctl",
       "sudo rm -f /bin/terraform",
       "sudo unzip terraform_1.1.6_linux_amd64.zip  -d /bin",
       "rm terraform_1.1.6_linux_amd64.zip",
-      "cd akb-main/terraform",
+      "cd akb/terraform",
       "terraform init -upgrade",
-      "sudo cp /home/cisco/akb-main/packer/nkt.service /etc/systemd/system/nkt.service",
-      "sudo systemctl enable  nkt.service && sudo systemctl start nkt.service", 
+      "sudo rm -fr /etc/netplan/01-network-manager-all.yaml",
+      "sudo cp /home/cisco/akb/packer/nkt.service /etc/systemd/system/nkt.service",
+      "sudo cp /home/cisco/akb/packer/vapp_customize.service /etc/systemd/system/vapp_customize.service",
+      "chmod +x /home/cisco/akb/packer/vapp_customize.sh",
+      "sudo systemctl enable nkt.service && sudo systemctl start nkt.service",
+      "sudo cp /home/cisco/akb/packer/vapp_customize.service /etc/systemd/system/vapp_customize.service",
+      "sudo systemctl enable vapp_customize.service",
     ]
   }
 }

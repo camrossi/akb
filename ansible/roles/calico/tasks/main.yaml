@@ -6,24 +6,34 @@
     dest: /tmp/{{ item }}
     force: yes
   with_items:
-    - BGPPassSecret.yaml
     - IPPool.yaml
     - BGPConfiguration.yaml
     - BGPPeer.j2
-    - Node.j2
     - calico-typha.yaml
     - calico-typha-v46.yaml
+    - kubernetes-services-endpoint.yaml
+  tags:
+    - calico
+
+- name: Copy BGPPassSecret manifests
+  template:
+    src: BGPPassSecret.yaml
+    dest: /tmp/BGPPassSecret.yaml
+    force: yes
+  when: bgp_pass
   tags:
     - calico
 
 - name: Download Calicoctl on the installer VM if missing
-  environment: "{{ proxy_env }}"
   run_once: true
+  become: false
   delegate_to: localhost
   get_url:          
     url: https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64
     dest: ./roles/calico/files/calicoctl
     force: no
+  environment: "{{ proxy_env }}"
+  ignore_errors: yes 
   tags:
     - calico
 
@@ -53,12 +63,44 @@
   tags:
     - calico
 
+- name: eBPF - Create kubernetes-services-endpoint
+  shell: kubectl apply -f /tmp/kubernetes-services-endpoint.yaml
+  register: res
+  retries: 10
+  until: res is success
+  when: eBPF_status
+  any_errors_fatal: true
+  tags:
+    - calico
+
+- name: eBPF - Disable kube-proxy
+  shell: |
+    kubectl patch ds -n kube-system kube-proxy -p '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
+  register: res
+  retries: 10
+  until: res is success
+  when: eBPF_status
+  any_errors_fatal: true
+  tags:
+    - calico
+
 - name: Apply Calico CNI
   shell: kubectl apply -f /tmp/calico-typha.yaml
   register: res
   retries: 10
   until: res is success
   when: pod_subnet and not pod_subnet_v6
+  any_errors_fatal: true
+  tags:
+    - calico
+
+- name: eBPF - Enable eBPF mode
+  shell: |
+    calicoctl patch felixconfiguration default --patch='{"spec": {"bpfEnabled": true}}'
+  register: res
+  retries: 10
+  until: res is success
+  when: eBPF_status
   any_errors_fatal: true
   tags:
     - calico
@@ -79,6 +121,7 @@
   retries: 10
   until: res is success
   any_errors_fatal: true
+  when: bgp_pass
   tags:
     - calico
 
@@ -88,7 +131,6 @@
     - IPPool.yaml
     - BGPConfiguration.yaml
     - BGPPeer.j2
-    - Node.j2
   register: res
   retries: 100
   until: res is success

@@ -1,7 +1,19 @@
 - hosts: k8s_nodes
   gather_facts: False
-  roles:
-    - k8s_nodes
+  tasks:
+  - name: set ssh_key permission
+    file:
+      path: "{{ ansible_ssh_private_key_file }}"
+      mode: '0600'
+    delegate_to: localhost
+    become: false
+    run_once: true
+  - name: Wait for the nodes to be reachable
+    wait_for_connection:
+      connect_timeout: 10
+      sleep: 5
+      delay: 5
+      timeout: 5000
 
 - hosts: k8s_primary_master
   gather_facts: True
@@ -16,20 +28,11 @@
 - hosts: k8s_workers
   gather_facts: false
   roles:
-    - workers
+    - workers    
 
 - hosts: k8s_primary_master
   gather_facts: false
   roles:
     - calico
-
-- hosts: k8s_masters
-  gather_facts: false
-  roles:
-    - helm
-
-- hosts: k8s_primary_master
-  gather_facts: false
-  roles:
     - k8s_addons
     - ingress-nginx

@@ -1,6 +1,6 @@
 ---
 
-- name: Copy addons manifests
+- name: Copy common addons manifests
   template:
     src: "{{ item }}"
     dest: /tmp/{{ item }}
@@ -11,9 +11,19 @@
     - ingress.yaml
     - metric_server.yaml
     - goldpinger.yaml
+    - local-storage.yaml
+  tags:
+    - k8s_addons
+
+- name: Copy ACI addons manifests
+  template:
+    src: "{{ item }}"
+    dest: /tmp/{{ item }}
+    force: yes
+  with_items:
     - vkaci.yaml.j2
     - neo4j-values.yaml
-    - local-storage.yaml
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
@@ -22,7 +32,7 @@
   when: "groups['k8s_workers'] | length < 3"
   ignore_errors: yes
   tags:
-    - k8s_addons1
+    - k8s_addons
 
 - name: Create guestbook ns
   shell: kubectl create ns gb
@@ -76,13 +86,17 @@
 - name: Add Neo4J helm Repo
   shell: helm repo add neo4j https://helm.neo4j.com/neo4j
   environment: "{{ proxy_env }}"
-  when: not sandbox_status
+  when:
+    - not sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
 - name: helm repo update
   shell: helm repo update
-  when: not sandbox_status
+  when: 
+    - not sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   environment: "{{ proxy_env }}"
   tags:
     - k8s_addons
@@ -91,25 +105,31 @@
   shell: helm install my-neo4j neo4j/neo4j-standalone -f /tmp/neo4j-values.yaml
   environment: "{{ proxy_env }}"
   ignore_errors: yes
-  when: not sandbox_status
+  when: 
+    - not sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
 - name: helm install Neo4J 
   shell: helm install my-neo4j neo4j-standalone-4.4.3.tgz  -f /tmp/neo4j-values.yaml
-  when: sandbox_status
+  when:
+    - sandbox_status
+    - fabric_type is not defined or fabric_type == "aci"
   ignore_errors: yes
   tags:
     - k8s_addons
 
 - name: Expose Neo4j
   shell: kubectl patch svc  my-neo4j-neo4j -p '{"spec":{"type":"NodePort","externalIPs":["{{ neo4j_ip }}"]}}'
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
 ####
 - name: Install vkaci
   shell: kubectl apply -f /tmp/vkaci.yaml.j2
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 
@@ -126,25 +146,5 @@
     path: ~{{ ansible_ssh_user }}/.bashrc
     line: source <(kubectl completion bash)
     state: present
-  tags:
-    - k8s_addons
-
-- name: add local DNS entry for Neo4j
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ neo4j_ip }} my-neo4j-neo4j"
-    regexp: .*my-neo4j-neo4j
-    state: present
-  delegate_to: localhost
-  tags:
-    - k8s_addons
-
-- name: add local DNS entry for Visibility UI
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ visibility_ip }} visibility"
-    regexp: .*visibility
-    state: present
-  delegate_to: localhost
   tags:
     - k8s_addons

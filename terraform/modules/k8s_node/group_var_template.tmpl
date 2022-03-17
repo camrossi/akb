@@ -1,7 +1,8 @@
 ### TO DO: This should be fixed with SSH KEY Autnentication
-ansible_ssh_pass: 123Cisco123
 ansible_user: cisco
-ansible_sudo_pass: 123Cisco123
+ansible_ssh_private_key_file: ${ ssh_private_key }
+
+fabric_type: ${ fabric_type }
 
 #K8S an Crio Version
 kube_version: ${k8s_cluster.kube_version}            # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
@@ -32,18 +33,18 @@ kubeadm_token: ${k8s_cluster.kubeadm_token}
 
 aci_as: ${as}
 calico_as:  ${k8s_cluster.local_as}
-apic_username : ${apic.username}
-apic_cert_name : ${apic.cert_name}
-apic_private_key: ${apic.private_key}
-apic_oob_ips :  ${apic.oob_ips}
+apic_username : ${controller.username}
+apic_cert_name : ${controller.cert_name}
+apic_private_key: ${controller.private_key}
+apic_oob_ips :  ${controller.oob_ips}
 vrf_tenant: ${vrf_tenant}
 vrf_name: ${vrf_name}
 
-anchor_nodes:
-%{ for node in anchor_nodes ~}
+bgp_peers:
+%{ for node in bgp_peers ~}
   - id: ${node.node_id}
-    primary_ip: ${split("/",node.primary_ip)[0]}
-    primary_ipv6: ${split("/",node.primary_ipv6)[0]}
+    primary_ip: ${split("/",node.ip)[0]}
+    primary_ipv6: ${split("/",node.ipv6)[0]}
     rack_id: "${node.rack_id}"
 %{ endfor ~}
 
@@ -68,3 +69,4 @@ https_proxy: ""
 %{endif}
 dns_domain: ${dns_domain}
 ubuntu_apt_mirror: ${k8s_cluster.ubuntu_apt_mirror}
+eBPF_status: ${k8s_cluster.eBPF_status}

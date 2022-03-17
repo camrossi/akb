@@ -1,4 +1,4 @@
-{% for leaf in anchor_nodes %}
+{% for leaf in bgp_peers %}
 ---
 apiVersion: projectcalico.org/v3
 kind: BGPPeer
@@ -8,10 +8,13 @@ spec:
   peerIP: "{{ leaf.primary_ip }}"
   asNumber: {{ aci_as }}
   nodeSelector: rack_id == "{{ leaf.rack_id }}"
+{% if bgp_pass %}
   password:
     secretKeyRef:
       name: bgp-secrets
       key: rr-password
+{% endif %}
+
 {% if leaf.primary_ipv6 %}
 ---
 apiVersion: projectcalico.org/v3
@@ -22,9 +25,11 @@ spec:
   peerIP: "{{ leaf.primary_ipv6 }}"
   asNumber: {{ aci_as }}
   nodeSelector: rack_id == "{{ leaf.rack_id }}"
+{% if bgp_pass %}
   password:
     secretKeyRef:
       name: bgp-secrets
       key: rr-password
+{% endif %}
 {% endif %}
 {% endfor %}

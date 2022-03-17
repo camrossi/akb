@@ -41,16 +41,52 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/vcenter">
+<form id="form_vcenter" name="tenantForm" method="post" action="/vcenter">
+<script>
+   function loadInputVCenter() {
+      // console.log(JSON.stringify(sessionStorage, null, 2))
+      dcElem = document.getElementById("dc");
+      
+      const path = window.location.pathname;
+      const page = path.split("/").pop();
 
+      // load in the vCenter DC Name
+      retrievedVal = sessionStorage.getItem(page + " " + "dc")
+      if (retrievedVal !== null && retrievedVal !== "") {
+         dcElem.value = retrievedVal;
+         dcElem.form.requestSubmit();
+         console.log("if condition ran")
+      }
+      else 
+         console.log("No saved value for vCenter DC Name")
+   }
+
+   const loadListener = document.addEventListener('turbo:load', function () {
+      console.log("turbo:load fired");
+      loadInputVCenter();
+
+      const dummyC = document.getElementById('dummy_container')
+
+      const observer = new MutationObserver((mutationsList, observered) => {
+         // console.log('Mutation observer body is being ran!')
+         loadInput();
+         observer.disconnect();
+
+         document.removeEventListener('turbo:load', null)
+
+      })
+      observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
+   });
+</script>
   <body class="cui cui--animated cui--compressed" data-theme="">
+
    <div id="oneui">
       <!-- Main Content -->
       <header class="header" id="_uid818d10e3">
          <div class="container">
             <div class="header-panels">
                <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                  <div class="header__title">Nexus Kubernetes Tools</div>
+                  <div class="header__title">Nexus Kubernetes Tools - Version {{session['version']}}</div>
                </div>
                <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
             </div>
@@ -81,7 +117,7 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
-                  <select id="dc" name="dc" onchange="this.form.requestSubmit()">
+                  <select id="dc" name="dc" onchange="if(this.value.length>0) this.form.requestSubmit()">
                      <option disabled selected value> -- select a DC -- </option>
                      {% for o in dcs %}
                      <option name="{{ o }}">{{ o }} </option>
@@ -93,11 +129,15 @@
                </div>
             </div>       
          </div>
-         {% include "_vc_details.html" %}
+         <div id="dummy_container">
+            {% include "_vc_details.html" %}
+         </div>
 
-         <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
-            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-            <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
+         <div class="container">
+            <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 0px; margin-right: auto; margin-left: auto;">
+               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+            </div>
          </div>
    </form>
 
@@ -129,16 +169,19 @@
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
-      <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
-   <script>
-      loadInput();
-
-   </script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script> -->
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script> 
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script> 
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script> 
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
    <div id="canvas"></div>
 </body>
-
+<script>
+    $("#submit").on("click", function(){
+        var url = "{{ url_for("vcenter")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        $("#form_vcenter").attr("action", url);
+        $("#form_vcenter").submit();
+    })
+</script>
 </html>

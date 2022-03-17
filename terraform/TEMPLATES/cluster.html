@@ -69,7 +69,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/cluster">
+<form id="form_cluster" name="tenantForm" method="post" action="/cluster">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -79,7 +79,7 @@
                <div class="header-panels">
                   <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo"
                         id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                     <div class="header__title">Nexus Kubernetes Tools</div>
+                     <div class="header__title">Nexus Kubernetes Tools - Version {{session['version']}}</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
                         data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
@@ -137,6 +137,27 @@
                </div>
             </div>
          </div>
+         
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="dns_servers">DNS servers:
+                     <span data-title="Comma separated list for DNS Servers" >ⓘ</span>
+                  </label>
+                  <input type="text" id="dns_servers" name="dns_servers">
+               </div>
+            </div>
+         </div>
+         
+         <div class="container">
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="dns_domain">DNS Domain: </label>
+                  <input type="text" id="dns_domain" name="dns_domain">
+               </div>
+            </div>
+         </div>
+
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
@@ -196,6 +217,17 @@
                   </div>
                   <div id="checkbox-checked" style="display:none;" >     
 
+                  <br>
+                  <div class="container">
+                     <div class="checkbox form-group form-group--inline c8041">
+                        <label class="checkbox">
+                           <input type="checkbox" id="eBPF_status" name="eBPF_status" style="margin:0;" >
+                           <span id="eBPF_status" class="checkbox__input"></span>
+                           <span class="checkbox__label hidden-xs">Enable eBPF (IPv6 Not Supported)</span>
+                        </label>
+                     </div>
+                  </div><br>
+
                   <div class="container">
                      <div class="form-group base-margin-bottom">
                         <div class="form-group__text">
@@ -230,7 +262,7 @@
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="crio_os">Crios OS Version:</label>
-                              <input list="crio_os_list" id="crio_os" name="crio_os" value="xUbuntu_21.04">
+                              <input list="crio_os_list" id="crio_os" name="crio_os" value="xUbuntu_20.04">
                               <datalist id="crio_os_list">
                                  <option value='xUbuntu_21.04'>
                                  <option value='xUbuntu_20.10'>
@@ -276,9 +308,11 @@
                   </div>         
 
 
-         <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
-            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-            <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
+         <div class="container">
+            <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 0px; margin-right: auto; margin-left: auto;">
+               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+            </div>
          </div>
 
 </form>
@@ -324,11 +358,20 @@
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
 <script>
    loadInput();
 </script>
 <div id="canvas"></div>
 
 </body>
+<script>
+    $("#submit").on("click", function(){
+        var url = "{{ url_for("cluster")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        console.log(url);
+        $("#form_cluster").attr("action", url);
+        $("#form_cluster").submit();
+    });
+</script>
 
 </html>

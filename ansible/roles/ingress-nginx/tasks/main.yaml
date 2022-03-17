@@ -30,6 +30,7 @@
 
 - name: helm install ingress-nginx 
   shell: helm install -n kube-system ingress-nginx ingress-nginx-4.0.17.tgz  -f /tmp/ingress-nginx-values.yaml
+  environment: "{{ proxy_env }}"
   when: sandbox_status
   tags:
     - ingress-nginx

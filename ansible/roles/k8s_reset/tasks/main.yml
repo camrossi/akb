@@ -1,7 +1,7 @@
 - name: kubeadm reset -f
   command: kubeadm reset -f
 
-- name: stop cri-o
+- name: restart cri-o
   service:
     name: crio
-    state: stopped
+    state: restarted

@@ -64,6 +64,9 @@ variable "k8s_cluster" {
     http_proxy          = string
     ubuntu_apt_mirror   = string
     sandbox_status      = bool
+    eBPF_status         = bool
+    dns_servers       = list(string)
+    dns_domain        = string
      })
 }
 
@@ -91,17 +94,20 @@ variable "l3out" {
     max_node_prefixes = number
     contract          = string
     contract_tenant   = string
-    dns_servers       = list(string)
-    dns_domain        = string
     ipv4_cluster_subnet = string
     ipv6_cluster_subnet = string
     anchor_nodes      = list(object({
       node_id         = number
       rtr_id          = string
       pod_id          = number
-      primary_ip      = string
-      primary_ipv6    = string
+      ip              = string
+      ipv6            = string
       rack_id         = string
     }))
   })
+}
+
+variable "fabric_type" {
+  type    = string
+  default = "aci"
 }

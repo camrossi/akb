@@ -21,7 +21,6 @@ import hcl
 from ndfc import NDFC, Fabric
 from jinja2 import Template
 
-
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
@@ -1358,6 +1357,8 @@ def destroy():
 @app.route('/')
 @app.route('/intro', methods=['GET', 'POST'])
 def get_page():
+    f = open("version.txt", "r")
+    session['version'] = f.read()
     if request.method == "POST":
         req = request.form
         button = req.get("button")

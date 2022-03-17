@@ -203,8 +203,7 @@ def main():
     parser.add_argument('--run_id', help='run_id')
 
     args, unknown  = parser.parse_known_args()
-    print(args)
-    if args.run_id:
+    if args.url:
         url = args.url
     if args.run_id:
         run_id = args.run_id

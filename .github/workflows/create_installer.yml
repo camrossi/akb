@@ -30,10 +30,6 @@ jobs:
       - name: Set Version
         run: | 
           echo -n ${{github.ref_name}} > terraform/version.txt
-
-      - name: Create Snapshot for K8s Node Template
-        run: | 
-          govc snapshot.create -vm=$NKT_TEMPLATE PreBuild
       
       - name: Power On K8s Node Template
         run: | 
@@ -55,9 +51,9 @@ jobs:
         run: | 
           chmod 777 $DESTINATION_PATH/nkt_template.ova
 
-      - name: Delete K8s Node Template Snapshot
+      - name: Revert Template Snapshot
         run: | 
-          govc snapshot.remove -vm=$NKT_TEMPLATE PreBuild      
+          govc snapshot.revert -vm=$NKT_TEMPLATE PreBuild      
       
       - name: Start Installer Build
         run: | 
@@ -83,7 +79,7 @@ jobs:
         run: | 
           bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz nkt-sydney
           
-      - name: Delete parts
+      - name: Delete compressed images
         run: | 
-          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz.part-*
+          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz*
           

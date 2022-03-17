@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
 import random
+import argparse
 from time import sleep
 
 
@@ -35,7 +36,6 @@ def fill_by_id(driver, id, value):
 
 
 def root_page(driver):
-    driver.get("http://172.25.74.99:5002")
     assert "NKT" in driver.title
     select = Select(driver.find_element(By.ID, 'fabric_type'))
     select.select_by_visible_text("NDFC/VXLAN_EVPN")
@@ -197,13 +197,22 @@ def cluster_network_page(driver):
 def main():
     chrome_options = Options()
     run_id = "{:05d}".format(random.randint(1, 10000))
-    if len(sys.argv) >= 2:
-        # port = sys.argv[1]
-        chrome_options.add_argument(sys.argv[1])
-    driver = webdriver.Chrome(options=chrome_options)
+    url = "http://localhost:5002"
+    parser = argparse.ArgumentParser(description='pipeline testing script')
+    parser.add_argument('--url', help='testing url')
+    parser.add_argument('--run_id', help='run_id')
 
-    if len(sys.argv) >= 3:
-        run_id = sys.argv[2]
+    args, unknown  = parser.parse_known_args()
+    print(args)
+    if args.run_id:
+        url = args.url
+    if args.run_id:
+        run_id = args.run_id
+    chrome_driver_args = ' '.join(unknown)
+    chrome_options.add_argument(chrome_driver_args)
+
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.get(url)
 
     root_page(driver)
     login_page(driver)

@@ -31,7 +31,7 @@ jobs:
           python3 appflask.py 5010 &
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --headless
+          python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless
       - name: Terraform plan
         run: | 
           curl -s http://localhost:5010/tf_plan

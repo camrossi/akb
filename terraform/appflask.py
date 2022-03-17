@@ -784,7 +784,7 @@ def vctemplate():
                                   target='template-upload-folder'))
 
         if button == "Upload":
-            template_name = "NKT-Ubuntu-Template"
+            template_name = "nkt_template"
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))

@@ -1346,9 +1346,11 @@ def destroy():
     elif fabric_type == "vxlan_evpn":
         integ_reset = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/ndfc.yaml ../ansible/ndfc_integration.yaml -t reset"
         tf_destory = "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"
-        g.run(["bash",
-               "-c",
-               f"{integ_reset} && {tf_destory}"])
+        if os.path.exists("../ansible/inventory/ndfc.yaml"):
+            cmd = f"{integ_reset} && {tf_destory}"
+        else:
+            cmd = tf_destory
+        g.run(["bash", "-c", cmd])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
 

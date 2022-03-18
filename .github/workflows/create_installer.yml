@@ -59,7 +59,7 @@ jobs:
         run: | 
           ovftool -o vi://$GOVC_URL/$DC/vm/nkt_installer-${{github.ref_name}} $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
       
-      - name: Delete Installer OVA
+      - name: Delete Installer VM
         run: | 
           govc vm.destroy nkt_installer-${{github.ref_name}}
 

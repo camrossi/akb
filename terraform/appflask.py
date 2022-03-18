@@ -71,7 +71,6 @@ def process_fabric_setting(data: dict) -> bool:
         overlay["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
         overlay["bgp_pass"] = data["bgp_pass"]
         overlay["k8s_integ"] = data["k8s_integ"]
-        print(overlay["k8s_integ"])
         overlay["k8s_route_map"] = data["k8s_route_map"]
         overlay["route_tag"] = data["route_tag"]
         overlay["vpc_peers"] = []

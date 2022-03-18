@@ -173,26 +173,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="container">
-                    <div class="form-group base-margin-bottom">
-                        <div class="form-group__text">
-                            <label for="dns_servers">DNS servers:</label>
-                            <input type="text" id="dns_servers" name="dns_servers">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="container">
-                    <div class="form-group base-margin-bottom">
-                        <div class="form-group__text">
-                            <label for="dns_domain">DNS Domain:
-                                <span data-title="Comma separated list for DNS Servers" >ⓘ</span>
-                            </label>
-                            <input type="text" id="dns_domain" name="dns_domain" value="cisco.com">
-                        </div>
-                    </div>
-                </div>
-                <!--advanced tab for L3out-->
                 <div class="form-group base-margin-bottom">
                     <div class="form-group__text"></div>
                 </div>
@@ -381,8 +361,6 @@
             var gateway_v4 = $("#" + network).data("gateway_v4");
             var gateway_v6 = $("#" + network).data("gateway_v6");
             var node_sub = $("#ipv4_cluster_subnet").val();
-            var dns_servers = $("#dns_servers").val();
-            var dns_domain = $("#dns_domain").val();
             var ibgp_peer_vlan = $("#ibgp_peer_vlan").val();
             var k8s_route_map = $("#route_map").val();
             var route_tag = $("#loopback_route_tag").val();
@@ -413,8 +391,6 @@
                 gateway_v6: gateway_v6.split("/")[0],
                 node_sub_v6: node_sub_v6,
                 node_sub: node_sub,
-                dns_servers: dns_servers,
-                dns_domain: dns_domain,
                 ibgp_peer_vlan: ibgp_peer_vlan,
                 k8s_route_map: k8s_route_map,
                 route_tag: route_tag,
@@ -422,7 +398,6 @@
                 bgp_pass: bgp_pass,
                 vpc_peers: vpc_peers
             }
-            console.log(data);
             return data
         };
 

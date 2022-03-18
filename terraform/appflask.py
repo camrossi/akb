@@ -66,8 +66,6 @@ def process_fabric_setting(data: dict) -> bool:
         overlay["gateway_v6"] = data["gateway_v6"]
         overlay["node_sub"] = data["node_sub"]
         overlay["node_sub_v6"] = data["node_sub_v6"]
-        overlay["dns_domain"] = data["dns_domain"]
-        overlay["dns_servers"] = data["dns_servers"]
         overlay["ipv6_enabled"] = data["ipv6_enabled"]
         overlay["network"] = data["network"]
         overlay["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]

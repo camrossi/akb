@@ -1,0 +1,58 @@
+
+- name: Copy manifests to primary master
+  vars:
+    csr: "{{ lookup('file', './roles/ndfc_csr/files/user.csr')}}"
+  template:
+    src: "{{ item }}"
+    dest: /tmp/{{ item }}
+    force: yes
+  with_items:
+    - cluster_role.yaml
+    - cluster_role_binding.yaml
+    - cluster_csr.yaml
+  tags:
+    - k8s_cert
+
+- name: apply cluster role  resource
+  shell: kubectl apply -f /tmp/{{ item }}
+  with_items:
+    - cluster_role.yaml
+    - cluster_role_binding.yaml
+    - cluster_csr.yaml
+  tags:
+    - k8s_cert
+
+- name: Approve {{ ndfc_k8s_user }}_csr 
+  shell: kubectl certificate approve {{ ndfc_k8s_user }}_csr
+  register: result
+  tags:
+    - k8s_cert
+
+- name: Assert csr is approved
+  assert:
+    that:
+      - "'approved' in result.stdout"
+  tags:
+    - k8s_cert
+
+- name: Extract the user SSL certificate
+  shell: kubectl get csr {{ ndfc_k8s_user }}_csr -o jsonpath='{.status.certificate}'
+  register: result
+  tags:
+    - k8s_cert
+
+- name: Save user certificate
+  copy:
+    content: "{{ result.stdout }}"
+    dest: ./roles/k8s_cert/files/user.crt
+  delegate_to: localhost
+  tags:
+    - k8s_cert
+
+- name: Save cluster ca certificate
+  copy:
+    content: "{{ (lookup('template', './roles/primary_master/files/admin.conf')|from_yaml).clusters[0].cluster['certificate-authority-data']}}"
+    dest: ./roles/k8s_cert/files/ca.crt
+  delegate_to: localhost
+  tags:
+    - k8s_cert

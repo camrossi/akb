@@ -70,6 +70,8 @@ def process_fabric_setting(data: dict) -> bool:
         overlay["network"] = data["network"]
         overlay["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
         overlay["bgp_pass"] = data["bgp_pass"]
+        overlay["k8s_integ"] = data["k8s_integ"]
+        print(overlay["k8s_integ"])
         overlay["k8s_route_map"] = data["k8s_route_map"]
         overlay["route_tag"] = data["route_tag"]
         overlay["vpc_peers"] = []
@@ -1343,9 +1345,11 @@ def destroy():
         g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
         ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
     elif fabric_type == "vxlan_evpn":
+        integ_reset = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/ndfc.yaml ../ansible/ndfc_integration.yaml -t reset"
+        tf_destory = "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"
         g.run(["bash",
                "-c",
-               "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
+               f"{integ_reset} && {tf_destory}"])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
 

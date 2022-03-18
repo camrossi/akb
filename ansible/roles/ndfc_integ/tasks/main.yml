@@ -1,0 +1,42 @@
+- name: Read user certificate and CA certificate
+  set_fact:
+    user_cert: "{{ lookup('file', './roles/k8s_cert/files/user.crt')}}"
+    ca_cert: "{{ lookup('file', './roles/k8s_cert/files/ca.crt')}}"
+  tags:
+    - ndfc_integ
+
+- name: Resync VMM integration
+  cisco.dcnm.dcnm_rest:
+    path: /appcenter/cisco/ndfc/api/v1/vmm/vmm/rediscoverVirtualCenter
+    method: POST
+    json_data: "{{lookup('template', 'resync_vmm.json.j2') | to_json}}"
+  tags:
+    - ndfc_integ
+
+- name: wait for VMM integration is sycned
+  cisco.dcnm.dcnm_rest:
+    path: /appcenter/cisco/ndfc/api/v1/vmm/vmm/getVirtualCenters
+    method: GET
+  retries: 5
+  delay: 3
+  register: vmm_status
+  until: vmm_status.response.DATA[0].status == "OK"
+  tags:
+    - ndfc_integ
+
+- name: Create k8s integration on NDFC
+  cisco.dcnm.dcnm_rest:
+    path: /appcenter/cisco/ndfc/api/v1/cvis/instance
+    method: POST
+    json_data: "{{lookup('template', 'add_instance.json.j2') | to_json}}"
+  tags:
+    - ndfc_integ
+
+- name: remove k8s integration on NDFC
+  cisco.dcnm.dcnm_rest:
+    path: /appcenter/cisco/ndfc/api/v1/cvis/instance
+    method: DELETE
+    json_data: "{{lookup('template', 'remove_instance.json.j2') | to_json}}"
+  tags:
+    - ndfc_integ
+    - reset

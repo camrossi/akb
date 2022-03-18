@@ -71,6 +71,9 @@ def fabric_page(driver):
     lo.send_keys(Keys.ENTER)
     # WebDriverWait(driver, 3).until(EC.url_changes(current_url))
 
+    adv = driver.find_element(By.ID, "ck_box_k8s_integ")
+    adv.click()
+
     adv = driver.find_element(By.ID, "advanced")
     adv.click()
     fill_by_id(driver, "ibgp_peer_vlan", "3960")

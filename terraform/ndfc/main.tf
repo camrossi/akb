@@ -36,6 +36,7 @@ module "overlay" {
 }
 
 resource "local_file" "ansible_ndfc_inventory" {
+  count = var.ndfc_k8s_integ ? 1 : 0
   content = templatefile("./ndfc.yaml.tmpl",
     {
       ndfc               = var.ndfc

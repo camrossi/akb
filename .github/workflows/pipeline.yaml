@@ -44,14 +44,11 @@ jobs:
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
-  cleanup-v4:
-    runs-on: stld
-    needs: [nkt-testing-v4]
-    steps:
-        - name: Terraform destroy and delete APIC user
-          if: always()
-          run: | 
-            curl -s -X POST http://10.67.185.120:5003/existing_cluster
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+          curl -s -X POST http://10.67.185.120:5003/existing_cluster
   
   
   nkt-testing-v46:
@@ -85,12 +82,8 @@ jobs:
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
-  
-  cleanup-v46:
-    runs-on: stld
-    needs: [nkt-testing-v46]
-    steps:
-        - name: Terraform destroy and delete APIC user
-          if: always()
-          run: | 
-            curl -s -X POST http://10.67.185.120:5004/existing_cluster
+      
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+          curl -s -X POST http://10.67.185.120:5004/existing_cluster

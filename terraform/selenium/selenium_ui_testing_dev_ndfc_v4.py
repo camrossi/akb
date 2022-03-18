@@ -5,7 +5,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-import sys
 import random
 import argparse
 from time import sleep
@@ -120,7 +119,7 @@ def vcenter_page(driver):
 
     # Wait for vCenter API to populate the page
     try:
-        elem = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
     except ValueError as e:
         print(e)
         print("Loading took too much time!")
@@ -202,12 +201,12 @@ def main():
     parser.add_argument('--url', help='testing url')
     parser.add_argument('--run_id', help='run_id')
 
-    args, unknown  = parser.parse_known_args()
+    args, unknown = parser.parse_known_args()
     if args.url:
         url = args.url
     if args.run_id:
         run_id = args.run_id
-    if unknown: 
+    if unknown:
         chrome_driver_args = ' '.join(unknown)
         chrome_options.add_argument(chrome_driver_args)
 

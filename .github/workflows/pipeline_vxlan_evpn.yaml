@@ -38,15 +38,13 @@ jobs:
       - name: Terraform apply
         run: | 
           curl -s http://localhost:5010/tf_apply?fabric_type=vxlan_evpn
-        continue-on-error: true
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
-        continue-on-error: true
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
-        continue-on-error: true
       - name: Terraform destroy
+        if: always()
         run: | 
           curl -s http://localhost:5010/destroy?fabric_type=vxlan_evpn

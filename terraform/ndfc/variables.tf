@@ -3,6 +3,15 @@ variable "fabric_type" {
   default = "aci"
 }
 
+variable "ndfc_k8s_user" {
+  type    = string
+  default = "kubereader"
+}
+
+variable "ndfc_k8s_integ" {
+  type = bool
+}
+
 variable "vc" {
   type = object({
     url         = string
@@ -96,9 +105,9 @@ variable "k8s_cluster" {
     cluster_svc_subnet_v6  = string
     external_svc_subnet    = string
     external_svc_subnet_v6 = string
-    ingress_ip          = string
-    neo4j_ip            = string
-    visibility_ip       = string    
+    ingress_ip             = string
+    neo4j_ip               = string
+    visibility_ip          = string
     ntp_server             = string
     dns_servers            = list(string)
     dns_domain             = string

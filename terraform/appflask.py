@@ -66,12 +66,11 @@ def process_fabric_setting(data: dict) -> bool:
         overlay["gateway_v6"] = data["gateway_v6"]
         overlay["node_sub"] = data["node_sub"]
         overlay["node_sub_v6"] = data["node_sub_v6"]
-        overlay["dns_domain"] = data["dns_domain"]
-        overlay["dns_servers"] = data["dns_servers"]
         overlay["ipv6_enabled"] = data["ipv6_enabled"]
         overlay["network"] = data["network"]
         overlay["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
         overlay["bgp_pass"] = data["bgp_pass"]
+        overlay["k8s_integ"] = data["k8s_integ"]
         overlay["k8s_route_map"] = data["k8s_route_map"]
         overlay["route_tag"] = data["route_tag"]
         overlay["vpc_peers"] = []
@@ -1345,9 +1344,13 @@ def destroy():
         g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
         ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
     elif fabric_type == "vxlan_evpn":
-        g.run(["bash",
-               "-c",
-               "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
+        integ_reset = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/ndfc.yaml ../ansible/ndfc_integration.yaml -t reset"
+        tf_destory = "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"
+        if os.path.exists("../ansible/inventory/ndfc.yaml"):
+            cmd = f"{integ_reset} && {tf_destory}"
+        else:
+            cmd = tf_destory
+        g.run(["bash", "-c", cmd])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
 

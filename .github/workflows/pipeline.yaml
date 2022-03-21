@@ -28,7 +28,7 @@ jobs:
           path: v4
       - name: Copy Private Key
         run: | 
-          cp /nfs-share/www/nkt ansible/roles/sandbox/files
+          cp /nfs-share/www/nkt/id_rsa ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
           python3 appflask.py -p 5003 &
@@ -69,7 +69,7 @@ jobs:
           path: v46
       - name: Copy Private Key
         run: | 
-          cp /nfs-share/www/nkt ansible/roles/sandbox/files
+          cp /nfs-share/www/nkt/id_rsa ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
           python3 appflask.py -p 5004 &
@@ -108,7 +108,7 @@ jobs:
             path: ndfc
         - name: Copy Private Key
           run: | 
-            cp /nfs-share/www/nkt ansible/roles/sandbox/files
+            cp /nfs-share/www/nkt/id_rsa ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
             python3 appflask.py -p 5010 &

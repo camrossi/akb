@@ -10,4 +10,5 @@ terraform/cluster.tfvars
 apic.yaml
 ansible/roles/calico/files/calicoctl
 plan
+id_rsa
 __pycache__

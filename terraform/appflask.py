@@ -1,5 +1,4 @@
 import json
-import sys
 from logging import error
 from flask import Flask, Response, request, render_template, redirect, flash, session
 import vc_utils

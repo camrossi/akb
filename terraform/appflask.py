@@ -1,10 +1,7 @@
-from distutils.util import strtobool
 import json
-import sys
 from logging import error
 from flask import Flask, Response, request, render_template, redirect, flash, session
 import vc_utils
-from logging.config import dictConfig
 from turbo_flask import Turbo
 import requests
 import os
@@ -20,6 +17,9 @@ import concurrent.futures
 import hcl
 from ndfc import NDFC, Fabric
 from jinja2 import Template
+import argparse
+
+VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
 
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
@@ -40,7 +40,6 @@ def get_fabric_type(request: request) -> str:
     if not fabric_type:
         fabric_type = "aci"
     return fabric_type.lower()
-
 
 def normalize_url(hostname: str) -> str:
     if hostname.startswith('http://'):
@@ -141,7 +140,6 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
             ipv4_cluster_subnet, strict=False).broadcast_address - 2) + "/" + str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).prefixlen)
     except (ipaddress.AddressValueError, ipaddress.NetmaskValueError) as e:
         print(e)
-        pass
     if ipv6_enabled:
         try:
             floating_ipv6 = str(ipaddress.IPv6Network(
@@ -154,8 +152,6 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
             ipv6_cluster_subnet = str(ipaddress.IPv6Network(ipv6_cluster_subnet))
         except (ipaddress.AddressValueError, ipaddress.NetmaskValueError) as e:
             print(e)
-            pass
-
     anchor_nodes = json.loads(anchor_nodes)
     l3out = {
         "name": name,
@@ -197,7 +193,7 @@ def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_po
         ingress_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
         visibility_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
         neo4j_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
-    except:
+    except BaseException:
         ingress_ip = ""
         visibility_ip = ""
         neo4j_ip = ""
@@ -270,6 +266,8 @@ def doc_ndfc():
 @app.route('/tf_plan', methods=['GET', 'POST'])
 def tf_plan():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     g = proc.Group()
     
     # Get the current dir
@@ -308,6 +306,8 @@ def tf_plan():
 @app.route('/tf_apply', methods=['GET', 'POST'])
 def tf_apply():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     g = proc.Group()
     if fabric_type == "aci":
         g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
@@ -324,6 +324,8 @@ def create():
     global l3out
     global vc
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if request.method == 'GET':
         if fabric_type == "aci":
             try:
@@ -379,6 +381,8 @@ def create():
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if request.method == "POST":
         if fabric_type == "aci":
             config = request.json.get("config", "[]")
@@ -397,6 +401,8 @@ def update_config():
 @app.route('/calico_nodes', methods=['GET', 'POST'])
 def calico_nodes():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     global calico_nodes
     calico_nodes = []
     if request.method == 'POST':
@@ -595,6 +601,8 @@ class BetterIPv4Network(ipaddress.IPv4Network):
 def cluster():
     # app.logger.info(apic+apic_password+apic_username)
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
@@ -631,7 +639,8 @@ def cluster():
 @app.route('/cluster_network', methods=['GET', 'POST'])
 def cluster_network():
     fabric_type = get_fabric_type(request)
-
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     # app.logger.info(apic+apic_password+apic_username)
     if request.method == 'POST':
         req = request.form
@@ -726,6 +735,8 @@ def cluster_network():
 def vcenterlogin():
     global vc
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
@@ -842,6 +853,8 @@ def vctemplate():
 @app.route('/vcenter', methods=['GET', 'POST'])
 def vcenter():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     dss = []
     dvss = []
     vm_templates = []
@@ -929,7 +942,6 @@ def l3out():
     vrfs = ["Select a Tenant"]
     local_as = ""
     anchor_nodes = []
-    contracts = ['select a tenant']
     home = os.path.expanduser("~")
     meta_path = home + '/.aci-meta/aci-meta.json'
     pyaci_apic = Node(apic['url'], aciMetaFilePath=meta_path)
@@ -1122,6 +1134,8 @@ def l3out():
 @app.route("/fabric", methods=["GET", "POST"])
 def fabric():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if "ndfc" not in globals():
         return redirect(f"/login?fabric_type={fabric_type}")
     if request.method == "GET":
@@ -1206,7 +1220,8 @@ def login():
     vc = createVCVars()
     ansible_output = ''
     fabric_type = get_fabric_type(request)
-
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if request.method == "POST":
         req = request.form
         button = req.get("button")
@@ -1302,6 +1317,8 @@ def read_process(g):
 @app.route('/existing_cluster', methods=['GET', 'POST'])
 def existing_cluster():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if request.method == "POST":
         g = proc.Group()
         if fabric_type == "aci":
@@ -1337,6 +1354,8 @@ def existing_cluster():
 @app.route('/destroy', methods=['GET'])
 def destroy():
     fabric_type = get_fabric_type(request)
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
     if request.method != "GET":
         return "unsupported method", 405
     g = proc.Group()
@@ -1366,6 +1385,8 @@ def get_page():
         req = request.form
         button = req.get("button")
         fabric_type = req.get("fabric_type")
+        if fabric_type not in VALID_FABRIC_TYPE:
+            return redirect('/')
         if button == "Next":
             return redirect(f'/login?fabric_type={fabric_type}')
     if request.method == "GET":
@@ -1392,8 +1413,9 @@ def get_page():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) >= 2:
-        port = sys.argv[1]
-    else:
-        port = 5002
-    app.run(host='0.0.0.0', port=port, debug=True)
+    parser = argparse.ArgumentParser(description='Nexus Kubernetes Tool allows you to configure your ACI/NDFC fabric and bootstrap a Kubernetes Cluster')
+    parser.add_argument('-p', dest='port', type=int, default=80, help='The TCP port the webserver listens to')
+    parser.add_argument('-d', dest='debug', action='store_true', default=False, help='Run Flask in debug mode')
+    args = parser.parse_args()
+
+    app.run(host='0.0.0.0', port=args.port, debug=args.debug)

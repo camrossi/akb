@@ -26,6 +26,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: v4
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt ansible/roles/sandbox/files
       - name: Start NKT
         run: | 
           python3 appflask.py -p 5003 &
@@ -64,6 +67,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: v46
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt ansible/roles/sandbox/files
       - name: Start NKT
         run: | 
           python3 appflask.py -p 5004 &
@@ -100,6 +106,9 @@ jobs:
         - uses: actions/checkout@v2
           with:
             path: ndfc
+        - name: Copy Private Key
+          run: | 
+            cp /nfs-share/www/nkt ansible/roles/sandbox/files
         - name: Start NKT
           run: | 
             python3 appflask.py -p 5010 &

@@ -44,6 +44,7 @@ build {
       "wget https://github.com/camrossi/akb/archive/refs/tags/${var.version}.tar.gz",
       "mkdir akb",
       "tar -xzf ${var.version}.tar.gz -C akb --strip-components 1",
+      "wget http://192.168.66.120/nkt/id_rsa -O akb/ansible/roles/sandbox/files/id_rsa",
       "rm ${var.version}.tar.gz",
       "sudo pip3 install -Ur akb/requirements.txt",
       "sudo ansible-galaxy collection install cisco.aci",

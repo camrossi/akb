@@ -108,7 +108,7 @@ jobs:
             path: ndfc
         - name: Copy Private Key
           run: | 
-            cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
+            cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
             python3 appflask.py -p 5010 &

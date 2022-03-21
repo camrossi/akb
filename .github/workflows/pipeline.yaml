@@ -28,7 +28,7 @@ jobs:
           path: v4
       - name: Start NKT
         run: | 
-          python3 appflask.py 5003 &
+          python3 appflask.py -p 5003 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
@@ -66,7 +66,7 @@ jobs:
           path: v46
       - name: Start NKT
         run: | 
-          python3 appflask.py 5004 &
+          python3 appflask.py -p 5004 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
@@ -102,7 +102,7 @@ jobs:
             path: ndfc
         - name: Start NKT
           run: | 
-            python3 appflask.py 5010 &
+            python3 appflask.py -p 5010 &
         - name: Run headless chrome to generate the config
           run: | 
             python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless

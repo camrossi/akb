@@ -71,8 +71,8 @@ def fabric_page(driver):
     lo.send_keys(Keys.ENTER)
     # WebDriverWait(driver, 3).until(EC.url_changes(current_url))
 
-    fill_by_id(driver, "dns_servers", "10.195.200.67")
-    fill_by_id(driver, "dns_domain", "cisco.com")
+    adv = driver.find_element(By.ID, "ck_box_k8s_integ")
+    adv.click()
 
     adv = driver.find_element(By.ID, "advanced")
     adv.click()

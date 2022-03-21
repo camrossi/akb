@@ -1,0 +1,17 @@
+all:
+  vars:
+    ndfc_k8s_user: ${ndfc_k8s_user}
+    vcenter: ${vcenter}
+  children:
+    ndfc:
+      hosts:
+        ${split("//", ndfc.url)[1]}:
+          ansible_connection: httpapi
+          ansible_httpapi_use_ssl: yes
+          ansible_httpapi_validate_certs: no
+          ansible_network_os: cisco.dcnm.dcnm
+          ansible_user: ${ndfc.username}
+          ansible_password: ${ndfc.password}
+    k8s_primary_master:
+      hosts:
+        ${split("/", k8s_primary_master.ip)[0] }:

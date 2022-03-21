@@ -1,0 +1,14 @@
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: clustrolebind_{{ndfc_k8s_user}}
+roleRef:
+  kind: ClusterRole
+  name: clustrole_{{ndfc_k8s_user}}
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: User
+  name: {{ndfc_k8s_user}}
+  apiGroup: rbac.authorization.k8s.io
+

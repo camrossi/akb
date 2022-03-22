@@ -123,12 +123,13 @@ def create_tf_vars(fabric_type: str,
     return tf_vars
 
 
-def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, anchor_nodes):
+def createl3outVars(ipv6_enabled:bool, l3out_tenant, name, vrf, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, anchor_nodes):
     def_ext_epg_scope = []
     floating_ip = ""
     secondary_ip = ""
     floating_ipv6 = ""
     secondary_ipv6 = ""
+    vrf_tenant = vrf_name = contract_name = contract_tenant = ""
     if import_security:
         def_ext_epg_scope.append(import_security)
     if shared_rtctrl:
@@ -154,12 +155,19 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
             ipv6_cluster_subnet = str(ipaddress.IPv6Network(ipv6_cluster_subnet))
         except (ipaddress.AddressValueError, ipaddress.NetmaskValueError) as e:
             print(e)
+    try:
+        vrf_name = vrf.split('/')[1]
+        vrf_tenant =  vrf.split('/')[0]
+        contract_name = contract.split('/')[1]
+        contract_tenant = contract.split('/')[0]
+    except IndexError as e:
+        print(e)
     anchor_nodes = json.loads(anchor_nodes)
     l3out = {
         "name": name,
         "l3out_tenant": l3out_tenant,
-        "vrf_tenant": vrf_name.split('/')[0],
-        "vrf_name": vrf_name.split('/')[1],
+        "vrf_tenant": vrf_tenant,
+        "vrf_name": vrf_name,
         "node_profile_name": "node_profile_FL3out",
         "int_prof_name": "int_profile_FL3out",
         "int_prof_name_v6": "int_profile_v6_FL3out",
@@ -174,8 +182,8 @@ def createl3outVars(l3out_tenant, name, vrf_name, physical_dom, mtu, ipv4_cluste
         "mtu": mtu,
         "bgp_pass": bgp_pass,
         "max_node_prefixes": "500",
-        'contract': contract.split('/')[1],
-        'contract_tenant': contract.split('/')[0],
+        'contract': contract_name,
+        'contract_tenant': contract_tenant,
         "anchor_nodes": anchor_nodes,
         "ipv4_cluster_subnet": ipv4_cluster_subnet,
         "ipv6_cluster_subnet": ipv6_cluster_subnet,
@@ -401,7 +409,7 @@ def update_config():
 
 
 @app.route('/calico_nodes', methods=['GET', 'POST'])
-def calico_nodes():
+def calico_nodes_view():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -600,7 +608,7 @@ class BetterIPv4Network(ipaddress.IPv4Network):
 
 
 @app.route('/cluster', methods=['GET', 'POST'])
-def cluster():
+def cluster_view():
     # app.logger.info(apic+apic_password+apic_username)
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
@@ -938,7 +946,7 @@ def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):
 
 
 @app.route('/l3out', methods=['GET', 'POST'])
-def l3out():
+def l3out_view():
     phys_dom = []
     tenants = []
     vrfs = ["Select a Tenant"]
@@ -976,7 +984,7 @@ def l3out():
             if pyaci_apic.mit.FromDn(fvCtx_dn).GET()[0].bdEnforcedEnable == 'yes':
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: The VRF is configured with BD Enforcement. This will result in the eBGP peering not to form. Please Disable BD Enforcement under the VRF before continuing")
 
-            l3out = createl3outVars(req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
+            l3out = createl3outVars(ipv6_enabled, req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("anchor_nodes"))
             if vc['vm_deploy']:
                 return redirect('/vcenterlogin')

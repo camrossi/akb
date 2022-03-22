@@ -1,6 +1,6 @@
 
 import pytest
-from appflask import is_valid_hostname, get_random_string, k8s_versions, normalize_url, get_fabric_type, createVCVars
+from appflask import is_valid_hostname, get_random_string, k8s_versions, normalize_url, get_fabric_type, createVCVars, createl3outVars
 
 
 class Expando(object):
@@ -58,6 +58,22 @@ def test_create_VCVars():
                 'dvs': 'test', 'port_group': 'test', 'vm_template': 'test', 'vm_folder': 'test', 'vm_deploy': False}
     result = createVCVars("test", "test", "test", "test",
                           "test", "test", "test", "test", "test", "test", False)
+    assert result == expected
+
+
+def test_create_l3outVars():
+    expected = {'name': 'test', 'l3out_tenant': 'test', 'vrf_tenant': 'name1', 'vrf_name': 'name2', 'node_profile_name': 'node_profile_FL3out', 'int_prof_name': 'int_profile_FL3out', 'int_prof_name_v6': 'int_profile_v6_FL3out', 'physical_dom': 'test', 'floating_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:ffff/128', 'secondary_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:fffe/128', 'floating_ip': '255.255.254.255/32',
+                'secondary_ip': '255.255.254.254/32', 'def_ext_epg': 'test', 'def_ext_epg_scope': ['test', 'test', 'test'], 'local_as': 'test', 'mtu': 'test', 'bgp_pass': 'test', 'max_node_prefixes': '500', 'contract': 'contract2', 'contract_tenant': 'contract1', 'anchor_nodes': {}, 'ipv4_cluster_subnet': '255.255.255.0', 'ipv6_cluster_subnet': '2001:db8:abcd:12::/128', 'ipv6_enabled': True}
+    result = createl3outVars(True, "test", "test", "name1/name2", "test",
+                             "test", "255.255.255.0", "2001:db8:abcd:0012::0", "test", "test", "test", "test", "test", "test", "contract1/contract2", "{}")
+    assert result == expected
+
+
+def test_create_l3outVars_invalid():
+    expected = {'name': 'test', 'l3out_tenant': 'test', 'vrf_tenant': '', 'vrf_name': '', 'node_profile_name': 'node_profile_FL3out', 'int_prof_name': 'int_profile_FL3out', 'int_prof_name_v6': 'int_profile_v6_FL3out', 'physical_dom': 'test', 'floating_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:ffff/128', 'secondary_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:fffe/128', 'floating_ip': '255.255.254.255/32',
+                'secondary_ip': '255.255.254.254/32', 'def_ext_epg': 'test', 'def_ext_epg_scope': ['test', 'test', 'test'], 'local_as': 'test', 'mtu': 'test', 'bgp_pass': 'test', 'max_node_prefixes': '500', 'contract': '', 'contract_tenant': '', 'anchor_nodes': {}, 'ipv4_cluster_subnet': '255.255.255.0', 'ipv6_cluster_subnet': '2001:db8:abcd:12::/128', 'ipv6_enabled': True}
+    result = createl3outVars(True, "test", "test", "t", "test",
+                             "test", "255.255.255.0", "2001:db8:abcd:0012::0", "test", "test", "test", "test", "test", "test", "c", "{}")
     assert result == expected
 
 

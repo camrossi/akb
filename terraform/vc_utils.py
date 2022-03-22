@@ -61,13 +61,13 @@ def find_vms(obj, vms):
     if isinstance(obj, vim.Datacenter):
         for child in obj.vmFolder.childEntity:
             if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child.name)
+                vms.append(child)
             elif(isinstance(child, vim.Folder)):
                 find_vms(child, vms)
     elif isinstance(obj, vim.Folder):
         for child in obj.childEntity:
             if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child.name)
+                vms.append(child)
             elif(isinstance(child, vim.Folder)):
                 find_vms(child, vms)
 

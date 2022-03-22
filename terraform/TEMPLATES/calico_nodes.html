@@ -48,7 +48,7 @@
          <div class="container">
             <div class="header-panels">
                <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                  <div class="header__title">Nexus Kubernetes Tools</div>
+                  <div class="header__title">Nexus Kubernetes Tools - Version {{session['version']}}</div>
                </div>
                <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
             </div>
@@ -105,10 +105,12 @@
       </div>
      </div>
 
-     <div class="container">
-      <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
-      <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" onclick="saveInput()">
-   </div>
+         <div class="container">
+            <div class="navibox">
+               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+            </div>
+         </div>
 
    </div>
    </form>
@@ -157,6 +159,13 @@
 
 <script>
     $("#submit").on("click", function(){
+        var url = "{{ url_for("calico_nodes")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        console.log(url);
+        $("#form_calio_node").attr("action", url);
+        $("#form_calio_node").submit();
+    });
+
+    $("#add_node").on("click", function(){
         var url = "{{ url_for("calico_nodes")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
         console.log(url);
         $("#form_calio_node").attr("action", url);

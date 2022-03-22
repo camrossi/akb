@@ -86,7 +86,7 @@
          <div class="container">
             <div class="header-panels">
                <div class="header-panel"><a href="http://www.cisco.com" target="_blank" class="header__logo" id="_uid5a704e92"><span class="icon-cisco"></span></a>
-                  <div class="header__title">Nexus Kubernetes Tools</div>
+                  <div class="header__title">Nexus Kubernetes Tools - Version {{session['version']}}</div>
                </div>
                <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform" data-hreftitle="Source Code" title="Source Code" class="header-item" id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self" data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues" href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue" title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
             </div>
@@ -117,7 +117,7 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div  class="form-group__text">
-                  <select id="dc" name="dc" onchange="this.form.requestSubmit()">
+                  <select id="dc" name="dc" onchange="if(this.value.length>0) this.form.requestSubmit()">
                      <option disabled selected value> -- select a DC -- </option>
                      {% for o in dcs %}
                      <option name="{{ o }}">{{ o }} </option>
@@ -133,9 +133,11 @@
             {% include "_vc_details.html" %}
          </div>
 
-         <div style="display: flex; flex-direction: row-reverse; justify-content: flex-end; width: 100%; padding-right: 10px; padding-left: 10px; margin-right: auto; margin-left: auto;">
-            <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-            <input type="submit" value="Previous" class="btn btn--wide" name="button" onclick="saveInput()">
+         <div class="container">
+            <div class="navibox">
+               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+            </div>
          </div>
    </form>
 
@@ -164,13 +166,13 @@
       </main>
       <!-- End Main Content -->
    </div>
-   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script> -->
-   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script> -->
-   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script> -->
-   <!-- <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script> -->
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script> 
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script> 
+   <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script> 
    <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
    <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
    <div id="canvas"></div>

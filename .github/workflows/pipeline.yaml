@@ -15,7 +15,7 @@ jobs:
   # This workflow contains a single job called "build"
   nkt-testing-v4:
     # The type of runner that the job will run on
-    runs-on: self-hosted
+    runs-on: stld
     defaults:
       run:
         working-directory: v4/terraform
@@ -26,9 +26,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: v4
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py 5003 &
+          python3 appflask.py -p 5003 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
@@ -44,14 +47,16 @@ jobs:
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+
       - name: Terraform destroy and delete APIC user
+        if: always()
         run: | 
           curl -s -X POST http://10.67.185.120:5003/existing_cluster
   
   
   nkt-testing-v46:
     # The type of runner that the job will run on
-    runs-on: self-hosted
+    runs-on: stld
     defaults:
       run:
         working-directory: v46/terraform
@@ -62,9 +67,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: v46
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py 5004 &
+          python3 appflask.py -p 5004 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
@@ -80,6 +88,46 @@ jobs:
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+      
       - name: Terraform destroy and delete APIC user
+        if: always()
         run: | 
           curl -s -X POST http://10.67.185.120:5004/existing_cluster
+  nkt-testing-ndfc-v4:
+      # The type of runner that the job will run on
+      runs-on: ndfc
+      defaults:
+        run:
+          working-directory: ndfc/terraform
+
+      # Steps represent a sequence of tasks that will be executed as part of the job
+      steps:
+        # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+        - uses: actions/checkout@v2
+          with:
+            path: ndfc
+        - name: Copy Private Key
+          run: | 
+            cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
+        - name: Start NKT
+          run: | 
+            python3 appflask.py -p 5010 &
+        - name: Run headless chrome to generate the config
+          run: | 
+            python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless
+        - name: Terraform plan
+          run: | 
+            curl -s http://localhost:5010/tf_plan?fabric_type=vxlan_evpn
+        - name: Terraform apply
+          run: | 
+            curl -s http://localhost:5010/tf_apply?fabric_type=vxlan_evpn
+        - name: Check if all the nodes are ready
+          run: | 
+            kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+        - name: Check if all the pods are ready
+          run: | 
+            kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+        - name: Terraform destroy
+          if: always()
+          run: | 
+            curl -s http://localhost:5010/destroy?fabric_type=vxlan_evpn

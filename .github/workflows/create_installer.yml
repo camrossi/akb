@@ -9,26 +9,73 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
+env:
+  GOVC_URL: administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com
+  GOVC_INSECURE: True
+  ANSIBLE_HOST_KEY_CHECKING: False
+  DC: STLD
+  VM_FOLDER: Templates
+  NKT_TEMPLATE: NKT_K8sNode_Template
+  DESTINATION_PATH: /nfs-share/www/nkt
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build_ova:
+  build_nkt:
     # The type of runner that the job will run on
-    runs-on: self-hosted
-    defaults:
-      run:
-        working-directory: packer/packer
+    runs-on: stld
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
-        with:
-          path: packer
-      - name: Start Build
+      - name: Checkout
+        uses: actions/checkout@v2
+   
+      - name: Power On K8s Node Template
         run: | 
-          packer build -var "version=${{github.ref_name}}" .
-      - name: Export OVA
+          govc vm.power -on $NKT_TEMPLATE
+      
+      - name: Prepare K8s Node Template
         run: | 
-          ovftool vi://administrator%40vsphere.local:123Cisco123%21@vc1.cam.ciscolabs.com/STLD/vm/nkt_installer-${{github.ref_name}} /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
-      - name: Set permission for OVA
+          ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml 
+     
+      - name: Power Off Node Template and wait for OS ShutDown
         run: | 
-          chmod 777 /nfs-share/www/nkt/nkt_installer-${{github.ref_name}}.ova
+          govc vm.power -s $NKT_TEMPLATE && govc object.collect -s "/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE" -runtime.powerState poweredOff
+      
+      - name: Export NKT K8s Node Template
+        run: | 
+          ovftool -o vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
+
+      - name: Set permission for NKT K8s Node Template
+        run: | 
+          chmod 777 $DESTINATION_PATH/nkt_template.ova
+
+      - name: Revert Template Snapshot
+        run: | 
+          govc snapshot.revert -vm=$NKT_TEMPLATE PreBuild      
+      
+      - name: Start Installer Build
+        run: | 
+          packer build -var "version=${{github.ref_name}}" packer
+      
+      - name: Export Installer OVA
+        run: | 
+          ovftool -o vi://$GOVC_URL/$DC/vm/nkt_installer-${{github.ref_name}} $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
+      
+      - name: Delete Installer VM
+        run: | 
+          govc vm.destroy nkt_installer-${{github.ref_name}}
+
+      - name: Set permission for Installer OVA
+        run: | 
+          chmod 777 $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
+      
+      - name: Compress OVA
+        run: | 
+          pigz $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
+          
+      - name: Upload to Sydney S3
+        run: | 
+          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz nkt-sydney
+          
+      - name: Delete compressed images
+        run: | 
+          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz*
+          

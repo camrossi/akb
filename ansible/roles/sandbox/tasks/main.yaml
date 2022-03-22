@@ -1,5 +1,5 @@
 - name: Pre Pull Kubeadm Images
-  command: kubeadm config images pull
+  command: kubeadm config images pull --kubernetes-version "{{ kube_version.split("-")[0] }}"
   tags:
     - sandbox
 
@@ -111,5 +111,21 @@
     src: ../k8s_nodes/templates/sources.list.j2
     dest: /etc/apt/sources.list
     backup: yes
+  tags:
+    - sandbox
+
+- name: remove crio http proxy config
+  file:
+    path: /etc/systemd/system/crio.service.d/http-proxy.conf
+    state: absent
+  when: http_proxy_status == true
+  tags:
+    - sandbox
+
+- name: Remove Network Config
+  file: 
+    path: /etc/netplan/00-installer-config.yaml
+    state: absent
+  ignore_errors: true
   tags:
     - sandbox

@@ -14,8 +14,6 @@
       sleep: 5
       delay: 5
       timeout: 5000
-    tags:
-      - k8s_nodes
 
 - hosts: k8s_primary_master
   gather_facts: True

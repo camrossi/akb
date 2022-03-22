@@ -1,0 +1,14 @@
+---
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: {{ndfc_k8s_user}}_csr
+spec:
+  groups:
+  - system:authenticated
+  request: {{ csr }}
+  signerName: kubernetes.io/kube-apiserver-client
+  usages:
+  - digital signature
+  - key encipherment
+  - client auth

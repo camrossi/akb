@@ -367,7 +367,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("cluster")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("cluster_view")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
         console.log(url);
         $("#form_cluster").attr("action", url);
         $("#form_cluster").submit();

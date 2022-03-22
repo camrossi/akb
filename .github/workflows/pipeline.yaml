@@ -12,6 +12,24 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # This workflow runs the python unit tests
+  python_unit_tests:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: Install Python 3
+          uses: actions/setup-python@v1
+          with:
+            python-version: 3.10.2
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+        - name: Run tests with pytest
+          run: |
+            cd terraform
+            pytest
+
   # This workflow contains a single job called "build"
   nkt-testing-v4:
     # The type of runner that the job will run on

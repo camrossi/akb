@@ -773,7 +773,11 @@ def vctemplate():
         if button == "Previous":
             return redirect('/vcenterlogin')
         if button == None and req.get("dc"):
-            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            try:
+                si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            except Exception as e:
+                flash(e.msg, 'error')
+                return redirect('/vcenterlogin')
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
@@ -855,7 +859,6 @@ def vcenter():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    dss = []
     dvss = []
     vm_templates = []
     global vm_templates_and_ds
@@ -894,6 +897,7 @@ def vcenter():
                     vm_templates_and_ds = {}
                     for vm in vm_templates:
                         dsl = []
+                        print(vm)
                         for ds in vm.datastore:
                             dsl.append(ds.info.name)
                         vm_templates_and_ds[vm.name] = dsl
@@ -925,7 +929,7 @@ def vcenter():
         try:
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
         except Exception as e:
-            flash(e, 'error')
+            flash(e.msg, 'error')
             return redirect('/vcenterlogin')
 
         dcs = vc_utils.get_all_dcs(si)

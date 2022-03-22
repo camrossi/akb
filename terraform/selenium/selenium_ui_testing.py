@@ -142,7 +142,7 @@ select.select_by_visible_text("STLD")
 
 #Wait for vCenter API to populate the page
 try:
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
 except ValueError as e:
     print("Loading took too much time!")
 

@@ -119,13 +119,13 @@ def vcenter_page(driver):
 
     # Wait for vCenter API to populate the page
     try:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
     except ValueError as e:
         print(e)
         print("Loading took too much time!")
 
-    elem = driver.find_element(By.ID, 'datastore')
-    elem.send_keys("vsan_datastore")
+    #elem = driver.find_element(By.ID, 'datastore')
+    #elem.send_keys("vsan_datastore")
     select = Select(driver.find_element(By.ID, 'cluster'))
     select.select_by_visible_text("cluster-cylon")
     elem = driver.find_element(By.ID, 'port_group')

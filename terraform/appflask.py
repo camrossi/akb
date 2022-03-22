@@ -858,6 +858,7 @@ def vcenter():
     dss = []
     dvss = []
     vm_templates = []
+    global vm_templates_and_ds
     vc_folders = []
     pgs = []
     clusters = []
@@ -865,15 +866,16 @@ def vcenter():
         req = request.form
         button = req.get("button")
         if button == "Next":
+            vc["vm_template"] = req.get('vm_templates')
+            vc["vm_folder"] = req.get('vm_folder')
             vc["dc"] = req.get('dc')
-            vc["datastore"] = req.get('datastore')
+            vc["datastore"] =vm_templates_and_ds[vc["vm_template"]][0]
             vc["cluster"] = req.get('cluster')
             vc["dvs"] = req.get('port_group').split('/')[0]
             vc["port_group"] = req.get('port_group').split('/')[1]
             if fabric_type == "aci":
                 l3out['vlan_id'] = req.get('port_group').split('/')[2].split('-')[1]
-            vc["vm_template"] = req.get('vm_templates')
-            vc["vm_folder"] = req.get('vm_folder')
+
             if fabric_type == "vxlan_evpn":
                 return redirect(f'/calico_nodes?fabric_type={fabric_type}')
             else:
@@ -887,33 +889,36 @@ def vcenter():
             dc_name = req.get('dc')
             for dc in dcs:
                 if dc.name == dc_name:
-                    for ds in dc.datastore:
-                        dss.append(ds.name)
-                    
+                    vc_utils.find_vms(dc, vm_templates)
+                    #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly 
+                    vm_templates_and_ds = {}
+                    for vm in vm_templates:
+                        dsl = []
+                        for ds in vm.datastore:
+                            dsl.append(ds.info.name)
+                        vm_templates_and_ds[vm.name] = dsl
                     vc_utils.find_pgs(dc, pgs)
                     for child in dc.hostFolder.childEntity:
                         if (vc_utils.find_compute_cluster(child)):
                             clusters.append(child.name)
 
-                    vc_utils.find_vms(dc, vm_templates)
 
                     # Get only 1st level folder
                     for child in dc.vmFolder.childEntity:
                         if vc_utils.find_folders(child):
                             vc_folders.append(child.name)
-
-            vc_utils.disconnect(si)
             vc_folders = sorted(vc_folders, key=str.lower)
-            dss = sorted(dss, key=str.lower)
+            #dss = sorted(dss, key=str.lower)
             dvss = sorted(dvss, key=str.lower)
-            vm_templates = sorted(vm_templates, key=str.lower)
+            vm_templates_names = sorted([o.name for o in vm_templates], key=str.lower)
             vc_folders = sorted(vc_folders, key=str.lower)
             pgs = sorted(pgs, key=str.lower)
             clusters = sorted(clusters, key=str.lower)
+            vc_utils.disconnect(si)
 
             if turbo.can_stream():
                 return turbo.stream(
-                    turbo.replace(render_template('_vc_details.html', dss=dss, clusters=clusters, vm_templates=vm_templates, vc_folders=vc_folders, pgs=pgs),
+                    turbo.replace(render_template('_vc_details.html', clusters=clusters, vm_templates=vm_templates_names, vc_folders=vc_folders, pgs=pgs),
                                   target='vc'))
 
     if request.method == 'GET':

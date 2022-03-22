@@ -135,12 +135,12 @@ select.select_by_visible_text("STLD")
 
 #Wait for vCenter API to populate the page
 try:
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
 except ValueError as e:
     print("Loading took too much time!")
 
-elem = driver.find_element(By.ID,'datastore')
-elem.send_keys("ESXi3_SSD")
+#elem = driver.find_element(By.ID,'datastore')
+#elem.send_keys("ESXi3_SSD")
 select = Select(driver.find_element(By.ID,'cluster'))
 select.select_by_visible_text("Cluster1")
 elem = driver.find_element(By.ID,'port_group')

@@ -1,0 +1,10 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: clustrole_{{ndfc_k8s_user}}
+rules:
+- apiGroups: [""]
+  resources: [nodes, namespaces, pods, services]
+  verbs: [get, list, watch]
+

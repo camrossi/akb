@@ -1,0 +1,15 @@
+- name: Generate CSR from NDFC
+  cisco.dcnm.dcnm_rest:
+    path: /appcenter/cisco/ndfc/api/v1/cvis/csr/{{ndfc_k8s_user}}
+    method: GET
+  register: csr_result
+  tags:
+    - ndfc_csr
+
+- name: Save CSR to file
+  copy:
+    content: "{{csr_result.response.DATA.data}}"
+    dest: ./roles/ndfc_csr/files/user.csr
+  delegate_to: localhost
+  tags:
+    - ndfc_csr

@@ -39,11 +39,20 @@
     - master_replicas
 
 - name: Join Master replicas to cluster
-  shell: "{{ kubeadm_join_cmd.stdout }} --control-plane"
-  register: res
-  retries: 10
-  until: res is success
-  any_errors_fatal: true
+  block:
+    - name: Join to Cluster
+      shell: "{{ kubeadm_join_cmd.stdout }} --control-plane"
+      register: res
+      retries: 10
+      until: res is success
+      any_errors_fatal: true
+  rescue:
+    - name: Join to Cluster with ingores
+      shell: "{{ kubeadm_join_cmd.stdout }} --control-plane --ignore-preflight-errors=all"
+      register: res
+      retries: 10
+      until: res is success
+      any_errors_fatal: true
   tags:
     - master_replicas
 

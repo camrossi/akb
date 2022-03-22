@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 import sys
 import random
 from time import sleep
@@ -85,7 +84,7 @@ elem.send_keys("192.168.35.0/24")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
-    elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
 except ValueError as e:
     print("Loading took too much time!")
 
@@ -102,8 +101,7 @@ elem.click()
 elem = driver.find_element(By.NAME,"ipv6_cluster_subnet")
 elem.clear()
 elem.send_keys("2001:db8:35::/56")
-#elem = driver.find_element(By.NAME,"vlan_id")
-#elem.send_keys("310")
+
 
 add_anchor_ndoe("1","1","101","1.1.1.101","192.168.35.201","2001:db8:35::201/56")
 add_anchor_ndoe("1","1","102","1.1.1.102","192.168.35.202","2001:db8:35::202/56")
@@ -137,7 +135,7 @@ select.select_by_visible_text("STLD")
 
 #Wait for vCenter API to populate the page
 try:
-    elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
 except ValueError as e:
     print("Loading took too much time!")
 

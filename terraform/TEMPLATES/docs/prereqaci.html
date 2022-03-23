@@ -73,7 +73,7 @@
                <ul>
                   <li>The Kubernetes cluster needs to have allocated the following subnets:</li>
                   <ul>
-                     <li> Cluster Subnet: Use for the Kubernetes nodes. This subnet must have internet access </li>
+                     <li> Cluster Subnet: Use for the Kubernetes nodes. This subnet requires internet access only if "sandbox" mode is disabled</li>
                      <li> POD Subnet: Does not requires internet access, advertised outside of ACI</li>
                      <li> Cluster Service Subnet: Used to expose the Kubernetes services. Does not requires internet access, advertised outside of ACI </li>
                      <li> Cluster External Service Subnet: Used to expose the Kubernetes services. Does not require internet access, advertised outside of ACI</li>
@@ -82,7 +82,7 @@
                   <ul>
                      <li>A Tenant and A VRF: For simplicity is assumed these are dedicated for the cluster. This is not mandatory.</li>
                      <li>A Physical Domain that provide connectivity towards the Kubernetes Nodes or the Hypervisor where they will be running</li>
-                     <li>A Contract to provide connectivity (and route leaking) from the L3OUT of the Kubernetes Cluster towards a pre-existing L3OUT that has internet connectivity. Please note: The contract needs to be manually applied to the pre-existing L3OUT and ensure the scope is correct for your needs. For examples if the L3OUTs are in different Tenant the contract scope must be set to Global.</li>
+                     <li>A Contract to provide connectivity (and route leaking) from the L3OUT of the Kubernetes Cluster towards a pre-existing L3OUT that has internet connectivity if "sandbox" mode is disabled. Please note: The contract needs to be manually applied to the pre-existing L3OUT and ensure the scope is correct for your needs. For examples if the L3OUTs are in different Tenant the contract scope must be set to Global.</li>
                   </ul>
                </ul>       
                
@@ -108,12 +108,10 @@
                         <li> The Secondary Floating SVI IP is Cluster Subnet - 2: For example if the Cluster subnet is 192.168.35.0/24 the Floating IP is 192.168.35.253/24 </li>
                      </ul>
                      <li> Kubernetes API Virtual IP: </li>
-                     The Kubernetes API Virtual IP is Cluster Subnet - 3. For example if the Cluster subnet is 192.168.35.0/24 the Floating IP is 192.168.35.252/24
+                        The Kubernetes API Virtual IP is Cluster Subnet - 3. For example if the Cluster subnet is 192.168.35.0/24 the Floating IP is 192.168.35.252/24
                      <li> Calico Nodes: </li>
-                     For simplicity we pre-populate the data for 3 master nodes. These nodes will use the first 3 IPs in the Cluster Subnet. For example if the Cluster subnet is 192.168.35.0/24 the fist node will be  192.168.35.1/24
+                        For simplicity we pre-populate the data for 3 master nodes. These nodes will use the first 3 IPs in the Cluster Subnet. For example if the Cluster subnet is 192.168.35.0/24 the fist node will be  192.168.35.1/24
                      </ul>
-                  <li>A Physical Domain that provide connectivity towards the Kubernetes Nodes or the Hypervisor where they will be running</li>
-                  <li>A Contract to provide connectivity (and route leaking) from the L3OUT of the Kubernetes Cluster towards a pre-existing L3OUT that has internet connectivity. Please note: The contract needs to be manually applied to the pre-existing L3OUT and ensure the scope is correct for your needs. For examples if the L3OUTs are in different Tenant the contract scope must be set to Global.</li>
                </ul>
                <br>
                <h1>VMWare Infrastructure</h1>

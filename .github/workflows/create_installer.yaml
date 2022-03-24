@@ -26,7 +26,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-   
+        
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
+
       - name: Power On K8s Node Template
         run: | 
           govc vm.power -on $NKT_TEMPLATE

@@ -29,7 +29,7 @@ jobs:
         
       - name: Copy Private Key
         run: | 
-          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
+          cp /nfs-share/www/nkt/id_rsa ansible/roles/sandbox/files/id_rsa
 
       - name: Power On K8s Node Template
         run: | 

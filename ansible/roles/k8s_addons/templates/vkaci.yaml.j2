@@ -73,7 +73,7 @@ spec:
            - name: NEO4J_URL
              value: neo4j://my-neo4j-neo4j:7687
            - name: NEO4J_BROWSER_URL
-             value:  neo4j://{{ neo4j_ip }}:7687
+             value:  neo4j://{{ visibility_ip }}:7687
            - name: NEO4J_USER
              value: neo4j
            - name: NEO4J_PASSWORD
@@ -83,6 +83,12 @@ spec:
              mountPath: /usr/local/etc/aci-cert/
            - name: aci-meta
              mountPath: "/root/.aci-meta"
+        - name: tcp-proxy
+          image: hpello/tcp-proxy:1.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 50001
+         command: ["my-neo4j-neo4j", "7687" ]
        initContainers:
        - name: init-vkaci
          image: quay.io/camillo/vkaci-init:0.2
@@ -116,3 +122,6 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
+    - protocol: TCP
+      port: 7687
+      targetPort: 7687

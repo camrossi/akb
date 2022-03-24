@@ -8,6 +8,8 @@ import ssl
 from urllib.request import Request, urlopen
 import sys
 
+from terraform.appflask import upload_progress_update
+
 def connect(url, username, vc_pass, port):
     return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)
 
@@ -209,7 +211,7 @@ class OvfHandler(object):
 
     # class functions
 
-    def __init__(self, ovafile):
+    def __init__(self, ovafile, update_progress_func):
         """
         Performs necessary initialization, opening the OVA file,
         processing the files and reading the embedded ovf file.
@@ -220,6 +222,7 @@ class OvfHandler(object):
                                   self.tarfile.getnames()))[0]
         ovffile = self.tarfile.extractfile(ovffilename)
         self.descriptor = ovffile.read().decode()
+        self.update_progress_function = update_progress_func
 
     def _create_file_handle(self, entry):
         """
@@ -324,6 +327,20 @@ class OvfHandler(object):
         print("get upload progress ran")
         return self.upload_progress
     
+    def set_upload_progress_update(self, progress):
+        """
+        First, check if the progress 
+        Update the upload_progress member variable and return the new value.
+        """
+        old_progress = self.upload_progress
+        self.set_upload_progress(progress)
+
+        if old_progress is not progress:
+            # call the turbo stream update function here
+            self.update_progress_function(progress)
+        
+        return self.upload_progress
+
     def set_upload_progress(self, progress):
         """
         Update the upload_progress member variable and return the new value.

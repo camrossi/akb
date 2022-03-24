@@ -88,7 +88,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 50001
-         command: ["my-neo4j-neo4j", "7687" ]
+         args: ["my-neo4j-neo4j", "7687" ]
        initContainers:
        - name: init-vkaci
          image: quay.io/camillo/vkaci-init:0.2

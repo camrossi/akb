@@ -122,7 +122,7 @@ def ndfc_create_tf_vars(fabric_type: str,
     tf_vars = tf_template.render(fabric_type=fabric_type,
                                  vc=vc,
                                  ndfc=ndfc,
-                                 OVERLAY=OVERLAY,
+                                 overlay=OVERLAY,
                                  calico_nodes=calico_nodes,
                                  cluster=cluster)
     return tf_vars
@@ -390,6 +390,7 @@ def create():
                                         OVERLAY,
                                         calico_nodes,
                                         cluster)
+                
                 with open('./ndfc/cluster.tfvars', 'w', encoding='utf-8') as f:
                     f.write(config)
             except Exception as e:
@@ -400,7 +401,7 @@ def create():
                 "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"
             })
         return render_template('create.html', config=config)
-    elif request.method == 'POST':
+    if request.method == 'POST':
         req = request.form
         button = req.get("button")
         if button == "Previous":
@@ -460,7 +461,6 @@ def calico_nodes_view():
             ipv6 = req.get("ipv6")
             natip = req.get("natip")
             rack_id = req.get("rack_id")
-            print(hostname)
             if not is_valid_hostname(hostname):
                 return calico_nodes_error(calico_nodes, "Error: Ivalid Hostname")
 
@@ -940,7 +940,6 @@ def vcenter():
                     vm_templates_and_ds = {}
                     for vm in vm_templates:
                         dsl = []
-                        print(vm)
                         for ds in vm.datastore:
                             dsl.append(ds.info.name)
                         vm_templates_and_ds[vm.name] = dsl

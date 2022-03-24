@@ -300,7 +300,7 @@
     - primary_master
 
 - name: Bootstrap first Master
-  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs
+  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs --kubernetes-version "{{ kube_version.split("-")[0] }}"
   tags:
     - primary_master
 

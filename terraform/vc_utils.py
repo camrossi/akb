@@ -8,7 +8,7 @@ import ssl
 from urllib.request import Request, urlopen
 import sys
 
-from terraform.appflask import upload_progress_update
+# from terraform.appflask import upload_progress_update
 
 def connect(url, username, vc_pass, port):
     return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)

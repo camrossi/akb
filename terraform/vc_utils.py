@@ -203,6 +203,12 @@ class OvfHandler(object):
     It processes the tarfile, matches disk keys to files and
     uploads the disks, while keeping the progress up to date for the lease.
     """
+
+    # class variables
+    upload_progress = 0
+
+    # class functions
+
     def __init__(self, ovafile):
         """
         Performs necessary initialization, opening the OVA file,
@@ -306,9 +312,26 @@ class OvfHandler(object):
                                         vim.HttpNfcLease.State.error]:
                 self.start_timer()
             sys.stderr.write("Progress: %d%%\r" % prog)
+            self.set_upload_progress(prog)
             return prog
         except Exception:  # Any exception means we should stop updating progress.
             pass
+    
+    def get_upload_progress(self):
+        """
+        Return the value of the upload_progress member variable.
+        """
+        print("get upload progress ran")
+        return self.upload_progress
+    
+    def set_upload_progress(self, progress):
+        """
+        Update the upload_progress member variable and return the new value.
+        """
+        print("set upload progress ran")
+        self.upload_progress = progress
+        return self.upload_progress
+
 
 class FileHandle(object):
     def __init__(self, filename):

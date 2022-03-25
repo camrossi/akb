@@ -815,7 +815,7 @@ import time
 def update_load():
     with app.app_context():
         # x=1
-        while ovf_handle.get_upload_progress() < 100:
+        while ovf_handle.get_upload_progress() < 99:
             time.sleep(.5)
             # x = x + 1
             htmlRendered = render_template('_template_upload_progress.html', progressVal=ovf_handle.get_upload_progress())

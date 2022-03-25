@@ -8,7 +8,7 @@ import ssl
 from urllib.request import Request, urlopen
 import sys
 
-# from terraform.appflask import upload_progress_update
+from appflask import upload_progress_update
 
 def connect(url, username, vc_pass, port):
     return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)
@@ -315,7 +315,7 @@ class OvfHandler(object):
                                         vim.HttpNfcLease.State.error]:
                 self.start_timer()
             sys.stderr.write("Progress: %d%%\r" % prog)
-            self.set_upload_progress(prog)
+            self.set_upload_progress_update(prog)
             return prog
         except Exception:  # Any exception means we should stop updating progress.
             pass
@@ -334,10 +334,13 @@ class OvfHandler(object):
         """
         old_progress = self.upload_progress
         self.set_upload_progress(progress)
-
-        if old_progress is not progress:
+        print("old progress: " + old_progress)
+        print("new progress: " + progress)
+        
+        if old_progress != progress:
             # call the turbo stream update function here
             self.update_progress_function(progress)
+            # update_progress_update(progress)
         
         return self.upload_progress
 
@@ -345,7 +348,7 @@ class OvfHandler(object):
         """
         Update the upload_progress member variable and return the new value.
         """
-        print("set upload progress ran")
+        print("set upload progress ran: " + progress)
         self.upload_progress = progress
         return self.upload_progress
 

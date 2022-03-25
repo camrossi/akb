@@ -805,11 +805,13 @@ def vcenterlogin():
         if fabric_type == "vxlan_evpn":
             return render_template('vcenter-login.html', fabric_type=fabric_type)
 
-def upload_progress_update(new_progress, errors):
+def upload_progress_update(new_progress):
     ''' Updates the progress of the upload on the UI'''
+    print("upload_progress_update ran")
     if turbo.can_stream():
+        print("returned turbo stream")
         return turbo.stream(
-            turbo.update(render_template('_template_upload_progress.html', progress=new_progress, error=errors),
+            turbo.update(render_template('_template_upload_progress.html', progress=new_progress),
                          target='_template_upload_progress'))
 
 @app.route('/vctemplate', methods=['GET', 'POST'])
@@ -849,12 +851,12 @@ def vctemplate():
                                   target='template-upload-folder'))
 
         if button == "Upload":
-            template_name = "nkt_template"
+            template_name = "raj_upload_test"
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
-            ova_path = str(os.getcwd()) + "/static/vm_templates/nkt_template.ova"
+            ova_path = str(os.getcwd()) + "/static/vm_templates/raj_upload_test.ova"
             ovf_handle = vc_utils.OvfHandler(ova_path, upload_progress_update)
             ovf_manager = si.content.ovfManager
             cisp = vc_utils.import_spec_params(entityName=template_name, diskProvisioning='thin')

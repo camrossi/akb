@@ -8,7 +8,7 @@ import ssl
 from urllib.request import Request, urlopen
 import sys
 
-from appflask import upload_progress_update
+import appflask
 
 def connect(url, username, vc_pass, port):
     return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)
@@ -303,6 +303,7 @@ class OvfHandler(object):
         A simple way to keep updating progress while the disks are transferred.
         """
         Timer(5, self.timer).start()
+        # Timer(5, self.set_upload_progress(self.handle.progress())).start()
 
     def timer(self):
         """
@@ -315,7 +316,8 @@ class OvfHandler(object):
                                         vim.HttpNfcLease.State.error]:
                 self.start_timer()
             sys.stderr.write("Progress: %d%%\r" % prog)
-            self.set_upload_progress_update(prog)
+            # self.set_upload_progress(prog)
+            self.upload_progress = prog
             return prog
         except Exception:  # Any exception means we should stop updating progress.
             pass
@@ -324,25 +326,26 @@ class OvfHandler(object):
         """
         Return the value of the upload_progress member variable.
         """
-        print("get upload progress ran")
+        # print("get upload progress ran")
+        print("get_upload_progress: " + str(self.upload_progress))
         return self.upload_progress
     
-    def set_upload_progress_update(self, progress):
-        """
-        First, check if the progress 
-        Update the upload_progress member variable and return the new value.
-        """
-        old_progress = self.upload_progress
-        self.set_upload_progress(progress)
-        print("old progress: " + old_progress)
-        print("new progress: " + progress)
+    # def set_upload_progress_update(self, progress):
+    #     """
+    #     First, check if the progress 
+    #     Update the upload_progress member variable and return the new value.
+    #     """
+    #     old_progress = self.upload_progress
+    #     self.set_upload_progress(progress)
+    #     print("old progress: " + old_progress)
+    #     print("new progress: " + progress)
         
-        if old_progress != progress:
-            # call the turbo stream update function here
-            self.update_progress_function(progress)
-            # update_progress_update(progress)
-        
-        return self.upload_progress
+    #     if old_progress != progress:
+    #         # call the turbo stream update function here
+    #         # self.update_progress_function(progress)
+    #         appflask.upload_progress_update(progress)
+    #         # update_progress_update(progress)        
+    #     return self.upload_progress
 
     def set_upload_progress(self, progress):
         """

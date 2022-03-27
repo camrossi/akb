@@ -86,7 +86,8 @@
                <br> If you know what you are doing you can edit it manually as well.
                <br> Notes: 
                <ul>
-                  <li>if you change the config manullay you must click on Update Config to apply it!!!!</li>
+                  <li>if you change the config manually you must click on Update Config to apply it!!!!</li>
+                  <li>Visibility UI: Will be available a few minutes after the cluster deployment is completed</li>
                   <!-- <li>Downloading the Calico Manifest will work only once the Apply process is completed. If you click it before you will get a file not found error. We will enhance this in a future release!</li> -->
                </ul>
                <br>
@@ -131,6 +132,8 @@
             <br><br>
             <input type="button" value="Plan" id="plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
             <input type="button" value="Apply" id="apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
+            <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+
           <!--  <input type="button" title="The manifest are gonna be available only after the Apply operation" value="Download Calico Manifests" class="btn btn--wide" name="button" onclick="window.open('../static/calico/calico_manifests.zip','_blank')"> -->
          </div>
       </div>

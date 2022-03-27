@@ -50,6 +50,7 @@ spec:
       labels:
         app: vkaci
     spec:
+       nodeName: "{{ groups['k8s_primary_master'][0] }}"
        containers:
        - name: vkaci
          image: quay.io/camillo/vkaci:0.2
@@ -73,7 +74,7 @@ spec:
            - name: NEO4J_URL
              value: neo4j://my-neo4j-neo4j:7687
            - name: NEO4J_BROWSER_URL
-             value:  neo4j://{{ neo4j_ip }}:7687
+             value:  neo4j://{{ n4j_host.stdout_lines[0] }}:{{ n4j_port.stdout_lines[0] }}
            - name: NEO4J_USER
              value: neo4j
            - name: NEO4J_PASSWORD
@@ -116,3 +117,4 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
+      nodePort: 30000

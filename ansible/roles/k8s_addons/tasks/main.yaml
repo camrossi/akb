@@ -15,14 +15,11 @@
   tags:
     - k8s_addons
 
-- name: Copy ACI addons manifests
+- name: Copy neo4j addons manifests
   template:
-    src: "{{ item }}"
-    dest: /tmp/{{ item }}
+    src: neo4j-values.yaml
+    dest: /tmp/neo4j-values.yaml
     force: yes
-  with_items:
-    - vkaci.yaml.j2
-    - neo4j-values.yaml
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
@@ -122,6 +119,28 @@
 
 - name: Expose Neo4j
   shell: kubectl patch svc  my-neo4j-neo4j -p '{"spec":{"type":"NodePort","externalIPs":["{{ neo4j_ip }}"]}}'
+  when: fabric_type is not defined or fabric_type == "aci"
+  tags:
+    - k8s_addons
+
+- name: Get Neo4J Node info
+  shell: kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].status.hostIP}"
+  register: n4j_host
+  tags:
+    - k8s_addons
+
+- name: Get Neo4J Port info
+  shell:  kubectl  get svc my-neo4j-neo4j -o jsonpath='{.spec.ports[?(@.name=="tcp-bolt")].nodePort}'
+  register: n4j_port
+  tags:
+    - k8s_addons
+
+
+- name: Copy vkaci addons manifests
+  template:
+    src: vkaci.yaml.j2
+    dest: /tmp/vkaci.yaml.j2
+    force: yes
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons

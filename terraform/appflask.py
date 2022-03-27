@@ -357,6 +357,7 @@ def create():
     global apic
     global l3out
     global vc
+    vkaci_ui = ""
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -369,6 +370,7 @@ def create():
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
                 tf_apic['oob_ips'] = apic["oob_ips"]
+                vkaci_ui = "http://" + calico_nodes[0]['ip'].split("/")[0] + ":30000"
                 config = "apic =" + json.dumps(tf_apic, indent=4)
                 config += "\nl3out =" + json.dumps(l3out, indent=4)
                 if vc['vm_deploy']:
@@ -379,7 +381,7 @@ def create():
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
                 with open('cluster.tfvars', 'w') as f:
                     f.write(config)
-            except(KeyError, json.JSONDecodeError) as e:
+            except(KeyError, json.JSONDecodeError, NameError) as e:
                 print(e)
                 config = []
         elif fabric_type == "vxlan_evpn":
@@ -398,9 +400,9 @@ def create():
                 config = []
         else:
             config = json.dumps({
-                "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"
+                "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
             })
-        return render_template('create.html', config=config)
+        return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
     if request.method == 'POST':
         req = request.form
         button = req.get("button")

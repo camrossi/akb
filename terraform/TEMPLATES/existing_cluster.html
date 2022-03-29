@@ -124,47 +124,47 @@
 
    </div>
 
-<div class="container">
+<div class="container base-margin-left">
     <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
-    <div class="modal modal--small hide" id="confirm_modal">
-        <div class="modal__dialog">
-            <div class="modal__content">
-                <a class="modal__close" onclick="closeModal('confirm_modal')"><span class="icon-close"></span></a>
-                <div class="modal__header">
-                    <div class="modal__title">Confirm</div>
+    <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
+</div>
+<div class="modal modal--small hide" id="confirm_modal">
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <a class="modal__close" onclick="closeModal('confirm_modal')"><span class="icon-close"></span></a>
+            <div class="modal__header">
+                <div class="modal__title">Confirm</div>
+            </div>
+            <div class="modal__body">
+                <div class="alert alert--info">
+                    <div class="alert__icon icon-info-outline"></div>
+                    <div class="alert__message">Destroy existing cluster?</div>
                 </div>
-                <div class="modal__body">
-                    <div class="alert alert--info">
-                        <div class="alert__icon icon-info-outline"></div>
-                        <div class="alert__message">Destroy existing cluster?</div>
-                    </div>
-                </div>
-                <div class="modal__footer">
-                    <button id="btn_destroy_cancel"class="btn btn--ghost" onclick="closeModal('confirm_modal')">Cancel</button>
-                    <button id="btn_destroy_confirm" class="btn" >Confirm</button>
-                </div>
+            </div>
+            <div class="modal__footer">
+                <button id="btn_destroy_cancel"class="btn btn--ghost" onclick="closeModal('confirm_modal')">Cancel</button>
+                <button id="btn_destroy_confirm" class="btn" >Confirm</button>
             </div>
         </div>
     </div>
-    <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
-    <div class="modal modal--small hide" id="reset_modal">
-        <div class="modal__dialog">
-            <div class="modal__content">
-                <a class="modal__close" onclick="closeModal('reset_modal')"><span class="icon-close"></span></a>
-                <div class="modal__header">
-                    <div class="modal__title">Confirm</div>
-                </div>
-                <div class="modal__body">
-                    <div class="alert alert--info">
-                        <div class="alert__icon icon-info-outline"></div>
-                        <div class="alert__message">Reset Envrionment?</div>
-                    </div>
-                </div>
-                <div class="modal__footer">
-                    <button type="button" id="btn_reset_cancel"class="btn btn--ghost" onclick="closeModal('reset_modal')">Cancel</button>
-                    <button type="button" id="btn_reset_confirm" class="btn" >Confirm</button>
-                  </div>
+</div>
+<div class="modal modal--small hide" id="reset_modal">
+    <div class="modal__dialog">
+        <div class="modal__content">
+            <a class="modal__close" onclick="closeModal('reset_modal')"><span class="icon-close"></span></a>
+            <div class="modal__header">
+                <div class="modal__title">Confirm</div>
             </div>
+            <div class="modal__body">
+                <div class="alert alert--info">
+                    <div class="alert__icon icon-info-outline"></div>
+                    <div class="alert__message">Reset Envrionment?</div>
+                </div>
+            </div>
+            <div class="modal__footer">
+                <button type="button" id="btn_reset_cancel"class="btn btn--ghost" onclick="closeModal('reset_modal')">Cancel</button>
+                <button type="button" id="btn_reset_confirm" class="btn" >Confirm</button>
+              </div>
         </div>
     </div>
 </div>

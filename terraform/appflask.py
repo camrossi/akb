@@ -28,6 +28,7 @@ app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
+
 def require_api_token(func):
     '''This function is used to block direct access to all pages unless you have a session token'''
     @wraps(func)
@@ -39,6 +40,7 @@ def require_api_token(func):
         # Otherwise just send them where they wanted to go
         return func(*args, **kwargs)
     return check_token
+
 
 def get_random_string(length):
     '''choose from all lowercase letter, this is used to randomize the temporary user names'''
@@ -54,8 +56,8 @@ def get_fabric_type(http_request: request) -> str:
         fabric_type = "aci"
     return fabric_type.lower()
 
+
 def normalize_url(hostname: str) -> str:
-    ''' get fabric type from url parameters '''
     if hostname.startswith('http://'):
         url = hostname.replace("http://", "https://")
     elif hostname.startswith("https://"):
@@ -65,6 +67,13 @@ def normalize_url(hostname: str) -> str:
     if url.endswith('/'):
         url = url[:-1]
     return url
+
+
+def normalize_apt_mirror(mirror: str) -> str:
+    if mirror.startswith('http://') or mirror.startswith("https://"):
+        return mirror
+    else:
+        return "https://" + mirror
 
 
 def ndfc_process_fabric_setting(data: dict) -> bool:
@@ -226,7 +235,7 @@ def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="
      
 
 
-def create_cluste_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
+def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
                         crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain=""):
                         
     ''' Generate the configuration for the Kubernetes Cluster '''
@@ -239,6 +248,7 @@ def create_cluste_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_p
         visibility_ip = ""
         neo4j_ip = ""
     dns_servers = list(dns_servers.split(","))
+    ubuntu_apt_mirror = normalize_apt_mirror(ubuntu_apt_mirror)
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
                 "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else None,
                 "pod_subnet": ipv4_pod_sub, 
@@ -672,7 +682,7 @@ def cluster_view():
                 ipv4_cluster_subnet = OVERLAY["node_sub"]
                 ipv6_cluster_subnet = OVERLAY["node_sub_v6"]
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
-            cluster = create_cluste_vars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
+            cluster = create_cluster_vars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
             req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"), req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
             req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"))

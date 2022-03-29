@@ -1,0 +1,17 @@
+- hosts: ndfc
+  gather_facts: false
+  roles:
+    - role: ndfc_csr
+      when: fabric_type is defined and fabric_type == "vxlan_evpn"
+
+- hosts: k8s_primary_master
+  gather_facts: false
+  roles:
+    - role: k8s_cert
+      when: fabric_type is defined and fabric_type == "vxlan_evpn"
+
+- hosts: ndfc
+  gather_facts: false
+  roles:
+    - role: ndfc_integ
+      when: fabric_type is defined and fabric_type == "vxlan_evpn"

@@ -286,6 +286,7 @@
         timeoutForControlPlane: 4m0s
       kind: ClusterConfiguration
       controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
+      kubernetesVersion: "{{ kube_version.split("-")[0] }}"
       networking:
         podSubnet: {{ pod_subnet }},{{ pod_subnet_v6 }}
         serviceSubnet: {{ cluster_svc_subnet }},{{ cluster_svc_subnet_v6 }}
@@ -300,7 +301,7 @@
     - primary_master
 
 - name: Bootstrap first Master
-  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs
+  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs 
   tags:
     - primary_master
 

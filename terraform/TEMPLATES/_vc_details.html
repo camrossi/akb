@@ -2,21 +2,6 @@
    <div class="container">
       <div class="form-group base-margin-bottom">
          <div class="form-group__text">
-            <label  for="datastore">vCenter Datastore Name:
-               <span data-title="The destination datastore for you K8s VMs, ideally a shared DataStore is reccomneded">ⓘ</span> 
-            </label>
-            <input list="datastore_list" id="datastore" name="datastore">
-            <datalist id="datastore_list">
-               {% for o in dss %}
-               <option value="{{ o }}">
-                  {% endfor %}
-            </datalist>
-         </div>
-      </div>
-   </div>
-   <div class="container">
-      <div class="form-group base-margin-bottom">
-         <div class="form-group__text">
             <select id="cluster" name="cluster">
                {% for o in clusters %}
                <option name="{{ o }}">{{ o }} </option>

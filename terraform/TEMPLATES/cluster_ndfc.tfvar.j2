@@ -1,5 +1,7 @@
 fabric_type = "{{ fabric_type }}"
 
+ndfc_k8s_integ = "{{ overlay.k8s_integ | lower}}"
+
 vc = {
   "url" : "{{vc.url}}",
   "username" : "{{vc.username}}",
@@ -94,8 +96,8 @@ k8s_cluster = {
   "node_sub" : "{{cluster.node_sub}}",
   "node_sub_v6" : "{{cluster.node_sub_v6}}",
   "ntp_server" : "{{cluster.ntp_server}}",
-  "dns_domain" : "{{overlay.dns_domain}}",
-  "dns_servers" : ["{{overlay.dns_servers}}"],
+  "dns_domain" : "{{cluster.dns_domain}}",
+  "dns_servers" : {{ cluster.dns_servers | tojson }},
   "kube_version" : "{{cluster.kube_version}}",
   "crio_version" : "{{cluster.crio_version}}",
   "OS_Version" : "{{cluster.OS_Version}}",

@@ -79,7 +79,7 @@ elem.send_keys("192.168.39.0/24")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
-    elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
 except ValueError as e:
     print("Loading took too much time!")
 
@@ -122,12 +122,11 @@ select.select_by_visible_text("STLD")
 
 #Wait for vCenter API to populate the page
 try:
-    elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="datastore_list"]/option[1]')))
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
 except ValueError as e:
     print("Loading took too much time!")
-
-elem = driver.find_element(By.ID,'datastore')
-elem.send_keys("ESXi3_SSD")
+#elem = driver.find_element(By.ID,'datastore')
+#elem.send_keys("ESXi3_SSD")
 select = Select(driver.find_element(By.ID,'cluster'))
 select.select_by_visible_text("Cluster1")
 elem = driver.find_element(By.ID,'port_group')

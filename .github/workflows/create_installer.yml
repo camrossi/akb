@@ -26,7 +26,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-   
+        
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ansible/roles/sandbox/files/id_rsa
+
       - name: Power On K8s Node Template
         run: | 
           govc vm.power -on $NKT_TEMPLATE
@@ -59,7 +63,7 @@ jobs:
         run: | 
           ovftool -o vi://$GOVC_URL/$DC/vm/nkt_installer-${{github.ref_name}} $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
       
-      - name: Delete Installer OVA
+      - name: Delete Installer VM
         run: | 
           govc vm.destroy nkt_installer-${{github.ref_name}}
 

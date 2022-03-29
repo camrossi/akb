@@ -1053,9 +1053,9 @@ def l3out_view():
                 name = fvCtx.name
                 vrfs.append(tenant + '/' + name)
 
-            vzBrCP = pyaci_apic.methods.ResolveClass('vzBrCP').GET(
+            vzBrCPs = pyaci_apic.methods.ResolveClass('vzBrCP').GET(
                 **options.filter(filters.Wcard('fvCtx.dn', regex)))
-            for vzBrCP in vzBrCP:
+            for vzBrCP in vzBrCPs:
                 # Get the tenant field and drop the tn-
                 tenant = vzBrCP.dn.split('/')[1][3:]
                 name = vzBrCP.name

@@ -1366,42 +1366,29 @@ def read_process(g):
             yield line
 
 
-@app.route('/existing_cluster', methods=['GET', 'POST'])
+@app.route('/existing_cluster', methods=['GET'])
 def existing_cluster():
     '''Page that detects an existing cluster and allow the user to destroy it'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    if request.method == "POST":
-        g = proc.Group()
-        if fabric_type == "aci":
-            g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
-            ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
-        elif fabric_type == "vxlan_evpn":
-            g.run(["bash",
-                   "-c",
-                   "terraform -chdir ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
-        #p = g.run("ls")
-        return Response(read_process(g), mimetype='text/event-stream')
-    else:
-
-        if fabric_type == "aci":
-            try:
-                f = open("cluster.tfvars")
-                current_config =  f.read()
-                # Do something with the file
-            except IOError:
-                return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
-            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config)
-        elif fabric_type == "vxlan_evpn":
-            ndfc_tfvars = "./ndfc/cluster.tfvars"
-            if not os.path.exists(ndfc_tfvars):
-                return render_template('/existing_cluster.html?fabric_type=vxlan_evpn',
-                                       text_area_title="Error",
-                                       config="Config File Not Found but terraform.tfstate file is present")
-            with open(ndfc_tfvars, "r") as f:
-                tf_vars = f.read()
-            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=tf_vars)
+    if fabric_type == "aci":
+        try:
+            f = open("cluster.tfvars")
+            current_config =  f.read()
+            # Do something with the file
+        except IOError:
+            return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
+        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config)
+    elif fabric_type == "vxlan_evpn":
+        ndfc_tfvars = "./ndfc/cluster.tfvars"
+        if not os.path.exists(ndfc_tfvars):
+            return render_template('/existing_cluster.html?fabric_type=vxlan_evpn',
+                                   text_area_title="Error",
+                                   config="Config File Not Found but terraform.tfstate file is present")
+        with open(ndfc_tfvars, "r") as f:
+            tf_vars = f.read()
+        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=tf_vars)
 
 
 @app.route('/destroy', methods=['GET'])

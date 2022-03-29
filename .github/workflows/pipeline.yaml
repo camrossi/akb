@@ -69,7 +69,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -s -X POST http://10.67.185.120:5003/existing_cluster
+          curl -s -X POST http://10.67.185.120:5003/destroy
   
   
   nkt-testing-v46:
@@ -110,7 +110,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -s -X POST http://10.67.185.120:5004/existing_cluster
+          curl -s -X POST http://10.67.185.120:5004/destroy
   nkt-testing-ndfc-v4:
       # The type of runner that the job will run on
       runs-on: ndfc

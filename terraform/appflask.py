@@ -1394,15 +1394,15 @@ def reset():
             if fabric_type == "aci":
                 if os.path.exists(TF_STATE_ACI):
                     os.remove(TF_STATE_ACI)
-                    return Response("Deleted terraform state " + TF_STATE_ACI)
+                    return Response("Deleted terraform state file " + TF_STATE_ACI)
                 else:
-                    return Response("terraform state " + TF_STATE_ACI +" Not found")
+                    return Response("terraform state file " + TF_STATE_ACI +" Not found")
             if fabric_type == "vxlan_evpn":
                 if os.path.exists(TF_STATE_NDFC):
                     os.remove(TF_STATE_NDFC)
-                    return Response("Deleted terraform state " + TF_STATE_NDFC)
+                    return Response("Deleted terraform state file " + TF_STATE_NDFC)
                 else:
-                    return Response("terraform state " + TF_STATE_NDFC +" Not found")
+                    return Response("terraform state file " + TF_STATE_NDFC +" Not found")
         except Exception:
            return Response("Reset Failed")
 

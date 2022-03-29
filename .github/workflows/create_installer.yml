@@ -53,7 +53,7 @@ jobs:
 
       - name: Revert Template Snapshot
         run: | 
-          http://10.67.185.120/nkt/small.ovaovc snapshot.revert -vm=$NKT_TEMPLATE PreBuild      
+          govc snapshot.revert -vm=$NKT_TEMPLATE PreBuild      
       
       - name: Start Installer Build
         run: | 

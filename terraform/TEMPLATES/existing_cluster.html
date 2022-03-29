@@ -121,13 +121,13 @@
       <div class='streaming'>
             <p id="streaming_text"></p>
       </div>
+        <div class="container base-margin-bottom">
+            <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
+            <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
+        </div>
 
    </div>
 
-<div class="container base-margin-left">
-    <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
-    <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
-</div>
 <div class="modal modal--small hide" id="confirm_modal">
     <div class="modal__dialog">
         <div class="modal__content">

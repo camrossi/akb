@@ -125,12 +125,14 @@
 
 - name: Get Neo4J Node info
   shell: kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].status.hostIP}"
+  when: fabric_type is not defined or fabric_type == "aci"
   register: n4j_host
   tags:
     - k8s_addons
 
 - name: Get Neo4J Port info
   shell:  kubectl  get svc my-neo4j-neo4j -o jsonpath='{.spec.ports[?(@.name=="tcp-bolt")].nodePort}'
+  when: fabric_type is not defined or fabric_type == "aci"
   register: n4j_port
   tags:
     - k8s_addons

@@ -223,18 +223,7 @@ form>
         $("#btn_reset_confirm").click(function (e) {
             var reset_url = "{{ url_for("reset")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
             $("#reset_modal").addClass('hide');
-            $.ajax({
-                url: reset_url,
-                type: 'post',
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function (result, status, xhr) {
-                    console.log("reset success!")
-                },
-                error: function (xhr, status, error) {
-                    console.log("reset failed!")
-                }
-            });
+            $("#iframe").attr('src',reset_url);
 
         });
     })

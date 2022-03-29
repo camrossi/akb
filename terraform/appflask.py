@@ -1381,24 +1381,30 @@ def read_process(g):
             yield line
 
 
-@app.route('/reset', methods=['POST'])
+@app.route('/reset', methods=['GET'])
+@require_api_token
 def reset():
     '''generic function to delete the TF State'''
     fabric_type = get_fabric_type(request)
 
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    if request.method == "POST":
+    if request.method == "GET":
         try:
-            if fabric_type == "aci" and os.path.exists(TF_STATE_ACI):
-                os.remove(TF_STATE_ACI)
-            if fabric_type == "vxlan_evpn" and os.path.exists(TF_STATE_NDFC):
-                os.remove(TF_STATE_NDFC)
+            if fabric_type == "aci":
+                if os.path.exists(TF_STATE_ACI):
+                    os.remove(TF_STATE_ACI)
+                    return Response("Deleted terraform state " + TF_STATE_ACI)
+                else:
+                    return Response("terraform state " + TF_STATE_ACI +" Not found")
+            if fabric_type == "vxlan_evpn":
+                if os.path.exists(TF_STATE_NDFC):
+                    os.remove(TF_STATE_NDFC)
+                    return Response("Deleted terraform state " + TF_STATE_NDFC)
+                else:
+                    return Response("terraform state " + TF_STATE_NDFC +" Not found")
         except Exception:
-            print("reset failed")
-            return json.dumps({"error": "reset failed"}), 503
-        return json.dumps({"msg": "reset success"}), 200
-
+           return Response("Reset Failed")
 
 @app.route('/existing_cluster', methods=['GET', 'POST'])
 @require_api_token

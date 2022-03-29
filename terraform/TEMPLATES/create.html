@@ -131,6 +131,27 @@
             <br><br>
             <input type="button" value="Plan" id="plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
             <input type="button" value="Apply" id="apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
+            <input type="button" value="Reset" id="reset" class="btn btn--wide" name="button" onclick="openModal('confirm_modal')">
+            <div class="modal modal--small hide" id="confirm_modal">
+               <div class="modal__dialog">
+                   <div class="modal__content">
+                       <a class="modal__close" onclick="closeModal('confirm_modal')"><span class="icon-close"></span></a>
+                       <div class="modal__header">
+                           <div class="modal__title">Confirm</div>
+                       </div>
+                       <div class="modal__body">
+                           <div class="alert alert--info">
+                               <div class="alert__icon icon-info-outline"></div>
+                               <div class="alert__message">This will delete the terraform state. If VMs/ACI Config are present they will need to be manually deleted!</div>
+                           </div>
+                       </div>
+                       <div class="modal__footer">
+                           <button type="button" id="btn_destroy_cancel"class="btn btn--ghost" onclick="closeModal('confirm_modal')">Cancel</button>
+                           <button id="btn_destroy_confirm" class="btn" >Confirm</button>
+                       </div>
+                   </div>
+               </div>
+           </div>
           <!--  <input type="button" title="The manifest are gonna be available only after the Apply operation" value="Download Calico Manifests" class="btn btn--wide" name="button" onclick="window.open('../static/calico/calico_manifests.zip','_blank')"> -->
          </div>
       </div>

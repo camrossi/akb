@@ -20,7 +20,8 @@ from jinja2 import Template
 import argparse
 
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
-
+TF_STATE_ACI = "terraform.tfstate"
+TF_STATE_NDFC = "./ndfc/terraform.tfstate"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
@@ -405,13 +406,16 @@ def create():
         req = request.form
         button = req.get("button")
         if button == "Previous":
-            return redirect('/cluster?fabric_type=' + fabric_type)
+            return redirect('/cluster_network?fabric_type=' + fabric_type)
         if button == "Update Config":
             config = req.get('config')
             with open('cluster.tfvars', 'w', encoding='utf-8') as f:
                 f.write(config)
             return render_template('create.html', config=config)
-
+        if button == "Reset":
+            config = req.get('config')
+            reset()
+            return render_template('create.html', config=config)
 
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
@@ -1363,6 +1367,12 @@ def read_process(g):
         for prcs, line in lines:
             yield line
 
+def reset():
+    '''generic function to delete the TF State'''
+    if os.path.exists(TF_STATE_ACI):
+        os.remove(TF_STATE_ACI)
+    if os.path.exists(TF_STATE_NDFC):
+        os.remove(TF_STATE_NDFC)
 
 @app.route('/existing_cluster', methods=['GET', 'POST'])
 def existing_cluster():
@@ -1371,16 +1381,23 @@ def existing_cluster():
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
     if request.method == "POST":
-        g = proc.Group()
-        if fabric_type == "aci":
-            g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
-            ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
-        elif fabric_type == "vxlan_evpn":
-            g.run(["bash",
-                   "-c",
-                   "terraform -chdir ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
-        #p = g.run("ls")
-        return Response(read_process(g), mimetype='text/event-stream')
+        req = request.form
+        button = req.get("button")
+        print(button)
+        if button == "destroy":
+            g = proc.Group()
+            if fabric_type == "aci":
+                g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
+                ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
+            elif fabric_type == "vxlan_evpn":
+                g.run(["bash",
+                    "-c",
+                    "terraform -chdir ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
+            #p = g.run("ls")
+            return Response(read_process(g), mimetype='text/event-stream')
+        if button == "reset":
+            reset()
+            return redirect('/')
     else:
 
         if fabric_type == "aci":
@@ -1443,19 +1460,17 @@ def get_page():
         if button == "Next":
             return redirect(f'/login?fabric_type={fabric_type}')
     if request.method == "GET":
-        tf_state_aci = "terraform.tfstate"
-        tf_state_ndfc = "./ndfc/terraform.tfstate"
         # if no tf state existed, return the intro page
-        if not os.path.exists(tf_state_aci) and not os.path.exists(tf_state_ndfc):
+        if not os.path.exists(TF_STATE_ACI) and not os.path.exists(TF_STATE_NDFC):
             return render_template('intro.html')
 
-        if os.path.exists(tf_state_aci):
+        if os.path.exists(TF_STATE_ACI):
             with open('terraform.tfstate', 'r', encoding='utf-8') as f:
                 state_aci = json.load(f)
             if state_aci['resources'] != []:
                 return redirect('/existing_cluster')
 
-        if os.path.exists(tf_state_ndfc):
+        if os.path.exists(TF_STATE_NDFC):
             with open('./ndfc/terraform.tfstate', 'r', encoding='utf-8') as f:
                 state_ndfc = json.load(f)
                 # If there are resources the cluster is there

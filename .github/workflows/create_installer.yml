@@ -26,7 +26,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-   
+        
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ansible/roles/sandbox/files/id_rsa
+
       - name: Power On K8s Node Template
         run: | 
           govc vm.power -on $NKT_TEMPLATE
@@ -66,16 +70,12 @@ jobs:
       - name: Set permission for Installer OVA
         run: | 
           chmod 777 $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
-      
-      - name: Compress OVA
-        run: | 
-          pigz $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
           
       - name: Upload to Sydney S3
         run: | 
-          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz nkt-sydney
+          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-sydney
           
       - name: Delete compressed images
         run: | 
-          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova.gz*
+          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova*
           

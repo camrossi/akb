@@ -1,3 +1,6 @@
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/camrossi/akb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/camrossi/akb/alerts/)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/camrossi/akb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/camrossi/akb/context:javascript)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/camrossi/akb.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/camrossi/akb/context:python)
 # Calico ACI Integration
 
 This repo documents my steps to deploy a calico Cluster Integrated with ACI.

@@ -1,5 +1,6 @@
 import json
 from logging import error
+from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
 import vc_utils
 from turbo_flask import Turbo
@@ -20,28 +21,41 @@ from jinja2 import Template
 import argparse
 
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
-
+TF_STATE_ACI = "terraform.tfstate"
+TF_STATE_NDFC = "./ndfc/terraform.tfstate"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
+def require_api_token(func):
+    '''This function is used to block direct access to all pages unless you have a session token'''
+    @wraps(func)
+    def check_token(*args, **kwargs):
+        if 'api_session_token' not in session:
+            # If it isn't return our access denied message (you can also return a redirect or render_template)
+            return Response("Access denied")
+
+        # Otherwise just send them where they wanted to go
+        return func(*args, **kwargs)
+    return check_token
 
 def get_random_string(length):
-    # choose from all lowercase letter
+    '''choose from all lowercase letter, this is used to randomize the temporary user names'''
     letters = string.ascii_lowercase
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
 
-def get_fabric_type(request: request) -> str:
-    # get fabric type from url parameters
-    fabric_type = None if not request else request.args.get("fabric_type", None)
+def get_fabric_type(http_request: request) -> str:
+    ''' get fabric type from url parameters '''
+    fabric_type = None if not http_request else http_request.args.get("fabric_type", None)
     if not fabric_type:
         fabric_type = "aci"
     return fabric_type.lower()
 
 def normalize_url(hostname: str) -> str:
+    ''' get fabric type from url parameters '''
     if hostname.startswith('http://'):
         url = hostname.replace("http://", "https://")
     elif hostname.startswith("https://"):
@@ -53,34 +67,36 @@ def normalize_url(hostname: str) -> str:
     return url
 
 
-def process_fabric_setting(data: dict) -> bool:
-    global overlay
-    global ipv6_enabled
-    overlay = {}
+def ndfc_process_fabric_setting(data: dict) -> bool:
+    ''' NDFC: Parse the data received from the fabric page  '''
+
     try:
-        overlay["fabric_name"] = data["fabric_name"]
-        overlay["asn"] = data["asn"]
-        overlay["vrf"] = data["vrf"]
-        overlay["loopback_ipv4"] = data["loopback_ipv4"]
-        overlay["loopback_ipv6"] = data["loopback_ipv6"]
-        overlay["gateway_v4"] = data["gateway_v4"]
-        overlay["gateway_v6"] = data["gateway_v6"]
-        overlay["node_sub"] = data["node_sub"]
-        overlay["node_sub_v6"] = data["node_sub_v6"]
-        overlay["ipv6_enabled"] = data["ipv6_enabled"]
-        overlay["network"] = data["network"]
-        overlay["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
-        overlay["bgp_pass"] = data["bgp_pass"]
-        overlay["k8s_integ"] = data["k8s_integ"]
-        overlay["k8s_route_map"] = data["k8s_route_map"]
-        overlay["route_tag"] = data["route_tag"]
-        overlay["vpc_peers"] = []
+        global OVERLAY
+        global ipv6_enabled
+        OVERLAY = {}
+        OVERLAY["fabric_name"] = data["fabric_name"]
+        OVERLAY["asn"] = data["asn"]
+        OVERLAY["vrf"] = data["vrf"]
+        OVERLAY["loopback_ipv4"] = data["loopback_ipv4"]
+        OVERLAY["loopback_ipv6"] = data["loopback_ipv6"]
+        OVERLAY["gateway_v4"] = data["gateway_v4"]
+        OVERLAY["gateway_v6"] = data["gateway_v6"]
+        OVERLAY["node_sub"] = data["node_sub"]
+        OVERLAY["node_sub_v6"] = data["node_sub_v6"]
+        OVERLAY["ipv6_enabled"] = data["ipv6_enabled"]
+        OVERLAY["network"] = data["network"]
+        OVERLAY["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
+        OVERLAY["bgp_pass"] = data["bgp_pass"]
+        OVERLAY["k8s_integ"] = data["k8s_integ"]
+        OVERLAY["k8s_route_map"] = data["k8s_route_map"]
+        OVERLAY["route_tag"] = data["route_tag"]
+        OVERLAY["vpc_peers"] = []
         for peer in data["vpc_peers"]:
             primary = {
                 "hostname": peer["primary"],
                 "loopback_id": data["loopback_id"],
                 "loopback_ipv4": data["loopback_ipv4"][0],
-                "loopback_ipv6": data["loopback_ipv6"][0] if overlay["ipv6_enabled"] else "",
+                "loopback_ipv6": data["loopback_ipv6"][0] if OVERLAY["ipv6_enabled"] else "",
                 "ibgp_svi_ipv4": peer["primary_ipv4"],
                 "ibgp_peer_ipv4": peer["secondary_ipv4"].split("/")[0],
                 "ibgp_svi_ipv6": "",
@@ -91,39 +107,44 @@ def process_fabric_setting(data: dict) -> bool:
                 "hostname": peer["secondary"],
                 "loopback_id": data["loopback_id"],
                 "loopback_ipv4": data["loopback_ipv4"][1],
-                "loopback_ipv6": data["loopback_ipv6"][1] if overlay["ipv6_enabled"] else "",
+                "loopback_ipv6": data["loopback_ipv6"][1] if OVERLAY["ipv6_enabled"] else "",
                 "ibgp_svi_ipv4": peer["secondary_ipv4"],
                 "ibgp_peer_ipv4": peer["primary_ipv4"].split("/")[0],
                 "ibgp_svi_ipv6": "",
                 "ibgp_peer_ipv6": ""
             }
 
-            overlay["vpc_peers"].append([primary, secondary])
-            ipv6_enabled = overlay["ipv6_enabled"]
+            OVERLAY["vpc_peers"].append([primary, secondary])
+        ipv6_enabled = OVERLAY["ipv6_enabled"]
+            
     except KeyError as e:
         print(e)
         return False
     return True
 
 
-def create_tf_vars(fabric_type: str,
+def ndfc_create_tf_vars(fabric_type: str,
                    vc: dict,
                    ndfc: dict,
-                   overlay: dict,
+                   OVERLAY: dict,
                    calico_nodes: dict,
                    cluster: dict) -> str:
-    with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r") as f:
+    '''Create the terraform variables for NDFC deployment'''
+    with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r", encoding='utf8') as f:
         tf_template = Template(f.read())
     tf_vars = tf_template.render(fabric_type=fabric_type,
                                  vc=vc,
                                  ndfc=ndfc,
-                                 overlay=overlay,
+                                 overlay=OVERLAY,
                                  calico_nodes=calico_nodes,
                                  cluster=cluster)
     return tf_vars
 
 
-def createl3outVars(ipv6_enabled:bool, l3out_tenant, name, vrf, physical_dom, mtu, ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security, shared_rtctrl, local_as, bgp_pass, contract, anchor_nodes):
+def create_l3out_vars(ipv6_enabled:bool, l3out_tenant, name, vrf, physical_dom, mtu,
+                ipv4_cluster_subnet, ipv6_cluster_subnet, def_ext_epg, import_security, shared_security,
+                shared_rtctrl, local_as, bgp_pass, contract, anchor_nodes):
+    ''' Create the l3out variables stricture to configure ACI '''
     def_ext_epg_scope = []
     floating_ip = ""
     secondary_ip = ""
@@ -191,14 +212,24 @@ def createl3outVars(ipv6_enabled:bool, l3out_tenant, name, vrf, physical_dom, mt
     }
     return l3out
 
-def createVCVars(url="", username="", passw="", dc="", datastore="", cluster="", dvs="", port_group="", vm_template="", vm_folder="", vm_deploy=True):
-    return {"url": url, "username": username, "pass": passw, "dc": dc, "datastore": datastore, "cluster": cluster,
-          "dvs": dvs, "port_group": port_group, "vm_template": vm_template, "vm_folder": vm_folder, "vm_deploy": vm_deploy}
+def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="",
+                dvs="", port_group="",
+                vm_template="", vm_folder="", vm_deploy=True):
+
+    '''Return the fomratted Virtual Center Variables'''
+    vc_vars = {
+        "url": url, "username": username, "pass": passw, "dc": dc, "datastore": datastore,
+    "cluster": cluster, "dvs": dvs, "port_group": port_group, "vm_template": vm_template,
+    "vm_folder": vm_folder, "vm_deploy": vm_deploy
+    }
+    return vc_vars
      
 
 
-def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
+def create_cluste_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
                         crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain=""):
+                        
+    ''' Generate the configuration for the Kubernetes Cluster '''
     try:
         ingress_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
         visibility_ip = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
@@ -247,6 +278,7 @@ def createClusterVars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_po
 
 @app.route('/docs/doc', methods=['GET', 'POST'])
 def docs():
+    '''Return the Main Documentation page '''
     if request.method == 'POST':
         return redirect('/docs/prereqaci')
     return render_template('docs/doc.html')
@@ -254,6 +286,7 @@ def docs():
 
 @app.route('/docs/prereqaci', methods=['GET', 'POST'])
 def prereqaci():
+    '''Return the Pre Requisites for ACI '''
     if request.method == "POST":
         req = request.form
         button = req.get("button")
@@ -267,14 +300,17 @@ def prereqaci():
 # temporary solution for static page
 @app.route('/docs/ndfc', methods=['GET', 'POST'])
 def doc_ndfc():
+    '''Return the NDFC Documentation '''
     return render_template('docs/ndfc.html')
 
 ##### DOCUMENTATION END #####
 
 
-# These two methods create a stream that is then fed to an iFrame to auto populate the content on the fly
+
 @app.route('/tf_plan', methods=['GET', 'POST'])
+@require_api_token
 def tf_plan():
+    '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -314,7 +350,9 @@ def tf_plan():
 
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
+@require_api_token
 def tf_apply():
+    '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -329,10 +367,12 @@ def tf_apply():
 
 @app.route('/create', methods=['GET', 'POST'])
 def create():
+    '''Page that creates the cluster'''
     global cluster
     global apic
     global l3out
     global vc
+    vkaci_ui = ""
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -345,6 +385,7 @@ def create():
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
                 tf_apic['oob_ips'] = apic["oob_ips"]
+                vkaci_ui = "http://" + calico_nodes[0]['ip'].split("/")[0] + ":30000"
                 config = "apic =" + json.dumps(tf_apic, indent=4)
                 config += "\nl3out =" + json.dumps(l3out, indent=4)
                 if vc['vm_deploy']:
@@ -355,41 +396,43 @@ def create():
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
                 with open('cluster.tfvars', 'w') as f:
                     f.write(config)
-            except(KeyError, json.JSONDecodeError) as e:
+            except(KeyError, json.JSONDecodeError, NameError) as e:
                 print(e)
                 config = []
         elif fabric_type == "vxlan_evpn":
             try:
-                config = create_tf_vars(fabric_type,
+                config = ndfc_create_tf_vars(fabric_type,
                                         vc,
                                         ndfc,
-                                        overlay,
+                                        OVERLAY,
                                         calico_nodes,
                                         cluster)
-                with open('./ndfc/cluster.tfvars', 'w') as f:
+                
+                with open('./ndfc/cluster.tfvars', 'w', encoding='utf-8') as f:
                     f.write(config)
             except Exception as e:
                 print(e)
                 config = []
         else:
             config = json.dumps({
-                "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"
+                "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
             })
-        return render_template('create.html', config=config)
-    elif request.method == 'POST':
+        return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
+    if request.method == 'POST':
         req = request.form
         button = req.get("button")
         if button == "Previous":
-            return redirect('/cluster?fabric_type=' + fabric_type)
+            return redirect('/cluster_network?fabric_type=' + fabric_type)
         if button == "Update Config":
             config = req.get('config')
-            with open('cluster.tfvars', 'w') as f:
+            with open('cluster.tfvars', 'w', encoding='utf-8') as f:
                 f.write(config)
             return render_template('create.html', config=config)
 
 
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
+    '''Update the cluster.tfvars file'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -410,6 +453,7 @@ def update_config():
 
 @app.route('/calico_nodes', methods=['GET', 'POST'])
 def calico_nodes_view():
+    ''' Page to configure the Kubernetes nodes '''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -434,7 +478,6 @@ def calico_nodes_view():
             ipv6 = req.get("ipv6")
             natip = req.get("natip")
             rack_id = req.get("rack_id")
-            print(hostname)
             if not is_valid_hostname(hostname):
                 return calico_nodes_error(calico_nodes, "Error: Ivalid Hostname")
 
@@ -457,8 +500,8 @@ def calico_nodes_view():
                 if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["secondary_ip"]).ip:
                     return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ip " + l3out["secondary_ip"])
             elif fabric_type == "vxlan_evpn":
-                if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(overlay["node_sub"]):
-                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the selected Network Subnet: " + overlay["node_sub"])
+                if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(OVERLAY["node_sub"]):
+                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the selected Network Subnet: " + OVERLAY["node_sub"])
 
             if ipv6_enabled:
                 try:
@@ -478,8 +521,8 @@ def calico_nodes_view():
                     if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["secondary_ipv6"]).ip:
                         return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ipv6 " + l3out["secondary_ipv6"])
                 elif fabric_type == "vxlan_evpn":
-                    if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(overlay["node_sub_v6"]):
-                        return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the Selected Network Subnet: " + overlay["node_sub_v6"])
+                    if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(OVERLAY["node_sub_v6"]):
+                        return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the Selected Network Subnet: " + OVERLAY["node_sub_v6"])
 
             if rack_id == "":
                 return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack is mandatory")
@@ -527,28 +570,29 @@ def calico_nodes_view():
         if calico_nodes == []:
             i = 1
             while i <= 3:
-                    hostname = 'nkt-master-' + str(i)
-                    if fabric_type == "aci":
-                        ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
-                    elif fabric_type == "vxlan_evpn":
-                        host = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
-                        prefixlen = str(ipaddress.IPv4Network(overlay['node_sub']).prefixlen)
-                        ip = f"{host}/{prefixlen}"
-                    ipv6 = ""
-                    natip = ""
-                    rack_id = "1"
-                    calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
-                    i += 1
+                hostname = 'nkt-master-' + str(i)
+                if fabric_type == "aci":
+                    ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                elif fabric_type == "vxlan_evpn":
+                    host = str(ipaddress.IPv4Network(OVERLAY['node_sub'])[i])
+                    prefixlen = str(ipaddress.IPv4Network(OVERLAY['node_sub']).prefixlen)
+                    ip = f"{host}/{prefixlen}"
+                ipv6 = ""
+                natip = ""
+                rack_id = "1"
+                calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
+                i += 1
         if fabric_type == "aci":
             return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
         elif fabric_type == "vxlan_evpn":
             return render_template('calico_nodes.html',
-                                   ipv4_cluster_subnet=overlay["node_sub"],
-                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
+                                   ipv4_cluster_subnet=OVERLAY["node_sub"],
+                                   ipv6_cluster_subnet=OVERLAY["node_sub_v6"],
                                    calico_nodes=json.dumps(calico_nodes, indent=4))
 
 
 def is_valid_hostname(hostname):
+    '''Verify host name valifity'''
     if hostname == "":
         return False
     if len(hostname) > 255:
@@ -561,6 +605,7 @@ def is_valid_hostname(hostname):
 
 
 def calico_nodes_error(calico_nodes, error):
+    ''' Handles Errors on K8S NODE PAGE calico_view'''
     if turbo.can_stream():
         return turbo.stream(
             turbo.update(render_template('_calico_nodes.html', calico_nodes=calico_nodes, error=error),
@@ -568,6 +613,7 @@ def calico_nodes_error(calico_nodes, error):
 
 
 def k8s_versions():
+    '''Load the list of K8s versions from the K8s_Packages'''
     versions = []
     with open('TEMPLATES/K8s_Packages', 'r') as f:
         lines = f.read()
@@ -584,7 +630,7 @@ def k8s_versions():
 
 
 class BetterIPv6Network(ipaddress.IPv6Network):
-
+    '''Extend the IPv6 networks class to handle additions'''
     def __add__(self, offset):
         """Add numeric offset to the IP."""
         new_base_addr = int(self.network_address) + offset
@@ -596,7 +642,7 @@ class BetterIPv6Network(ipaddress.IPv6Network):
 
 
 class BetterIPv4Network(ipaddress.IPv4Network):
-
+    '''Extend the IPv4 networks class to handle additions'''
     def __add__(self, offset):
         """Add numeric offset to the IP."""
         new_base_addr = int(self.network_address) + offset
@@ -609,6 +655,7 @@ class BetterIPv4Network(ipaddress.IPv4Network):
 
 @app.route('/cluster', methods=['GET', 'POST'])
 def cluster_view():
+    '''K8s Cluster view'''
     # app.logger.info(apic+apic_password+apic_username)
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
@@ -622,10 +669,10 @@ def cluster_view():
                 ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
                 ipv6_cluster_subnet = l3out['ipv6_cluster_subnet']
             elif fabric_type == "vxlan_evpn":
-                ipv4_cluster_subnet = overlay["node_sub"]
-                ipv6_cluster_subnet = overlay["node_sub_v6"]
+                ipv4_cluster_subnet = OVERLAY["node_sub"]
+                ipv6_cluster_subnet = OVERLAY["node_sub_v6"]
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
-            cluster = createClusterVars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
+            cluster = create_cluste_vars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
             req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"), req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
             req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"))
@@ -639,7 +686,7 @@ def cluster_view():
         if fabric_type == "aci":
             ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
         elif fabric_type == "vxlan_evpn":
-            ipv4_cluster_subnet = overlay["node_sub"]
+            ipv4_cluster_subnet = OVERLAY["node_sub"]
 
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
 
@@ -648,6 +695,7 @@ def cluster_view():
 
 @app.route('/cluster_network', methods=['GET', 'POST'])
 def cluster_network():
+    '''K8s Cluster networks definition'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -658,7 +706,7 @@ def cluster_network():
         if button == "Next":
             if not vc['vm_deploy']:
                 global cluster
-                cluster = createClusterVars()
+                cluster = create_cluste_vars()
                 l3out['vlan_id'] = req.get("vlan_id")
             external_svc_subnet = req.get("ipv4_ext_svc_sub")
             cluster['pod_subnet'] = req.get("ipv4_pod_sub")
@@ -692,8 +740,8 @@ def cluster_network():
             ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
             k8s_local_as= int(l3out['local_as'])+1
         elif fabric_type == "vxlan_evpn":
-            ipv4_cluster_subnet = overlay['node_sub']
-            k8s_local_as= int(overlay["asn"]) + 1
+            ipv4_cluster_subnet = OVERLAY['node_sub']
+            k8s_local_as= int(OVERLAY["asn"]) + 1
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(ipv4_cluster_subnet)
@@ -717,7 +765,7 @@ def cluster_network():
             if fabric_type == "aci":
                 ipv6_cluster_subnet = l3out['ipv6_cluster_subnet']
             elif fabric_type == "vxlan_evpn":
-                ipv6_cluster_subnet = overlay["node_sub_v6"]
+                ipv6_cluster_subnet = OVERLAY["node_sub_v6"]
             ipv6_cluster_subnet = BetterIPv6Network(ipv6_cluster_subnet, strict=False)
             ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
             ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
@@ -728,8 +776,8 @@ def cluster_network():
             return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
         elif fabric_type == "vxlan_evpn":
             return render_template('cluster_network.html',
-                                   ipv4_cluster_subnet=overlay["node_sub"],
-                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
+                                   ipv4_cluster_subnet=OVERLAY["node_sub"],
+                                   ipv6_cluster_subnet=OVERLAY["node_sub_v6"],
                                    ipv4_pod_sub=ipv4_pod_sub,
                                    ipv6_pod_sub=ipv6_pod_sub,
                                    ipv4_svc_sub=ipv4_svc_sub,
@@ -743,6 +791,7 @@ def cluster_network():
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
 def vcenterlogin():
+    '''vCenter Login page'''
     global vc
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
@@ -751,7 +800,7 @@ def vcenterlogin():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            vc = createVCVars()
+            vc = create_vc_vars()
             vc["url"] = req.get("url")
             vc["username"] = req.get("username")
             vc["pass"] = req.get("pass")
@@ -774,6 +823,7 @@ def vcenterlogin():
 
 @app.route('/vctemplate', methods=['GET', 'POST'])
 def vctemplate():
+    '''vCenter Update VM Template Page'''
     global vc
     vc_folders = []
     dss = []
@@ -851,8 +901,7 @@ def vctemplate():
                                         quiesce=False)
 
             return redirect('/vcenter')
-            
-            
+
     if request.method == 'GET':
         try:
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
@@ -866,6 +915,7 @@ def vctemplate():
 
 @app.route('/vcenter', methods=['GET', 'POST'])
 def vcenter():
+    '''vCenter Maing Page'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -907,7 +957,6 @@ def vcenter():
                     vm_templates_and_ds = {}
                     for vm in vm_templates:
                         dsl = []
-                        print(vm)
                         for ds in vm.datastore:
                             dsl.append(ds.info.name)
                         vm_templates_and_ds[vm.name] = dsl
@@ -948,6 +997,7 @@ def vcenter():
 
 
 def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):
+    '''Handle Anchor node Errors'''
     if turbo.can_stream():
         return turbo.stream(
             turbo.update(render_template('_anchor_nodes.html', pod_ids=pod_ids, nodes_id=nodes_id, anchor_nodes=anchor_nodes, rtr_id=rtr_id, error=error),
@@ -956,6 +1006,7 @@ def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):
 
 @app.route('/l3out', methods=['GET', 'POST'])
 def l3out_view():
+    '''l3out page view'''
     phys_dom = []
     tenants = []
     vrfs = ["Select a Tenant"]
@@ -993,7 +1044,7 @@ def l3out_view():
             if pyaci_apic.mit.FromDn(fvCtx_dn).GET()[0].bdEnforcedEnable == 'yes':
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: The VRF is configured with BD Enforcement. This will result in the eBGP peering not to form. Please Disable BD Enforcement under the VRF before continuing")
 
-            l3out = createl3outVars(ipv6_enabled, req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
+            l3out = create_l3out_vars(ipv6_enabled, req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("anchor_nodes"))
             if vc['vm_deploy']:
                 return redirect('/vcenterlogin')
@@ -1017,9 +1068,9 @@ def l3out_view():
                 name = fvCtx.name
                 vrfs.append(tenant + '/' + name)
 
-            vzBrCP = pyaci_apic.methods.ResolveClass('vzBrCP').GET(
+            vzBrCPs = pyaci_apic.methods.ResolveClass('vzBrCP').GET(
                 **options.filter(filters.Wcard('fvCtx.dn', regex)))
-            for vzBrCP in vzBrCP:
+            for vzBrCP in vzBrCPs:
                 # Get the tenant field and drop the tn-
                 tenant = vzBrCP.dn.split('/')[1][3:]
                 name = vzBrCP.name
@@ -1152,6 +1203,7 @@ def l3out_view():
 
 @app.route("/fabric", methods=["GET", "POST"])
 def fabric():
+    '''Fabric page, will load the ACI or NDFC page depening on the fabric_type in the URL'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -1173,7 +1225,7 @@ def fabric():
             return render_template("fabric.html", fabrics=fabrics)
     if request.method == "POST":
         data = request.json
-        result = process_fabric_setting(data)
+        result = ndfc_process_fabric_setting(data)
         if result:
             return json.dumps({"ok": "fabric setting configured"}), 200
         else:
@@ -1182,7 +1234,7 @@ def fabric():
 
 @app.route("/query_ndfc", methods=["GET"])
 def query_ndfc():
-    # function to implement query ndfc API
+    '''function to implement query ndfc API'''
     fabric_name = request.args.get("fabric_name")
     query_vrf = request.args.get("query_vrf")
     query_net = request.args.get("query_network")
@@ -1233,10 +1285,11 @@ def query_ndfc():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    '''Login page to get details for ACI or NDFC'''
     global apic
     apic = {}
     global vc
-    vc = createVCVars()
+    vc = create_vc_vars()
     ansible_output = ''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
@@ -1321,28 +1374,60 @@ def login():
 
 
 def read_process(g):
+    '''Read output from the background proccess that is running terraform and ansible'''
     while g.is_pending():
         lines = g.readlines()
         for prcs, line in lines:
             yield line
 
 
+@app.route('/reset', methods=['GET'])
+@require_api_token
+def reset():
+    '''generic function to delete the TF State'''
+    fabric_type = get_fabric_type(request)
+
+    if fabric_type not in VALID_FABRIC_TYPE:
+        return redirect('/')
+    if request.method == "GET":
+        try:
+            if fabric_type == "aci":
+                if os.path.exists(TF_STATE_ACI):
+                    os.remove(TF_STATE_ACI)
+                    return Response("Deleted terraform state file " + TF_STATE_ACI)
+                else:
+                    return Response("terraform state file " + TF_STATE_ACI +" Not found")
+            if fabric_type == "vxlan_evpn":
+                if os.path.exists(TF_STATE_NDFC):
+                    os.remove(TF_STATE_NDFC)
+                    return Response("Deleted terraform state file " + TF_STATE_NDFC)
+                else:
+                    return Response("terraform state file " + TF_STATE_NDFC +" Not found")
+        except Exception:
+           return Response("Reset Failed")
+
 @app.route('/existing_cluster', methods=['GET', 'POST'])
+@require_api_token
 def existing_cluster():
+    '''Page that detects an existing cluster and allow the user to destroy it'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
     if request.method == "POST":
-        g = proc.Group()
-        if fabric_type == "aci":
-            g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
-            ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
-        elif fabric_type == "vxlan_evpn":
-            g.run(["bash",
-                   "-c",
-                   "terraform -chdir ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
-        #p = g.run("ls")
-        return Response(read_process(g), mimetype='text/event-stream')
+        req = request.form
+        button = req.get("button")
+        print(button)
+        if button == "destroy":
+            g = proc.Group()
+            if fabric_type == "aci":
+                g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
+                ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
+            elif fabric_type == "vxlan_evpn":
+                g.run(["bash",
+                    "-c",
+                    "terraform -chdir ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
+            #p = g.run("ls")
+            return Response(read_process(g), mimetype='text/event-stream')
     else:
 
         if fabric_type == "aci":
@@ -1365,7 +1450,9 @@ def existing_cluster():
 
 
 @app.route('/destroy', methods=['GET'])
+@require_api_token
 def destroy():
+    '''Destroy the ACI/NDFC Config and VM'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -1392,7 +1479,9 @@ def destroy():
 @app.route('/')
 @app.route('/intro', methods=['GET', 'POST'])
 def get_page():
-    f = open("version.txt", "r")
+    '''Intro page'''
+    session['api_session_token'] = get_random_string(50)
+    f = open("version.txt", "r", encoding='utf-8')
     session['version'] = f.read()
     if request.method == "POST":
         req = request.form
@@ -1403,20 +1492,18 @@ def get_page():
         if button == "Next":
             return redirect(f'/login?fabric_type={fabric_type}')
     if request.method == "GET":
-        tf_state_aci = "terraform.tfstate"
-        tf_state_ndfc = "./ndfc/terraform.tfstate"
         # if no tf state existed, return the intro page
-        if not os.path.exists(tf_state_aci) and not os.path.exists(tf_state_ndfc):
+        if not os.path.exists(TF_STATE_ACI) and not os.path.exists(TF_STATE_NDFC):
             return render_template('intro.html')
 
-        if os.path.exists(tf_state_aci):
-            with open('terraform.tfstate', 'r') as f:
+        if os.path.exists(TF_STATE_ACI):
+            with open('terraform.tfstate', 'r', encoding='utf-8') as f:
                 state_aci = json.load(f)
             if state_aci['resources'] != []:
                 return redirect('/existing_cluster')
 
-        if os.path.exists(tf_state_ndfc):
-            with open('./ndfc/terraform.tfstate', 'r') as f:
+        if os.path.exists(TF_STATE_NDFC):
+            with open('./ndfc/terraform.tfstate', 'r', encoding='utf-8') as f:
                 state_ndfc = json.load(f)
                 # If there are resources the cluster is there
             if state_ndfc['resources'] != []:

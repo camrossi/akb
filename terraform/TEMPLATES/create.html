@@ -65,12 +65,12 @@
                      <div class="header__title">Nexus Kubernetes Tools - Version {{session['version']}}</div>
                   </div>
                   <div class="header-panel header-panel--right"><a data-hreftarget="_self" target="_self"
-                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
-                        href="https://aci-github.cisco.com/ddastoli/calico_aci/tree/pythonterraform"
+                        data-hreflink="https://github.com/camrossi/akb"
+                        href="https://github.com/camrossi/akb"
                         data-hreftitle="Source Code" title="Source Code" class="header-item"
                         id="_uidb14b144f">GitHub</a><a data-hreftarget="_self" target="_self"
-                        data-hreflink="https://aci-github.cisco.com/ddastoli/calico_aci/issues"
-                        href="https://aci-github.cisco.com/ddastoli/calico_aci/issues" data-hreftitle="Open An Issue"
+                        data-hreflink="https://github.com/camrossi/akb/issues"
+                        href="https://github.com/camrossi/akb/issues" data-hreftitle="Open An Issue"
                         title="Open An Issue" class="header-item" id="_uid2e094e7e">Open An Issue</a></div>
                </div>
             </div>
@@ -86,7 +86,8 @@
                <br> If you know what you are doing you can edit it manually as well.
                <br> Notes: 
                <ul>
-                  <li>if you change the config manullay you must click on Update Config to apply it!!!!</li>
+                  <li>if you change the config manually you must click on Update Config to apply it!!!!</li>
+                  <li>Visibility UI: Will be available a few minutes after the cluster deployment is completed</li>
                   <!-- <li>Downloading the Calico Manifest will work only once the Apply process is completed. If you click it before you will get a file not found error. We will enhance this in a future release!</li> -->
                </ul>
                <br>
@@ -126,13 +127,55 @@
 
 
          <div class="container">
-            <input type="submit" value="Previous" class="btn btn--wide" name="button">
-            <input type="button" id="btn_update_config" value="Update Config" class="btn btn--wide" name="button">
+            <input type="submit" value="Previous" class="btn" name="button">
+            <input type="button" id="btn_update_config" value="Update Config" class="btn" name="button">
             <br><br>
-            <input type="button" value="Plan" id="plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
-            <input type="button" value="Apply" id="apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
-          <!--  <input type="button" title="The manifest are gonna be available only after the Apply operation" value="Download Calico Manifests" class="btn btn--wide" name="button" onclick="window.open('../static/calico/calico_manifests.zip','_blank')"> -->
-         </div>
+            <input type="button" value="Plan" id="plan" class="btn" name="button" onclick="updateiFrame(this)">
+            <input type="button" value="Apply" id="apply" class="btn" name="button" onclick="updateiFrame(this)">
+            <input type="button" value="Reset" id="reset" class="btn" name="button" onclick="openModal('reset_modal')">
+            <input type="button" value="Destroy" id="destroy" class="btn" onclick="openModal('destroy_modal')">
+
+            <div class="modal modal--small hide" id="reset_modal">
+               <div class="modal__dialog">
+                   <div class="modal__content">
+                       <a class="modal__close" onclick="closeModal('reset_modal')"><span class="icon-close"></span></a>
+                       <div class="modal__header">
+                           <div class="modal__title">Confirm</div>
+                       </div>
+                       <div class="modal__body">
+                           <div class="alert alert--info">
+                               <div class="alert__icon icon-info-outline"></div>
+                               <div class="alert__message">This will delete the terraform state. If VMs/ACI Config are present they will need to be manually deleted!</div>
+                           </div>
+                       </div>
+                       <div class="modal__footer">
+                           <button type="button" id="btn_reset_cancel"class="btn btn--ghost" onclick="closeModal('reset_modal')">Cancel</button>
+                           <button id="btn_reset_confirm" class="btn" >Confirm</button>
+                       </div>
+                   </div>
+               </div>
+           </div>
+           <div class="modal modal--small hide" id="destroy_modal">
+            <div class="modal__dialog">
+                <div class="modal__content">
+                    <a class="modal__close" onclick="closeModal('destroy_modal')"><span class="icon-close"></span></a>
+                    <div class="modal__header">
+                        <div class="modal__title">Confirm</div>
+                    </div>
+                    <div class="modal__body">
+                        <div class="alert alert--info">
+                            <div class="alert__icon icon-info-outline"></div>
+                            <div class="alert__message">Destroy existing cluster?</div>
+                        </div>
+                    </div>
+                    <div class="modal__footer">
+                        <button type="button" id="btn_destroy_cancel"class="btn btn--ghost" onclick="closeModal('destroy_modal')">Cancel</button>
+                        <button type="button" id="btn_destroy_confirm" class="btn" >Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
       </div>
 </form>
 
@@ -201,6 +244,17 @@
                 }
             });
         });
+        $("#btn_reset_confirm").click(function (e) {
+         var reset_url = "{{ url_for("reset")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+         $("#reset_modal").addClass('hide');
+         $("#iframe").attr('src',reset_url);
+
+     });
+          $("#btn_destroy_confirm").click(function (e) {
+              var update_url = "{{ url_for("destroy")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+              $("#destroy_modal").addClass('hide');
+              $("#iframe").attr('src',update_url);
+          });
     })
 </script>
 <div id="canvas"></div>

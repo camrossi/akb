@@ -412,10 +412,7 @@ def create():
             with open('cluster.tfvars', 'w', encoding='utf-8') as f:
                 f.write(config)
             return render_template('create.html', config=config)
-        if button == "Reset":
-            config = req.get('config')
-            reset()
-            return render_template('create.html', config=config)
+
 
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
@@ -1370,8 +1367,9 @@ def read_process(g):
 
 @app.route('/reset', methods=['POST'])
 def reset():
-    fabric_type = get_fabric_type(request)
     '''generic function to delete the TF State'''
+    fabric_type = get_fabric_type(request)
+
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
     if request.method == "POST":
@@ -1407,9 +1405,6 @@ def existing_cluster():
                     "terraform -chdir ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"])
             #p = g.run("ls")
             return Response(read_process(g), mimetype='text/event-stream')
-        if button == "reset":
-            reset()
-            return redirect('/')
     else:
 
         if fabric_type == "aci":

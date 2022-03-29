@@ -86,7 +86,8 @@
                <br> If you know what you are doing you can edit it manually as well.
                <br> Notes: 
                <ul>
-                  <li>if you change the config manullay you must click on Update Config to apply it!!!!</li>
+                  <li>if you change the config manually you must click on Update Config to apply it!!!!</li>
+                  <li>Visibility UI: Will be available a few minutes after the cluster deployment is completed</li>
                   <!-- <li>Downloading the Calico Manifest will work only once the Apply process is completed. If you click it before you will get a file not found error. We will enhance this in a future release!</li> -->
                </ul>
                <br>
@@ -131,11 +132,11 @@
             <br><br>
             <input type="button" value="Plan" id="plan" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
             <input type="button" value="Apply" id="apply" class="btn btn--wide" name="button" onclick="updateiFrame(this)">
-            <input type="button" value="Reset" id="reset" class="btn btn--wide" name="button" onclick="openModal('confirm_modal')">
-            <div class="modal modal--small hide" id="confirm_modal">
+            <input type="button" value="Reset" id="reset" class="btn btn--wide" name="button" onclick="openModal('reset_modal')">
+            <div class="modal modal--small hide" id="reset_modal">
                <div class="modal__dialog">
                    <div class="modal__content">
-                       <a class="modal__close" onclick="closeModal('confirm_modal')"><span class="icon-close"></span></a>
+                       <a class="modal__close" onclick="closeModal('reset_modal')"><span class="icon-close"></span></a>
                        <div class="modal__header">
                            <div class="modal__title">Confirm</div>
                        </div>
@@ -146,8 +147,8 @@
                            </div>
                        </div>
                        <div class="modal__footer">
-                           <button type="button" id="btn_destroy_cancel"class="btn btn--ghost" onclick="closeModal('confirm_modal')">Cancel</button>
-                           <button id="btn_destroy_confirm" class="btn" >Confirm</button>
+                           <button type="button" id="btn_reset_cancel"class="btn btn--ghost" onclick="closeModal('reset_modal')">Cancel</button>
+                           <button id="btn_reset_confirm" class="btn" >Confirm</button>
                        </div>
                    </div>
                </div>
@@ -222,6 +223,12 @@
                 }
             });
         });
+        $("#btn_reset_confirm").click(function (e) {
+         var reset_url = "{{ url_for("reset")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+         $("#reset_modal").addClass('hide');
+         $("#iframe").attr('src',reset_url);
+
+     });
     })
 </script>
 <div id="canvas"></div>

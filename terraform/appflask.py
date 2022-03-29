@@ -1,5 +1,6 @@
 import json
 from logging import error
+from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
 import vc_utils
 from turbo_flask import Turbo
@@ -27,6 +28,17 @@ app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
+def require_api_token(func):
+    '''This function is used to block direct access to all pages unless you have a session token'''
+    @wraps(func)
+    def check_token(*args, **kwargs):
+        if 'api_session_token' not in session:
+            # If it isn't return our access denied message (you can also return a redirect or render_template)
+            return Response("Access denied")
+
+        # Otherwise just send them where they wanted to go
+        return func(*args, **kwargs)
+    return check_token
 
 def get_random_string(length):
     '''choose from all lowercase letter, this is used to randomize the temporary user names'''
@@ -296,6 +308,7 @@ def doc_ndfc():
 
 
 @app.route('/tf_plan', methods=['GET', 'POST'])
+@require_api_token
 def tf_plan():
     '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
@@ -337,6 +350,7 @@ def tf_plan():
 
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
+@require_api_token
 def tf_apply():
     '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
@@ -358,6 +372,7 @@ def create():
     global apic
     global l3out
     global vc
+    vkaci_ui = ""
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -370,6 +385,7 @@ def create():
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
                 tf_apic['oob_ips'] = apic["oob_ips"]
+                vkaci_ui = "http://" + calico_nodes[0]['ip'].split("/")[0] + ":30000"
                 config = "apic =" + json.dumps(tf_apic, indent=4)
                 config += "\nl3out =" + json.dumps(l3out, indent=4)
                 if vc['vm_deploy']:
@@ -380,7 +396,7 @@ def create():
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
                 with open('cluster.tfvars', 'w') as f:
                     f.write(config)
-            except(KeyError, json.JSONDecodeError) as e:
+            except(KeyError, json.JSONDecodeError, NameError) as e:
                 print(e)
                 config = []
         elif fabric_type == "vxlan_evpn":
@@ -399,9 +415,9 @@ def create():
                 config = []
         else:
             config = json.dumps({
-                "error": "fabric_type is invalid, chosse between aci and vxlan_evpn"
+                "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
             })
-        return render_template('create.html', config=config)
+        return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
@@ -1052,9 +1068,9 @@ def l3out_view():
                 name = fvCtx.name
                 vrfs.append(tenant + '/' + name)
 
-            vzBrCP = pyaci_apic.methods.ResolveClass('vzBrCP').GET(
+            vzBrCPs = pyaci_apic.methods.ResolveClass('vzBrCP').GET(
                 **options.filter(filters.Wcard('fvCtx.dn', regex)))
-            for vzBrCP in vzBrCP:
+            for vzBrCP in vzBrCPs:
                 # Get the tenant field and drop the tn-
                 tenant = vzBrCP.dn.split('/')[1][3:]
                 name = vzBrCP.name
@@ -1385,6 +1401,7 @@ def reset():
 
 
 @app.route('/existing_cluster', methods=['GET', 'POST'])
+@require_api_token
 def existing_cluster():
     '''Page that detects an existing cluster and allow the user to destroy it'''
     fabric_type = get_fabric_type(request)
@@ -1427,6 +1444,7 @@ def existing_cluster():
 
 
 @app.route('/destroy', methods=['GET'])
+@require_api_token
 def destroy():
     '''Destroy the ACI/NDFC Config and VM'''
     fabric_type = get_fabric_type(request)
@@ -1456,6 +1474,7 @@ def destroy():
 @app.route('/intro', methods=['GET', 'POST'])
 def get_page():
     '''Intro page'''
+    session['api_session_token'] = get_random_string(50)
     f = open("version.txt", "r", encoding='utf-8')
     session['version'] = f.read()
     if request.method == "POST":

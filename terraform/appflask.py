@@ -1381,6 +1381,7 @@ def read_process(g):
 
 
 @app.route('/existing_cluster', methods=['GET', 'POST'])
+@require_api_token
 def existing_cluster():
     '''Page that detects an existing cluster and allow the user to destroy it'''
     fabric_type = get_fabric_type(request)

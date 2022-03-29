@@ -55,10 +55,10 @@ jobs:
           python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
       - name: Terraform plan
         run: | 
-          curl -s http://10.67.185.120:5003/tf_plan
+          curl -c cookie.txt -s http://10.67.185.120:5003/ && curl -b cookie.txt -s http://10.67.185.120:5003/tf_plan
       - name: Terraform apply
         run: | 
-          curl -s http://10.67.185.120:5003/tf_apply
+          curl -b cookie.txt -s http://10.67.185.120:5003/tf_apply
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
@@ -96,10 +96,10 @@ jobs:
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
       - name: Terraform plan
         run: | 
-          curl -s http://10.67.185.120:5004/tf_plan
+          curl -c cookie.txt -s http://10.67.185.120:5004/ && curl -b cookie.txt -s http://10.67.185.120:5004/tf_plan
       - name: Terraform apply
         run: | 
-           curl -s http://10.67.185.120:5004/tf_apply
+           curl -b cookie.txt -s http://10.67.185.120:5004/tf_apply
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
@@ -110,7 +110,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -s -X POST http://10.67.185.120:5004/existing_cluster
+          curl -b cookie.txt -s -X POST http://10.67.185.120:5004/existing_cluster
   nkt-testing-ndfc-v4:
       # The type of runner that the job will run on
       runs-on: ndfc
@@ -135,10 +135,10 @@ jobs:
             python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless
         - name: Terraform plan
           run: | 
-            curl -s http://localhost:5010/tf_plan?fabric_type=vxlan_evpn
+            curl -c cookie.txt -s http://localhost:5010 && curl -b cookie.txt -s http://localhost:5010/tf_plan?fabric_type=vxlan_evpn
         - name: Terraform apply
           run: | 
-            curl -s http://localhost:5010/tf_apply?fabric_type=vxlan_evpn
+            curl -b cookie.txt -s http://localhost:5010/tf_apply?fabric_type=vxlan_evpn
         - name: Check if all the nodes are ready
           run: | 
             kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
@@ -148,4 +148,4 @@ jobs:
         - name: Terraform destroy
           if: always()
           run: | 
-            curl -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
+            curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn

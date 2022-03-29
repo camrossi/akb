@@ -307,6 +307,7 @@ def doc_ndfc():
 
 
 @app.route('/tf_plan', methods=['GET', 'POST'])
+@require_api_token
 def tf_plan():
     '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
@@ -348,6 +349,7 @@ def tf_plan():
 
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
+@require_api_token
 def tf_apply():
     '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
@@ -363,7 +365,6 @@ def tf_apply():
 
 
 @app.route('/create', methods=['GET', 'POST'])
-@require_api_token
 def create():
     '''Page that creates the cluster'''
     global cluster

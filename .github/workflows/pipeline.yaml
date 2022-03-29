@@ -69,7 +69,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -s -X POST http://10.67.185.120:5003/existing_cluster
+          curl -b cookie.txt -s -X POST http://10.67.185.120:5003/existing_cluster
   
   
   nkt-testing-v46:

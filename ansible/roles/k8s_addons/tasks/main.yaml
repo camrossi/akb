@@ -73,6 +73,17 @@
   tags:
     - k8s_addons
 
+- name: Labels Nodes with Natted IP
+  shell: |
+    kubectl label node {{ item }} external-ip={{ hostvars[item].ansible_host }} --overwrite
+  loop: "{{groups['k8s_nodes']}}"
+  register: label_res
+  retries: 10
+  until: label_res is success
+  any_errors_fatal: true
+  tags:
+    - k8s_addons
+
 - name: enabled local storage
   shell: kubectl apply -f /tmp/local-storage.yaml
   tags:

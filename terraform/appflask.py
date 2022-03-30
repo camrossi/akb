@@ -716,7 +716,7 @@ def cluster_network():
         if button == "Next":
             if not vc['vm_deploy']:
                 global cluster
-                cluster = create_cluste_vars()
+                cluster = create_cluster_vars()
                 l3out['vlan_id'] = req.get("vlan_id")
             external_svc_subnet = req.get("ipv4_ext_svc_sub")
             cluster['pod_subnet'] = req.get("ipv4_pod_sub")
@@ -1427,6 +1427,7 @@ def existing_cluster():
         try:
             f = open("cluster.tfvars")
             current_config =  f.read()
+            
             # Do something with the file
         except IOError:
             return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")

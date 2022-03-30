@@ -115,7 +115,7 @@ jobs:
   # This workflow contains a single job called "build"
   nkt-testing-v4-nat:
     # The type of runner that the job will run on
-    runs-on: stld
+    runs-on: bxl
     defaults:
       run:
         working-directory: v4/terraform

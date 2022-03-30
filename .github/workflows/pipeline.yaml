@@ -143,7 +143,7 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5005/tf_apply
       - name: Use primary master NAT IP for kubeconfig 
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf set-cluster kubernetes --server=https://10.48.170.130
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.170.130
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s

@@ -93,7 +93,7 @@ jobs:
           python3 appflask.py -p 5004 &
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
+          python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
       - name: Terraform plan
         run: | 
           curl -c cookie.txt -s http://10.67.185.120:5004/ && curl -b cookie.txt -s http://10.67.185.120:5004/tf_plan

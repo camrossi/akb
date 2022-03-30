@@ -180,4 +180,6 @@ assert "Cluster Network" in driver.title
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-#driver.quit()
+WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+assert "Create" in driver.title
+driver.quit()

@@ -409,6 +409,7 @@ def create():
                     config += "\ncalico_nodes = null"
                 config += "\nvc =" + json.dumps(vc, indent=4)
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
+                print("saving config")
                 with open('cluster.tfvars', 'w') as f:
                     f.write(config)
             except(KeyError, json.JSONDecodeError, NameError) as e:

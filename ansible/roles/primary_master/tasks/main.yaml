@@ -255,6 +255,7 @@
         timeoutForControlPlane: 4m0s
       kind: ClusterConfiguration
       controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
+      kubernetesVersion: "{{ kube_version.split("-")[0] }}"
       networking:
         podSubnet: {{ pod_subnet }}
         serviceSubnet: {{ cluster_svc_subnet }}

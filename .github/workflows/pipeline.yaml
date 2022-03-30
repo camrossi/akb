@@ -118,17 +118,17 @@ jobs:
     runs-on: bxl
     defaults:
       run:
-        working-directory: v4/terraform
+        working-directory: v4-nat/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: v4
+          path: v4-nat
       - name: Copy Private Key
         run: | 
-          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
+          cp ~/actions-runner/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
           python3 appflask.py -p 5005 &

@@ -356,6 +356,7 @@ def tf_plan():
         else:
             g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     # p = g.run("ls")
+    
     return Response(read_process(g), mimetype='text/event-stream')
 
 

@@ -134,6 +134,12 @@
   tags:
     - k8s_addons
 
+- name: Wait for Neo4j to be Scheduled
+  shell: kubectl wait --for=condition=PodScheduled pod -l app=my-neo4j
+  when: fabric_type is not defined or fabric_type == "aci"
+  tags:
+    - k8s_addons
+
 - name: Get Neo4J Node info
   shell: kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].status.hostIP}"
   when: fabric_type is not defined or fabric_type == "aci"

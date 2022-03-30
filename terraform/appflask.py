@@ -396,7 +396,11 @@ def create():
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
                 tf_apic['oob_ips'] = apic["oob_ips"]
-                vkaci_ui = "http://" + calico_nodes[0]['ip'].split("/")[0] + ":30000"
+                if calico_nodes[0]['natip'] != "":
+                    ext_ip = calico_nodes[0]['natip']
+                else:
+                    ext_ip = calico_nodes[0]['ip'].split("/")[0]
+                vkaci_ui = "http://" + ext_ip + ":30000"
                 config = "apic =" + json.dumps(tf_apic, indent=4)
                 config += "\nl3out =" + json.dumps(l3out, indent=4)
                 if vc['vm_deploy']:

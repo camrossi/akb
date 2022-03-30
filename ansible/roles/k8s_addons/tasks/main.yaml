@@ -141,7 +141,7 @@
     - k8s_addons
 
 - name: Get Neo4J Node info
-  shell: kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].status.hostIP}"
+  shell: kubectl get node `kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].spec.nodeName}"` -o=jsonpath="{.metadata.labels.external-ip}"
   when: fabric_type is not defined or fabric_type == "aci"
   register: n4j_host
   tags:

@@ -57,7 +57,7 @@ jobs:
       
       - name: Start Installer Build
         run: | 
-          packer build -var "version=${{github.ref_name}}" packer
+          packer build -var "version=${{github.ref_name}}" -var "ref_type=${{ github.ref_type }} packer
       
       - name: Export Installer OVA
         run: | 

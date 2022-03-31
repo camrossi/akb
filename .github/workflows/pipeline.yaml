@@ -137,10 +137,10 @@ jobs:
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
       - name: Terraform plan
         run: | 
-          curl -c cookie.txt -s http://10.67.185.120:5005/ && curl -b cookie.txt -s http://10.67.185.120:5005/tf_plan
+          curl -c cookie.txt -s http://localhost:5005/ && curl -b cookie.txt -s http://localhost:5005/tf_plan
       - name: Terraform apply
         run: | 
-          curl -b cookie.txt -s http://10.67.185.120:5005/tf_apply
+          curl -b cookie.txt -s http://localhost:5005/tf_apply
       - name: Use primary master NAT IP for kubeconfig 
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.170.130
@@ -154,7 +154,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -b cookie.txt -s  http://10.67.185.120:5005/destroy
+          curl -b cookie.txt -s  http://localhost:5005/destroy
   nkt-testing-ndfc-v4:
       # The type of runner that the job will run on
       runs-on: ndfc

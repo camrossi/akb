@@ -396,7 +396,11 @@ def create():
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
                 tf_apic['oob_ips'] = apic["oob_ips"]
-                vkaci_ui = "http://" + calico_nodes[0]['ip'].split("/")[0] + ":30000"
+                if calico_nodes[0]['natip'] != "":
+                    ext_ip = calico_nodes[0]['natip']
+                else:
+                    ext_ip = calico_nodes[0]['ip'].split("/")[0]
+                vkaci_ui = "http://" + ext_ip + ":30000"
                 config = "apic =" + json.dumps(tf_apic, indent=4)
                 config += "\nl3out =" + json.dumps(l3out, indent=4)
                 if vc['vm_deploy']:
@@ -703,6 +707,12 @@ def cluster_view():
 
         return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions())
 
+def calculate_k8s_as(fabric_as):
+    '''Ensure the K8s AS number falls within 1 and 65534'''
+    fabric_as = int(fabric_as)
+    if fabric_as >= 65534:
+        return fabric_as -1
+    return fabric_as +1
 
 @app.route('/cluster_network', methods=['GET', 'POST'])
 def cluster_network():
@@ -717,7 +727,7 @@ def cluster_network():
         if button == "Next":
             if not vc['vm_deploy']:
                 global cluster
-                cluster = create_cluste_vars()
+                cluster = create_cluster_vars()
                 l3out['vlan_id'] = req.get("vlan_id")
             external_svc_subnet = req.get("ipv4_ext_svc_sub")
             cluster['pod_subnet'] = req.get("ipv4_pod_sub")
@@ -739,20 +749,20 @@ def cluster_network():
                 cluster['external_svc_subnet_v6'] = ""
             
             return redirect(f'/create?fabric_type={fabric_type}')
-        elif button == "Previous" and vc['vm_deploy']:
+        if button == "Previous" and vc['vm_deploy']:
             return redirect(f'/cluster?fabric_type={fabric_type}')
-        elif button == "Previous" and not vc['vm_deploy']:
+        if button == "Previous" and not vc['vm_deploy']:
             if fabric_type == "aci":
                 return redirect('/l3out')
-            elif fabric_type == "vxlan_evpn":
+            if fabric_type == "vxlan_evpn":
                 return redirect('/fabric')
     if request.method == 'GET':
         if fabric_type == "aci":
             ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
-            k8s_local_as= int(l3out['local_as'])+1
+            k8s_local_as= calculate_k8s_as(l3out['local_as'])
         elif fabric_type == "vxlan_evpn":
             ipv4_cluster_subnet = OVERLAY['node_sub']
-            k8s_local_as= int(OVERLAY["asn"]) + 1
+            k8s_local_as= calculate_k8s_as(OVERLAY["asn"])
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(ipv4_cluster_subnet)
@@ -1428,10 +1438,18 @@ def existing_cluster():
         try:
             f = open("cluster.tfvars")
             current_config =  f.read()
+            # Derive vkaci IP address:
+            master = hcl.loads(current_config)['calico_nodes'][0]
+            if master['natip'] != "":
+                ext_ip = master['natip']
+            else:
+                ext_ip = master['ip'].split("/")[0]
+
+            vkaci_ui = "http://" + ext_ip + ":30000"
             # Do something with the file
         except IOError:
             return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
-        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config)
+        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui)
     elif fabric_type == "vxlan_evpn":
         ndfc_tfvars = "./ndfc/cluster.tfvars"
         if not os.path.exists(ndfc_tfvars):

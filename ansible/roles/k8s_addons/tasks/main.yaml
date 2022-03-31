@@ -73,6 +73,17 @@
   tags:
     - k8s_addons
 
+- name: Labels Nodes with Natted IP
+  shell: |
+    kubectl label node {{ item }} external-ip={{ hostvars[item].ansible_host }} --overwrite
+  loop: "{{groups['k8s_nodes']}}"
+  register: label_res
+  retries: 10
+  until: label_res is success
+  any_errors_fatal: true
+  tags:
+    - k8s_addons
+
 - name: enabled local storage
   shell: kubectl apply -f /tmp/local-storage.yaml
   tags:
@@ -130,7 +141,7 @@
     - k8s_addons
 
 - name: Get Neo4J Node info
-  shell: kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].status.hostIP}"
+  shell: kubectl get node `kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].spec.nodeName}"` -o=jsonpath="{.metadata.labels.external-ip}"
   when: fabric_type is not defined or fabric_type == "aci"
   register: n4j_host
   tags:

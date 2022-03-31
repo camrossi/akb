@@ -118,7 +118,7 @@
                 option ssl-hello-chk
                 balance     roundrobin
             {% for host in groups ['k8s_masters'] %}
-                {% if   http_proxy_status == true %} server {{ host }} {{ hostvars[host]['real_ip'] }}:6443 check {% else %} server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check {% endif %} 
+                {% if  hostvars[host]['real_ip']  %} server {{ host }} {{ hostvars[host]['real_ip'] }}:6443 check {% else %} server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check {% endif %} 
             {% endfor %}
   tags:
     - master_replicas

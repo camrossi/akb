@@ -192,8 +192,7 @@ jobs:
         - name: Terraform destroy
           if: always()
           run: | 
-            #curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
-            for i in {1..5};
+            for i in {1..10};
             do
               error_lock="Error: Error acquiring the state lock"
               output=$(curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn)

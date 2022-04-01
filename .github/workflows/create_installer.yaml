@@ -56,8 +56,16 @@ jobs:
           govc snapshot.revert -vm=$NKT_TEMPLATE PreBuild      
       
       - name: Start Installer Build
-        run: | 
-          packer build -var "version=${{github.ref_name}}" packer
+        shell: bash
+        run: |
+         if [ ${{github.ref_type}} == branch ]
+          then 
+            REF=heads
+          elif [ ${{github.ref_type}} == tag ]
+            then
+              REF=tags
+          fi
+          packer build -var "version=${{github.ref_name}}" -var "ref=$REF" packer
       
       - name: Export Installer OVA
         run: | 

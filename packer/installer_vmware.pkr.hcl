@@ -41,7 +41,7 @@ build {
       #"sudo apt update",
       #"sudo apt upgrade -y",
       #"sudo apt install -y python3-pip",
-      "wget https://github.com/camrossi/akb/archive/refs/tags/${var.version}.tar.gz",
+      "wget https://github.com/camrossi/akb/archive/refs/${var.ref}/${var.version}.tar.gz",
       "mkdir akb",
       "tar -xzf ${var.version}.tar.gz -C akb --strip-components 1",
       "wget http://192.168.66.120/nkt/id_rsa -O akb/ansible/roles/sandbox/files/id_rsa",

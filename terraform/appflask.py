@@ -910,7 +910,7 @@ def vctemplate():
             vm = vc_utils.find_by_name(si,folder,template_name)
             if vm:
                 task = vm.Destroy_Task()
-                task.vc_utils.wait_for_tasks(si, [task])
+                vc_utils.wait_for_tasks(si, [task])
             upload = concurrent.futures.ThreadPoolExecutor()
             upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
             # Wait for upload to complete UI freeze here

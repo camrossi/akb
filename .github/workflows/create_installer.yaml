@@ -40,6 +40,7 @@ jobs:
           ansible-playbook -b -i ansible/inventory/sandbox.ini ansible/prepare_sandbox_template.yaml 
      
       - name: Power Off Node Template and wait for OS ShutDown
+        if: always()
         run: | 
           govc vm.power -s $NKT_TEMPLATE && govc object.collect -s "/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE" -runtime.powerState poweredOff
       
@@ -52,6 +53,7 @@ jobs:
           chmod 777 $DESTINATION_PATH/nkt_template.ova
 
       - name: Revert Template Snapshot
+        if: always()
         run: | 
           govc snapshot.revert -vm=$NKT_TEMPLATE PreBuild      
       
@@ -72,6 +74,7 @@ jobs:
           ovftool -o vi://$GOVC_URL/$DC/vm/nkt_installer-${{github.ref_name}} $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
       
       - name: Delete Installer VM
+        if: always()
         run: | 
           govc vm.destroy nkt_installer-${{github.ref_name}}
 

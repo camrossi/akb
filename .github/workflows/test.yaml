@@ -31,9 +31,9 @@ jobs:
          if [ ${{github.ref_name}} == branch ]
           then 
             REF=heads
-          elif [ $ref_name == tags ]
+          elif [ $ref_name == tag ]
             then
               REF=tags
           fi
-          packer build -var "version=${{github.ref_name}}" -var "ref=$REF" packer
+          echo $REF
           

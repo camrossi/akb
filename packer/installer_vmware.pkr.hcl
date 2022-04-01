@@ -42,7 +42,7 @@ build {
       #"sudo apt upgrade -y",
       #"sudo apt install -y python3-pip",
       "ref_name=${var.ref_name}",
-      "if [ "$ref_name" == "branch" ]; then REF=heads ; elif [ "$ref_name" == "tags" ] ; then REF=tags; fi",
+      "if [ $ref_name == branch ]; then REF=heads ; elif [ $ref_name == tags ] ; then REF=tags; fi",
       "wget https://github.com/camrossi/akb/archive/refs/$REF/${var.version}.tar.gz",
       "mkdir akb",
       "tar -xzf ${var.version}.tar.gz -C akb --strip-components 1",

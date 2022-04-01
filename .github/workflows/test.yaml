@@ -36,4 +36,4 @@ jobs:
             then
               REF=tags
           fi
-          packer build -var "version=${{github.ref_name}}" -var "ref_name=$REF" packer
+          packer build -var "version=${{github.ref_name}}" -var "ref=$REF" packer

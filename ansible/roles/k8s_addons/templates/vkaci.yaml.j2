@@ -53,7 +53,7 @@ spec:
        nodeName: "{{ groups['k8s_primary_master'][0] }}"
        containers:
        - name: vkaci
-         image: quay.io/camillo/vkaci:0.2
+         image: quay.io/camillo/vkaci:0.3
          imagePullPolicy: IfNotPresent
          ports:
          - containerPort: 50000
@@ -86,7 +86,7 @@ spec:
              mountPath: "/root/.aci-meta"
        initContainers:
        - name: init-vkaci
-         image: quay.io/camillo/vkaci-init:0.2
+         image: quay.io/camillo/vkaci-init:0.3
          imagePullPolicy: IfNotPresent
          command: ['sh', '-c', "python3 init.py"]
          env:

@@ -15,7 +15,7 @@ packer {
 # https://www.packer.io/docs/templates/hcl_templates/blocks/source
 source "vsphere-clone" "clone" {
   template            = "NKT_Installer_Template"
-  linked_clone = true
+  linked_clone = true`
   boot_wait            = "10s"
   datacenter = "STLD"
   cluster = "Cluster"
@@ -41,7 +41,8 @@ build {
       #"sudo apt update",
       #"sudo apt upgrade -y",
       #"sudo apt install -y python3-pip",
-      "wget https://github.com/camrossi/akb/archive/refs/tags/${var.version}.tar.gz",
+      "if [[ ${var.ref_name}==branch ]] then REF=heads elif [[ ${var.ref_name}==tag ]] then REF=tags fi",
+      "wget https://github.com/camrossi/akb/archive/refs/$REF/${var.version}.tar.gz",
       "mkdir akb",
       "tar -xzf ${var.version}.tar.gz -C akb --strip-components 1",
       "rm ${var.version}.tar.gz",

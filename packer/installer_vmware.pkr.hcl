@@ -15,7 +15,7 @@ packer {
 # https://www.packer.io/docs/templates/hcl_templates/blocks/source
 source "vsphere-clone" "clone" {
   template            = "NKT_Installer_Template"
-  linked_clone = true`
+  linked_clone = true
   boot_wait            = "10s"
   datacenter = "STLD"
   cluster = "Cluster"

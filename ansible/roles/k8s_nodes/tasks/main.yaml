@@ -1,7 +1,7 @@
 ---
 - name: Include containers_versions variables 
   include_vars:
-    file: containers_versions.yaml
+    file: ../../inventory/group_vars/containers_versions.yaml
 
 - name: set ssh_key permission
   file:

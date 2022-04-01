@@ -1,4 +1,8 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: containers_versions.yaml
+
 - name: set ssh_key permission
   file:
     path: "{{ ansible_ssh_private_key_file }}"

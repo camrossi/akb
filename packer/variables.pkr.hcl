@@ -2,6 +2,6 @@ variable "version" {
     type = string
 }
 
-variable "ref_name" {
+variable "ref" {
     type = string
 }

@@ -27,6 +27,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Start Installer Build
-        run: | 
-          packer build -var "version=${{github.ref_name}}" -var "ref_name=${{github.ref_name}}" packer
+        run: |
+         if [ ${{github.ref_name}} == branch ]
+          then 
+            REF=heads
+          elif [ $ref_name == tags ]
+            then
+              REF=tags
+          fi
+          packer build -var "version=${{github.ref_name}}" -var "ref_name=$REF" packer
           

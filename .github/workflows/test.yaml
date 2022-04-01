@@ -27,13 +27,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Start Installer Build
+        shell: bash
         run: |
-         if [ ${{github.ref_name}} == branch ]
+         if [ ${{github.ref_type}} == branch ]
           then 
             REF=heads
-          elif [ $ref_name == tag ]
+          elif [ ${{github.ref_type}} == tag ]
             then
               REF=tags
           fi
           echo $REF
-          

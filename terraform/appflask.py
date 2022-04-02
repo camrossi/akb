@@ -264,10 +264,10 @@ def create_cluste_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_p
 
 ### DOCUMENTATION START ####
 
-@app.before_first_request
-def before_first_request():
-    global upload_thread
-    upload_thread = threading.Thread(target=update_load)
+# @app.before_first_request
+# def before_first_request():
+#     global upload_thread
+#     upload_thread = threading.Thread(target=update_load)
 
 @app.route('/docs/doc', methods=['GET', 'POST'])
 def docs():
@@ -819,7 +819,8 @@ def update_load():
             time.sleep(.5)
             # x = x + 1
             htmlRendered = render_template('_template_upload_progress.html', progressVal=ovf_handle.get_upload_progress())
-            print(htmlRendered)
+            # below line prints the server-side rendered html and significantly helps debugging of the progress bar
+            # print(htmlRendered)
             turbo.push(turbo.replace(htmlRendered, 'template-upload-progress'))
 
 def upload_progress_update(new_progress):
@@ -889,7 +890,8 @@ def vctemplate():
 
             ovf_handle.set_spec(cisr)
 
-            upload_thread.start()
+            # Run the update_load function in a new thread
+            threading.Thread(target=update_load).start()
 
             #Start upload as a new thread
             #Find Folder

@@ -327,31 +327,14 @@ class OvfHandler(object):
         Return the value of the upload_progress member variable.
         """
         # print("get upload progress ran")
-        print("get_upload_progress: " + str(self.upload_progress))
+        # print("get_upload_progress: " + str(self.upload_progress))
         return self.upload_progress
-    
-    # def set_upload_progress_update(self, progress):
-    #     """
-    #     First, check if the progress 
-    #     Update the upload_progress member variable and return the new value.
-    #     """
-    #     old_progress = self.upload_progress
-    #     self.set_upload_progress(progress)
-    #     print("old progress: " + old_progress)
-    #     print("new progress: " + progress)
-        
-    #     if old_progress != progress:
-    #         # call the turbo stream update function here
-    #         # self.update_progress_function(progress)
-    #         appflask.upload_progress_update(progress)
-    #         # update_progress_update(progress)        
-    #     return self.upload_progress
 
     def set_upload_progress(self, progress):
         """
         Update the upload_progress member variable and return the new value.
         """
-        print("set upload progress ran: " + progress)
+        # print("set upload progress ran: " + progress)
         self.upload_progress = progress
         return self.upload_progress
 

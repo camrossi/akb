@@ -1,4 +1,5 @@
 ---
+
 - name: set ssh_key permission
   file:
     path: "{{ ansible_ssh_private_key_file }}"
@@ -41,33 +42,6 @@
   tags:
     - k8s_nodes
   when: http_proxy_status == true
-    
-#- name: populate /etc/environment 1
-  #lineinfile:
-    #dest: "/etc/environment"
-    #state: present
-    #line: HTTP_PROXY="http://{{ http_proxy }}"
-  #when: http_proxy_status == "on"  
-  #tags:
-    #- k8s_nodes
-
-#- name: populate /etc/environment 2
-  #lineinfile:
-    #dest: "/etc/environment"
-    #state: present
-    #line: HTTPS_PROXY="http://{{ http_proxy }}"
-  #when: http_proxy_status == "on"  
-  #tags:
-    #- k8s_nodes
-
-#- name: populate /etc/environment 3
-  #lineinfile:
-    #dest: "/etc/environment"
-    #state: present
-    #line: NO_PROXY=".{{ dns_domain }},localhost,172.30.0.1,.svc,.cluster.local,apiserver.kube-service-catalog.svc{% for host in groups ['k8s_nodes'] %},{{ hostvars[host]['real_ip'] }},{{ hostvars[host]['ipv6'] }},{{ host }}.{{ dns_domain }},{{ host }}{% endfor %},{{ pod_subnet }},{{ cluster_svc_subnet }},{{ external_svc_subnet }},{{ pod_subnet_v6 }},{{ cluster_svc_subnet_v6 }},::1,{{ control_plane_vip }}"
-  #when: http_proxy_status == "on"
-  #tags:
-    #- k8s_nodes
 
 - name: Test http internet connectivity get http://www.google.com
   uri:

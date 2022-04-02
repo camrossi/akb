@@ -12,3 +12,4 @@ ansible/roles/calico/files/calicoctl
 plan
 id_rsa
 __pycache__
+labs

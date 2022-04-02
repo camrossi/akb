@@ -1,0 +1,32 @@
+# This is a basic workflow to help you get started with Actions
+
+name: test
+
+# Controls when the workflow will run
+on:
+  pull_request:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+env:
+  GOVC_URL: administrator%40vsphere.local:123Cisco123%21@vc2.cam.ciscolabs.com
+  GOVC_INSECURE: True
+  ANSIBLE_HOST_KEY_CHECKING: False
+  DC: STLD
+  VM_FOLDER: Templates
+  NKT_TEMPLATE: NKT_K8sNode_Template
+  DESTINATION_PATH: /nfs-share/www/nkt
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  test:
+    # The type of runner that the job will run on
+    runs-on: stld
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+   
+      - name: echo
+        run: | 
+          echo ${{github.ref_name}} ${{ github.ref_type	}}
+        
+          

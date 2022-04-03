@@ -52,7 +52,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5003 & echo $! > nkt.pid
+          python3 appflask.py -p 5003 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
@@ -72,7 +72,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          pkill -F nkt.pid ; curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
+          curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
   
   
   nkt-testing-v46:
@@ -96,7 +96,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5004 & echo $! > nkt.pid
+          python3 appflask.py -p 5004 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
@@ -116,7 +116,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-           pkill -F nkt.pid ; curl -b cookie.txt -s http://10.67.185.120:5004/destroy
+           curl -b cookie.txt -s http://10.67.185.120:5004/destroy
 
   # This workflow contains a single job called "build"
   nkt-testing-v4-nat-dom:
@@ -140,7 +140,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5005 & echo $! > nkt.pid
+          python3 appflask.py -p 5005 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
@@ -152,18 +152,18 @@ jobs:
           curl -b cookie.txt -s http://localhost:5005/tf_apply
       - name: Use primary master NAT IP for kubeconfig 
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.170.130
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.170.130:6443
       - name: Check if all the nodes are ready
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf --insecure-skip-tls-verify=true wait --for=condition=Ready nodes --all --timeout=600s
       - name: Check if all the pods are ready
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf --insecure-skip-tls-verify=true wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
 
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          pkill -F nkt.pid ; curl -b cookie.txt -s  http://localhost:5005/destroy
+          curl -b cookie.txt -s  http://localhost:5005/destroy
 
   # This workflow contains a single job called "build"
   nkt-testing-v4-nat-chris:
@@ -187,7 +187,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5006 & echo $! > nkt.pid
+          python3 appflask.py -p 5006 &
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat_chris.py --headless
@@ -199,18 +199,18 @@ jobs:
           curl -b cookie.txt -s http://localhost:5006/tf_apply 
       - name: Use primary master NAT IP for kubeconfig 
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.168.104
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.168.104:6443
       - name: Check if all the nodes are ready
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf --insecure-skip-tls-verify=true wait --for=condition=Ready nodes --all --timeout=600s
       - name: Check if all the pods are ready
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf --insecure-skip-tls-verify=true wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
 
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          pkill -F nkt.pid ; curl -b cookie.txt -s  http://localhost:5006/destroy 
+          curl -b cookie.txt -s  http://localhost:5006/destroy 
 
   nkt-testing-ndfc-v4:
       # The type of runner that the job will run on
@@ -233,7 +233,7 @@ jobs:
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
-            python3 appflask.py -p 5010 & echo $! > nkt.pid
+            python3 appflask.py -p 5010 &
         - name: Run headless chrome to generate the config
           run: | 
             python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless
@@ -252,4 +252,4 @@ jobs:
         - name: Terraform destroy
           if: always()
           run: | 
-            pkill -F nkt.pid ; curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
+            curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn

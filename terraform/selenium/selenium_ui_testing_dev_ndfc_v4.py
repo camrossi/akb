@@ -41,7 +41,7 @@ def root_page(driver):
     elem = driver.find_element(By.NAME, "button")
     current_url = driver.current_url
     elem.click()
-    WebDriverWait(driver, 3).until(EC.url_changes(current_url))
+    WebDriverWait(driver, 10).until(EC.url_changes(current_url))
 
 
 def login_page(driver):
@@ -52,7 +52,7 @@ def login_page(driver):
     fill_by_id(driver, "password", "ins3965!")
     elem = driver.find_element(By.NAME, "button")
     elem.click()
-    WebDriverWait(driver, 3).until(EC.url_changes(current_url))
+    WebDriverWait(driver, 10).until(EC.url_changes(current_url))
 
 
 def fabric_page(driver):
@@ -69,7 +69,7 @@ def fabric_page(driver):
     lo.send_keys(Keys.ENTER)
     lo = fill_by_id(driver, "input_lo_ipv4", "1.1.1.2")
     lo.send_keys(Keys.ENTER)
-    # WebDriverWait(driver, 3).until(EC.url_changes(current_url))
+    # WebDriverWait(driver, 10).until(EC.url_changes(current_url))
 
     adv = driver.find_element(By.ID, "ck_box_k8s_integ")
     adv.click()
@@ -95,7 +95,7 @@ def fabric_page(driver):
 
     elem = driver.find_element(By.ID, "next")
     elem.click()
-    WebDriverWait(driver, 3).until(EC.url_changes(current_url))
+    WebDriverWait(driver, 10).until(EC.url_changes(current_url))
 
 
 def vcenter_login_page(driver):
@@ -108,7 +108,7 @@ def vcenter_login_page(driver):
     upload.click()
     elem = driver.find_element(By.ID, "submit")
     elem.click()
-    WebDriverWait(driver, 3).until(EC.url_changes(current_url))
+    WebDriverWait(driver, 10).until(EC.url_changes(current_url))
 
 
 def vcenter_page(driver):
@@ -136,7 +136,7 @@ def vcenter_page(driver):
     elem.send_keys("NKT_CI")
     elem = driver.find_element(By.ID, "submit")
     elem.click()
-    WebDriverWait(driver, 3).until(EC.url_changes(current_url))
+    WebDriverWait(driver, 10).until(EC.url_changes(current_url))
 
 
 def calico_node_page(driver, run_id):

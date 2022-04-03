@@ -52,7 +52,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5003 echo $! > nkt.pid
+          python3 appflask.py -p 5003 & echo $! > nkt.pid
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
@@ -96,7 +96,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5004 echo $! > nkt.pid
+          python3 appflask.py -p 5004 & echo $! > nkt.pid
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
@@ -140,7 +140,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5005 echo $! > nkt.pid
+          python3 appflask.py -p 5005 & echo $! > nkt.pid
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
@@ -187,7 +187,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5006 echo $! > nkt.pid
+          python3 appflask.py -p 5006 & echo $! > nkt.pid
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat_chris.py --headless
@@ -233,7 +233,7 @@ jobs:
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
-            python3 appflask.py -p 5010 echo $! > nkt.pid
+            python3 appflask.py -p 5010 & echo $! > nkt.pid
         - name: Run headless chrome to generate the config
           run: | 
             python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless

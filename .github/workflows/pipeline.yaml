@@ -131,7 +131,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: v4-nat
+          path: v4-nat-dom
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
@@ -178,7 +178,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: v4-nat
+          path: v4-nat-chris
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt

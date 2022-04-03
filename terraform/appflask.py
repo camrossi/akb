@@ -982,6 +982,7 @@ def vcenter():
                     #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly
                     vm_templates_and_ds = {}
                     for vm in vm_templates:
+                        print(vm.ConfigSpec)
                         dsl = []
                         for ds in vm.datastore:
                             dsl.append(ds.info.name)

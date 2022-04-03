@@ -137,7 +137,7 @@ jobs:
           pip3 install -r ../requirements.txt
       - name: Copy Private Key
         run: | 
-          cp ~/actions-runner/id_rsa ../ansible/roles/sandbox/files/id_rsa
+          cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
           python3 appflask.py -p 5005 &
@@ -184,7 +184,7 @@ jobs:
           pip3 install -r ../requirements.txt
       - name: Copy Private Key
         run: | 
-          cp ~/actions-runner/id_rsa ../ansible/roles/sandbox/files/id_rsa
+          cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
           python3 appflask.py -p 5006 &

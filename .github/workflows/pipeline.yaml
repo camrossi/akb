@@ -233,7 +233,7 @@ jobs:
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
-            python3 appflask.py -p 5010 & & PID=$!
+            python3 appflask.py -p 5010 & PID=$!
         - name: Run headless chrome to generate the config
           run: | 
             python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless

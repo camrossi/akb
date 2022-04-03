@@ -884,7 +884,7 @@ def vctemplate():
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
-            ova_path = str(os.getcwd()) + "/static/vm_templates/nkt_template.ova"
+            ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
             ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
             cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
@@ -922,7 +922,7 @@ def vctemplate():
                                         quiesce=False)
 
             # Add Note to VM:
-            spec = vm.ConfigSpec()
+            spec = vc_utils.vim.vm.ConfigSpec()
             spec.annotation = TEMPLATE_NAME
             task = vm.ReconfigVM_Task(spec)
 

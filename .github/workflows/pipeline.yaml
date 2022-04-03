@@ -52,7 +52,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5003 &
+          python3 appflask.py -p 5003 & PID=$!
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
@@ -72,7 +72,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
+          kill -9 $PID ; curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
   
   
   nkt-testing-v46:
@@ -96,7 +96,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5004 &
+          python3 appflask.py -p 5004 & PID=$!
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
@@ -116,7 +116,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -b cookie.txt -s http://10.67.185.120:5004/destroy
+           kill -9 $PID ; curl -b cookie.txt -s http://10.67.185.120:5004/destroy
 
   # This workflow contains a single job called "build"
   nkt-testing-v4-nat-dom:
@@ -140,7 +140,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5005 &
+          python3 appflask.py -p 5005 & PID=$!
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
@@ -163,7 +163,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -b cookie.txt -s  http://localhost:5005/destroy
+          kill -9 $PID ; curl -b cookie.txt -s  http://localhost:5005/destroy
 
   # This workflow contains a single job called "build"
   nkt-testing-v4-nat-chris:
@@ -187,7 +187,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          python3 appflask.py -p 5006 &
+          python3 appflask.py -p 5006 & PID=$!
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat_chris.py --headless
@@ -210,7 +210,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -b cookie.txt -s  http://localhost:5006/destroy 
+          kill -9 $PID ; curl -b cookie.txt -s  http://localhost:5006/destroy 
 
   nkt-testing-ndfc-v4:
       # The type of runner that the job will run on
@@ -233,7 +233,7 @@ jobs:
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
-            python3 appflask.py -p 5010 &
+            python3 appflask.py -p 5010 & & PID=$!
         - name: Run headless chrome to generate the config
           run: | 
             python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless
@@ -252,4 +252,4 @@ jobs:
         - name: Terraform destroy
           if: always()
           run: | 
-            curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
+            kill -9 $PID ; curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn

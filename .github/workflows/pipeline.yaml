@@ -119,12 +119,12 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5004/destroy
 
   # This workflow contains a single job called "build"
-  nkt-testing-v4-nat:
+  nkt-testing-v4-nat-dom:
     # The type of runner that the job will run on
     runs-on: bxl
     defaults:
       run:
-        working-directory: v4-nat/terraform
+        working-directory: v4-nat-dom/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -171,7 +171,7 @@ jobs:
     runs-on: bxl
     defaults:
       run:
-        working-directory: v4-nat/terraform
+        working-directory: v4-nat-chris/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -199,7 +199,7 @@ jobs:
           curl -b cookie.txt -s http://localhost:5006/tf_apply 
       - name: Use primary master NAT IP for kubeconfig 
         run: | 
-          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.170.130
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.168.104
       - name: Check if all the nodes are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s

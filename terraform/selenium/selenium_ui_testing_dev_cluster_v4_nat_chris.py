@@ -52,7 +52,7 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://10.48.168.169:5006")
+driver.get("http://localhost:5006")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
@@ -71,7 +71,7 @@ elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
 assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
@@ -82,7 +82,7 @@ elem.send_keys("192.168.10.0/24")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
 except ValueError as e:
     print("Loading took too much time!")
 
@@ -102,7 +102,7 @@ elem = driver.find_element(By.ID,"submit")
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
 assert "vCenter Login" in driver.title
 elem = driver.find_element(By.NAME,"url")
@@ -118,7 +118,7 @@ current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 assert "vCenter Details" in driver.title
 select = Select(driver.find_element(By.ID,'dc'))
 select.select_by_visible_text("AKB")
@@ -143,7 +143,7 @@ current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
@@ -158,7 +158,7 @@ current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 assert "Cluster" in driver.title
 elem = driver.find_element(By.ID,'advanced')
 elem.click()
@@ -173,13 +173,13 @@ elem.send_keys("72.163.32.44")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 assert "Cluster Network" in driver.title
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 assert "Create" in driver.title
 driver.quit()

@@ -978,11 +978,10 @@ def vcenter():
             dc_name = req.get('dc')
             for dc in dcs:
                 if dc.name == dc_name:
-                    vc_utils.find_vms(dc, vm_templates)
+                    vc_utils.find_vms(dc, vm_templates, TEMPLATE_NAME)
                     #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly
                     vm_templates_and_ds = {}
                     for vm in vm_templates:
-                        print(vm.ConfigSpec)
                         dsl = []
                         for ds in vm.datastore:
                             dsl.append(ds.info.name)

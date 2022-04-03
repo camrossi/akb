@@ -924,7 +924,7 @@ def vctemplate():
             # Add Note to VM:
             spec = vc_utils.vim.vm.ConfigSpec()
             spec.annotation = TEMPLATE_NAME
-            task = vm.ReconfigVM_Task(spec)
+            vm.ReconfigVM_Task(spec)
 
             return redirect('/vcenter')
 

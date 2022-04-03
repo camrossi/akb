@@ -164,6 +164,54 @@ jobs:
         if: always()
         run: | 
           curl -b cookie.txt -s  http://localhost:5005/destroy -o /dev/null
+
+  # This workflow contains a single job called "build"
+  nkt-testing-v4-nat-chris:
+    # The type of runner that the job will run on
+    runs-on: bxl
+    defaults:
+      run:
+        working-directory: v4-nat/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: v4-nat
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Copy Private Key
+        run: | 
+          cp ~/actions-runner/id_rsa ../ansible/roles/sandbox/files/id_rsa
+      - name: Start NKT
+        run: | 
+          python3 appflask.py -p 5006 &
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://localhost:5006/ -o /dev/null && curl -b cookie.txt -s http://localhost:5006/tf_plan -o /dev/null
+      - name: Terraform apply
+        run: | 
+          curl -b cookie.txt -s http://localhost:5006/tf_apply -o /dev/null
+      - name: Use primary master NAT IP for kubeconfig 
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf config set-cluster kubernetes --server=https://10.48.170.130
+      - name: Check if all the nodes are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+      - name: Check if all the pods are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+          curl -b cookie.txt -s  http://localhost:5006/destroy -o /dev/null
+
   nkt-testing-ndfc-v4:
       # The type of runner that the job will run on
       runs-on: ndfc

@@ -974,7 +974,7 @@ def vcenter():
             for dc in dcs:
                 if dc.name == dc_name:
                     vc_utils.find_vms(dc, vm_templates)
-                    #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly 
+                    #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly
                     vm_templates_and_ds = {}
                     for vm in vm_templates:
                         dsl = []
@@ -1120,8 +1120,11 @@ def l3out_view():
 
             try:
                 # Use the Netwrok to ensure that the mask is always present
-                ipaddress.IPv4Network(
-                    req.get("ipv4_cluster_subnet"), strict=False)
+                print()
+                if ipaddress.IPv4Network(
+                    req.get("ipv4_cluster_subnet"), strict=True).prefixlen == 32:
+                    raise ValueError("Please Specify a Prefix Len in /XX format")
+
             except ValueError as e:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "IPv4 Cluster Subnet Error: " + str(e))
 

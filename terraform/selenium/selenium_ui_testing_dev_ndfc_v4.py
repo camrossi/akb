@@ -131,7 +131,7 @@ def vcenter_page(driver):
     elem = driver.find_element(By.ID, 'port_group')
     elem.send_keys("dvs-cylon/network_k8s_test/vlan-210")
     elem = driver.find_element(By.ID, 'vm_templates')
-    elem.send_keys("nkt_template")
+    elem.send_keys("k8s-template")
     elem = driver.find_element(By.ID, 'vm_folder')
     elem.send_keys("NKT_CI")
     elem = driver.find_element(By.ID, "submit")

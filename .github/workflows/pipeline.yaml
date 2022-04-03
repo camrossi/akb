@@ -69,6 +69,11 @@ jobs:
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
 
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform 
+          
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
@@ -113,6 +118,11 @@ jobs:
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
       
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
+
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
@@ -159,6 +169,11 @@ jobs:
       - name: Check if all the pods are ready
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf --insecure-skip-tls-verify=true wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
 
       - name: Terraform destroy and delete APIC user
         if: always()
@@ -207,6 +222,11 @@ jobs:
         run: | 
           kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf --insecure-skip-tls-verify=true wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
 
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform 
+
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
@@ -249,6 +269,12 @@ jobs:
         - name: Check if all the pods are ready
           run: | 
             kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+        
+        - name: Terraform destroy and delete APIC user
+          if: cancelled()
+          run: | 
+            killall terraform 
+
         - name: Terraform destroy
           if: always()
           run: | 

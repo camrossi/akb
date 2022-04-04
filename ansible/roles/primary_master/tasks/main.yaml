@@ -59,7 +59,7 @@
                 option ssl-hello-chk
                 balance     roundrobin
             {% for host in groups ['k8s_masters'] %}
-                {% if   http_proxy_status == true %} server {{ host }} {{ hostvars[host]['real_ip'] }}:6443 check {% else %} server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check {% endif %} 
+                {% if  hostvars[host]['real_ip']  %} server {{ host }} {{ hostvars[host]['real_ip'] }}:6443 check {% else %} server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check {% endif %} 
             {% endfor %}
   tags:
     - primary_master
@@ -255,6 +255,7 @@
         timeoutForControlPlane: 4m0s
       kind: ClusterConfiguration
       controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
+      kubernetesVersion: "{{ kube_version.split("-")[0] }}"
       networking:
         podSubnet: {{ pod_subnet }}
         serviceSubnet: {{ cluster_svc_subnet }}

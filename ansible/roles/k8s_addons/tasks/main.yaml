@@ -1,4 +1,9 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - k8s_addons
 
 - name: Copy common addons manifests
   template:
@@ -15,14 +20,11 @@
   tags:
     - k8s_addons
 
-- name: Copy ACI addons manifests
+- name: Copy neo4j addons manifests
   template:
-    src: "{{ item }}"
-    dest: /tmp/{{ item }}
+    src: neo4j-values.yaml
+    dest: /tmp/neo4j-values.yaml
     force: yes
-  with_items:
-    - vkaci.yaml.j2
-    - neo4j-values.yaml
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
@@ -68,6 +70,17 @@
 - name: Labels Nodes with local-storage 
   shell: |
     kubectl label node {{ item }} local-storage=yes --overwrite
+  loop: "{{groups['k8s_nodes']}}"
+  register: label_res
+  retries: 10
+  until: label_res is success
+  any_errors_fatal: true
+  tags:
+    - k8s_addons
+
+- name: Labels Nodes with Natted IP
+  shell: |
+    kubectl label node {{ item }} external-ip={{ hostvars[item].ansible_host }} --overwrite
   loop: "{{groups['k8s_nodes']}}"
   register: label_res
   retries: 10
@@ -122,6 +135,36 @@
 
 - name: Expose Neo4j
   shell: kubectl patch svc  my-neo4j-neo4j -p '{"spec":{"type":"NodePort","externalIPs":["{{ neo4j_ip }}"]}}'
+  when: fabric_type is not defined or fabric_type == "aci"
+  tags:
+    - k8s_addons
+
+- name: Wait for Neo4j to be Scheduled
+  shell: kubectl wait --for=condition=PodScheduled pod -l app=my-neo4j
+  when: fabric_type is not defined or fabric_type == "aci"
+  tags:
+    - k8s_addons
+
+- name: Get Neo4J Node info
+  shell: kubectl get node `kubectl  get pod  -l app=my-neo4j -o=jsonpath="{.items[0].spec.nodeName}"` -o=jsonpath="{.metadata.labels.external-ip}"
+  when: fabric_type is not defined or fabric_type == "aci"
+  register: n4j_host
+  tags:
+    - k8s_addons
+
+- name: Get Neo4J Port info
+  shell:  kubectl  get svc my-neo4j-neo4j -o jsonpath='{.spec.ports[?(@.name=="tcp-bolt")].nodePort}'
+  when: fabric_type is not defined or fabric_type == "aci"
+  register: n4j_port
+  tags:
+    - k8s_addons
+
+
+- name: Copy vkaci addons manifests
+  template:
+    src: vkaci.yaml.j2
+    dest: /tmp/vkaci.yaml.j2
+    force: yes
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons

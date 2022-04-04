@@ -1,6 +1,6 @@
 
 import pytest
-from appflask import is_valid_hostname, get_random_string, k8s_versions, normalize_url, get_fabric_type, create_vc_vars, create_l3out_vars
+from appflask import is_valid_hostname, get_random_string, k8s_versions, normalize_url, get_fabric_type, create_vc_vars, create_l3out_vars, normalize_apt_mirror
 
 
 class Expando(object):
@@ -51,6 +51,18 @@ def test_k8s_versions():
 ])
 def test_normalize_url(input, expected):
     assert normalize_url(input) == expected
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        ("test.mirror.com", "https://test.mirror.com"),
+        ("http://test.mirror.com", "http://test.mirror.com"),
+        ("https://test.mirror.com/", "https://test.mirror.com/"),
+        ("test-url/", "https://test-url/")
+    ])
+def test_normalize_apt_mirror(input, expected):
+    assert normalize_apt_mirror(input) == expected
 
 
 def test_create_VCVars():

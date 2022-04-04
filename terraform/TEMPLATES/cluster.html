@@ -119,8 +119,29 @@
             <div class="checkbox form-group form-group--inline c8041">
                <label class="checkbox">
                   <span class="checkbox__label hidden-xs">deploy k8s cluster in air-gapped environment?</span>
-                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;" checked >
+                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;" checked onchange="if (!this.checked) {openModal('confirm_modal')}">
                   <span id="sandbox_status" class="checkbox__input"></span>
+                  <div class="modal modal--small hide" id="confirm_modal">
+                     <div class="modal__dialog">
+                         <div class="modal__content">
+                             <a class="modal__close" onclick="closeModal('confirm_modal')"><span class="icon-close"></span></a>
+                             <div class="modal__header">
+                                 <div class="modal__title">Warning</div>
+                             </div>
+                             <div class="modal__body">
+                                 <div class="alert alert--info">
+                                     <div class="alert__icon icon-info-outline"></div>
+                                     <div class="alert__message">Disabling Sandbox mode requires internet access. The compute nodes will 
+                                        require connectivity to the ubuntu mirrors, docker and quay repositories. You might also need a docker mirror running in your lab. Proceed with caution. 
+                                       </div>
+                                 </div>
+                             </div>
+                             <div class="modal__footer">
+                                 <button type="button" id="close_sandbox_warning"class="btn btn--ghost" onclick="closeModal('confirm_modal')">Close</button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
                </label>
             </div>
          </div>

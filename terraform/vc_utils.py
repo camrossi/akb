@@ -57,20 +57,27 @@ def find_pgs(obj, pgs):
             elif(isinstance(child, vim.Folder)):
                 find_pgs(child, pgs)
 
-def find_vms(obj, vms):
+def find_vms(obj, vms, note = ""):
+    ''' Find VMs optionally filtering by note'''
     if isinstance(obj, vim.Datacenter):
         for child in obj.vmFolder.childEntity:
             if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child)
+                if note == "":
+                    vms.append(child)
+                elif (child.config) and child.config.annotation == note:
+                    vms.append(child)
             elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
+                find_vms(child, vms, note)
     elif isinstance(obj, vim.Folder):
         for child in obj.childEntity:
             if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child)
+                if note == "":
+                    vms.append(child)
+                elif (child.config) and child.config.annotation == note:
+                    vms.append(child)
             elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
-
+                find_vms(child, vms, note)
+    
 def find_by_name(si, folder,vm_name):
     return si.content.searchIndex.FindChild(folder, vm_name)
 

@@ -23,6 +23,7 @@ import argparse
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
 TF_STATE_ACI = "terraform.tfstate"
 TF_STATE_NDFC = "./ndfc/terraform.tfstate"
+TEMPLATE_NAME = "nkt_template"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
 app.config['SECRET_KEY'] = 'cisco'
@@ -879,15 +880,14 @@ def vctemplate():
                                   target='template-upload-folder'))
 
         if button == "Upload":
-            template_name = "nkt_template"
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
-            ova_path = str(os.getcwd()) + "/static/vm_templates/nkt_template.ova"
+            ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
             ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
-            cisp = vc_utils.import_spec_params(entityName=template_name, diskProvisioning='thin')
+            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
 
             cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(), resource_pool, datastore, cisp)
             if cisr.error:
@@ -907,7 +907,7 @@ def vctemplate():
                         folder = child
 
             # If the template already exists, delete it!
-            vm = vc_utils.find_by_name(si,folder,template_name)
+            vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)
             if vm:
                 task = vm.Destroy_Task()
                 vc_utils.wait_for_tasks(si, [task])
@@ -915,11 +915,16 @@ def vctemplate():
             upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
             # Wait for upload to complete UI freeze here
             upload.shutdown(wait=True)
-            vm = vc_utils.find_by_name(si,folder,template_name)
+            vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)
             vm.CreateSnapshot_Task(name=str(datetime.now()),
                                         description="Snapshot",
                                         memory=False,
                                         quiesce=False)
+
+            # Add Note to VM:
+            spec = vc_utils.vim.vm.ConfigSpec()
+            spec.annotation = TEMPLATE_NAME
+            vm.ReconfigVM_Task(spec)
 
             return redirect('/vcenter')
 
@@ -973,7 +978,7 @@ def vcenter():
             dc_name = req.get('dc')
             for dc in dcs:
                 if dc.name == dc_name:
-                    vc_utils.find_vms(dc, vm_templates)
+                    vc_utils.find_vms(dc, vm_templates, TEMPLATE_NAME)
                     #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly
                     vm_templates_and_ds = {}
                     for vm in vm_templates:

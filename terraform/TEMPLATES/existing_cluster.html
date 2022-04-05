@@ -93,29 +93,31 @@
          </div>
 
             <div class="container">
-               <div class="form-group__text">
-                   <div class="row">
-                       <div class="col-md-4">
-                           <div class="form-group base-margin-bottom">
-                               <div class="form-group__text">
-                                   <textarea rows="30" class="textarea" name="config"
-                                                                        id="cluster">{{ config }}</textarea><label>Config:</label>
-                               </div>
-                           </div>
-                       </div>
-                       <div class="col-md-8 flex-column-reverse">
-                           <label>Terraform Output:
-                               <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
-                           </label>
-                           <iframe id='iframe' src=""></iframe>
-                       </div>
-                   </div>
-                   <!--<div class="form-group base-margin-bottom">-->
-                       <!--<div id="output"></div>-->
-                       <!--<div class="form-group__text"><textarea rows="25" class="textarea" name="cluster"-->
-                                                                                          <!--id="cluster">{{ config }}</textarea><label>Current Config</label>-->
-                       <!--</div>-->
-                   <!--</div>-->
+                <div class="form-group__text">
+                    <div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group base-margin-bottom">
+                                    <div class="form-group__text">
+                                        <textarea rows="30" class="textarea" name="config"
+                                                                                id="cluster">{{ config }}</textarea><label>Config:</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8 flex-column-reverse" style="max-height: 92%">
+                                <label>Terraform Output:
+                                    <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
+                                </label>
+                                <iframe id='iframe' src="" style="max-height: 92%"></iframe>
+                            </div>
+                        </div>
+                        <!--<div class="form-group base-margin-bottom">-->
+                            <!--<div id="output"></div>-->
+                            <!--<div class="form-group__text"><textarea rows="25" class="textarea" name="cluster"-->
+                                                                                                <!--id="cluster">{{ config }}</textarea><label>Current Config</label>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                    </div>
                </div>
             </div>
       <div class='streaming'>
@@ -125,6 +127,7 @@
             <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
             <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
             <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            <input type="button" value="Stop Autoscroll" id="autoScrollToggle" class="btn btn--wide" name="button" onclick="toggleAutoScroll()">
         </div>
 
    </div>
@@ -212,6 +215,7 @@
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
 <script>
     $(document).ready(function () {
         $("#btn_destroy_confirm").click(function (e) {
@@ -227,6 +231,7 @@
 
         });
     })
+    startAutoScroll();
 </script>
 <div id="canvas"></div>
 

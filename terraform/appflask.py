@@ -1,5 +1,6 @@
 import json
 from logging import error
+import threading
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
 import vc_utils
@@ -19,6 +20,7 @@ import hcl
 from ndfc import NDFC, Fabric
 from jinja2 import Template
 import argparse
+# from flask_socketio import SocketIO
 
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
 TF_STATE_ACI = "terraform.tfstate"
@@ -286,6 +288,10 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
 
 ### DOCUMENTATION START ####
 
+# @app.before_first_request
+# def before_first_request():
+#     global upload_thread
+#     upload_thread = threading.Thread(target=update_load)
 
 @app.route('/docs/doc', methods=['GET', 'POST'])
 def docs():
@@ -843,6 +849,30 @@ def vcenterlogin():
         if fabric_type == "vxlan_evpn":
             return render_template('vcenter-login.html', fabric_type=fabric_type)
 
+import time
+
+def update_load():
+    with app.app_context():
+        # x=1
+        while ovf_handle.get_upload_progress() < 99:
+            time.sleep(.5)
+            # x = x + 1
+            htmlRendered = render_template('_template_upload_progress.html', progressVal=ovf_handle.get_upload_progress())
+            # below line prints the server-side rendered html and significantly helps debugging of the progress bar
+            # print(htmlRendered)
+            turbo.push(turbo.replace(htmlRendered, 'template-upload-progress'))
+
+def upload_progress_update(new_progress):
+    ''' Updates the progress of the upload on the UI'''
+    print("upload_progress_update ran")
+    if turbo.can_stream():
+        print("returned turbo stream")
+        return turbo.stream(
+            turbo.update(render_template('_template_upload_progress.html', progressVal=new_progress),
+                         target='_template_upload_progress'))
+    else:
+        return render_template('_template_upload_progress.html', progressVal=new_progress)
+
 @app.route('/vctemplate', methods=['GET', 'POST'])
 def vctemplate():
     '''vCenter Update VM Template Page'''
@@ -885,7 +915,8 @@ def vctemplate():
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
             ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
-            ovf_handle = vc_utils.OvfHandler(ova_path)
+            global ovf_handle
+            ovf_handle = vc_utils.OvfHandler(ova_path, upload_progress_update)
             ovf_manager = si.content.ovfManager
             cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
 
@@ -897,6 +928,8 @@ def vctemplate():
 
             ovf_handle.set_spec(cisr)
 
+            # Run the update_load function in a new thread
+            threading.Thread(target=update_load).start()
 
             #Start upload as a new thread
             #Find Folder
@@ -937,7 +970,10 @@ def vctemplate():
 
         dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
-        return render_template('vc_template_upload.html', dcs=dcs.values(), progress=0)
+        return render_template('vc_template_upload.html', dcs=dcs.values(), progressVal=0)
+        # return turbo.stream(
+        #     turbo.update(render_template('vc_template_upload.html', dcs=dcs.values(), progressVal=0),
+        #                  target='vc_template_upload'))
 
 @app.route('/vcenter', methods=['GET', 'POST'])
 def vcenter():

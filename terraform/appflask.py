@@ -1219,6 +1219,9 @@ def l3out_view():
             pod_ids.append(pod.id)
         for node in nodes:
             nodes_id.append(node.id)
+
+        # Set APIC OOB to an empty list, so if we refresh the page we do not keep appending the same IPs
+        apic['oob_ips'] = ""
         for a in apics:
             apic['oob_ips'] += (a.oobMgmtAddr) + ","
         #Remove the last comma

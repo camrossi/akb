@@ -61,7 +61,7 @@ function loadInput() {
   for (const tag of tags) {
     inputs = document.getElementsByTagName(tag[0]);
     for (index = 0; index < inputs.length; ++index) {
-      currentElem = inputs[index];
+      const currentElem = inputs[index];
       if (
         tag.length === 1 ||
         !(
@@ -105,7 +105,7 @@ function loadInputLimit(limitArr) {
   for (const tag of limitArr) {
     inputs = document.getElementsByTagName(tag[0]);
     for (index = 0; index < inputs.length; ++index) {
-      currentElem = inputs[index];
+      const currentElem = inputs[index];
       if (
         tag.length === 1 ||
         !(
@@ -122,7 +122,7 @@ function loadInputLimit(limitArr) {
         ) {
           const retrieved = sessionStorage.getItem(page + " " + currentElem.id);
           currentElem.value = retrieved;
-          console.log(retrieved)
+          console.log(retrieved);
         }
       } else if (
         tag[0] === "input" &&
@@ -136,4 +136,29 @@ function loadInputLimit(limitArr) {
     }
   }
   // console.log("Loaded saved inputs from local storage.");
+}
+
+let previousScrollTop = 0;
+function autoScroll(input) {
+  const frame = document
+    .querySelector("iframe")
+    .contentWindow.document.querySelector("html");
+  const bottom = frame.scrollHeight;
+  if (frame.scrollTop == previousScrollTop || input !== null) {
+    frame.scrollTo(0, bottom);
+    previousScrollTop = frame.scrollTop;
+  }
+}
+
+let autoScrollTimer = null;
+function startAutoScroll() {
+  autoScrollTimer = setInterval(() => {
+    autoScroll();
+    console.log("autoScrolled")
+  }, 50)
+}
+
+function endAutoScroll() {
+  if (autoScrollTimer !== null)
+    clearInterval(autoScrollTimer);
 }

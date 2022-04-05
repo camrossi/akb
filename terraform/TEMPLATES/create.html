@@ -135,6 +135,7 @@
             <input type="button" value="Reset" id="reset" class="btn" name="button" onclick="openModal('reset_modal')">
             <input type="button" value="Destroy" id="destroy" class="btn" onclick="openModal('destroy_modal')">
             <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            <input type="button" value="Stop Autoscroll" id="autoScrollToggle" class="btn btn--wide" name="button" onclick="toggleAutoScroll()">
             <div class="modal modal--small hide" id="reset_modal">
                <div class="modal__dialog">
                    <div class="modal__content">
@@ -213,6 +214,7 @@
 </main>
 <!-- End Main Content -->
 </div>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
 <script>
    function updateiFrame(button) {
        if (button.value === 'Plan') {
@@ -222,8 +224,19 @@
            document.getElementById('iframe').src = "{{ url_for("tf_apply") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
        }
    }
-   function autoscrollDown() {
-      document.querySelector()
+   startAutoScroll();
+   let autoScrollBool = true;
+   function toggleAutoScroll() {
+      autoScrollBool = !autoScrollBool;
+      if (autoScrollBool) {
+         document.querySelector("autoScrollToggle").value = "Stop Autoscroll";
+         startAutoScroll();
+      }
+      else;
+      {
+         document.querySelector("autoScrollToggle").value = "Start Autoscroll";
+         endAutoScroll();
+      }
    }
 </script>
 <script>
@@ -260,5 +273,23 @@
 <div id="canvas"></div>
 
 </body>
+<!-- <script>
+   window.onload = (event) => {
+      console.log("load event fired");
 
+      const iframe = document.getElementById('iframe').contentWindow.document.body
+      // setTimeout( () => {
+         const observer = new MutationObserver((mutationsList, observered) => {
+            console.log('Mutation observer body is being ran!')
+            autoScroll();
+            // observer.disconnect();
+
+            document.removeEventListener(loadListener, null)
+
+         })
+         observer.observe(iframe, { attributes: true, childList: true, subtree: true })
+         console.log(document.getElementById('iframe').contentWindow.document.body)
+      // }, 1000)
+   };
+</script> -->
 </html>

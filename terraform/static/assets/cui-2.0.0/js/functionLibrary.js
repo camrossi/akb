@@ -155,10 +155,24 @@ function startAutoScroll() {
   autoScrollTimer = setInterval(() => {
     autoScroll();
     console.log("autoScrolled")
-  }, 50)
+  }, 200)
 }
 
 function endAutoScroll() {
   if (autoScrollTimer !== null)
     clearInterval(autoScrollTimer);
+}
+
+let autoScrollBool = true;
+function toggleAutoScroll() {
+  autoScrollBool = !autoScrollBool;
+  autoScrollButton = document.getElementById("autoScrollToggle");
+  // console.log(autoScrollButton);
+  if (autoScrollBool) {
+    autoScrollButton.value = "Stop Autoscroll";
+    startAutoScroll();
+  } else {
+    autoScrollButton.value = "Start Autoscroll";
+    endAutoScroll();
+  }
 }

@@ -225,19 +225,7 @@
        }
    }
    startAutoScroll();
-   let autoScrollBool = true;
-   function toggleAutoScroll() {
-      autoScrollBool = !autoScrollBool;
-      if (autoScrollBool) {
-         document.querySelector("autoScrollToggle").value = "Stop Autoscroll";
-         startAutoScroll();
-      }
-      else;
-      {
-         document.querySelector("autoScrollToggle").value = "Start Autoscroll";
-         endAutoScroll();
-      }
-   }
+
 </script>
 <script>
     $(document).ready(function () {
@@ -273,23 +261,4 @@
 <div id="canvas"></div>
 
 </body>
-<!-- <script>
-   window.onload = (event) => {
-      console.log("load event fired");
-
-      const iframe = document.getElementById('iframe').contentWindow.document.body
-      // setTimeout( () => {
-         const observer = new MutationObserver((mutationsList, observered) => {
-            console.log('Mutation observer body is being ran!')
-            autoScroll();
-            // observer.disconnect();
-
-            document.removeEventListener(loadListener, null)
-
-         })
-         observer.observe(iframe, { attributes: true, childList: true, subtree: true })
-         console.log(document.getElementById('iframe').contentWindow.document.body)
-      // }, 1000)
-   };
-</script> -->
 </html>

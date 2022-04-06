@@ -52,7 +52,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5003 -D
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5003 appflask:app -D
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
@@ -101,7 +101,7 @@ jobs:
           cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5004 -D
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5004 appflask:app -D
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v46.py --headless
@@ -150,7 +150,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5005 -D
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5005 appflask:app -D
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
@@ -202,7 +202,7 @@ jobs:
           cp ~/nkt_private_key.key ../ansible/roles/sandbox/files/id_rsa
       - name: Start NKT
         run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5006 -D
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5006 appflask:app -D
       - name: Run headless chrome to generate the config
         run: | 
           python3 selenium/selenium_ui_testing_dev_cluster_v4_nat_chris.py --headless
@@ -253,7 +253,7 @@ jobs:
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
-            gunicorn -w 4 -k gevent -b 0.0.0.0:5010 -D
+            gunicorn -w 4 -k gevent -b 0.0.0.0:5010 appflask:app -D
         - name: Run headless chrome to generate the config
           run: | 
             python3 selenium/selenium_ui_testing_dev_ndfc_v4.py --url http://localhost:5010 --headless

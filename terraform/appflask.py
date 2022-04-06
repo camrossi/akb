@@ -891,7 +891,7 @@ def vcenterlogin():
             return render_template('vcenter-login.html', fabric_type=fabric_type)
 
 
-def update_load():
+def update_load(ovf_handle):
     with app.app_context():
         # x=1
         while ovf_handle.get_upload_progress() < 99:
@@ -955,7 +955,6 @@ def vctemplate():
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
             ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
-            global ovf_handle
             ovf_handle = vc_utils.OvfHandler(ova_path, upload_progress_update)
             ovf_manager = si.content.ovfManager
             cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
@@ -969,7 +968,7 @@ def vctemplate():
             ovf_handle.set_spec(cisr)
 
             # Run the update_load function in a new thread
-            threading.Thread(target=update_load).start()
+            threading.Thread(target=update_load, args=(ovf_handle)).start()
 
             #Start upload as a new thread
             #Find Folder

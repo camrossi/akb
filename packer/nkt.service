@@ -3,7 +3,7 @@ Description=Nexus Kubernetes Tools
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/cisco/akb/terraform/appflask.py -p 80
+ExecStart=gunicorn -w 4 -k gevent -b 0.0.0.0:80 appflask:app
 WorkingDirectory=/home/cisco/akb/terraform
 StandardOutput=inherit
 StandardError=inherit

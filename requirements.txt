@@ -17,3 +17,6 @@ pyhcl
 jinja2
 pytest
 selenium
+gunicorn
+gevent
+python-dotenv

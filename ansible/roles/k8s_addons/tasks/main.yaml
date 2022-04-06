@@ -17,6 +17,9 @@
     - metric_server.yaml
     - goldpinger.yaml
     - local-storage.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
@@ -26,6 +29,9 @@
     dest: /tmp/neo4j-values.yaml
     force: yes
   when: fabric_type is not defined or fabric_type == "aci"
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
@@ -39,31 +45,49 @@
 - name: Create guestbook ns
   shell: kubectl create ns gb
   ignore_errors: yes
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
 - name: Deply guestbook NS Deployment
   shell: kubectl -n gb apply -f /tmp/guestbook-all-in-one.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
 - name: Create guestbook ingress
   shell: kubectl apply -f /tmp/ingress.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
 - name: Create kubernetes-dashboard Deployment
   shell: kubectl apply -f /tmp/k8s_dashboard_220.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
 - name: Install Metric Server
   shell: kubectl apply -f /tmp/metric_server.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
 - name: Install Gold Pinger
   shell: kubectl apply -f /tmp/goldpinger.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
@@ -72,7 +96,7 @@
     kubectl label node {{ item }} local-storage=yes --overwrite
   loop: "{{groups['k8s_nodes']}}"
   register: label_res
-  retries: 10
+  retries: 5
   until: label_res is success
   any_errors_fatal: true
   tags:
@@ -83,7 +107,7 @@
     kubectl label node {{ item }} external-ip={{ hostvars[item].ansible_host }} --overwrite
   loop: "{{groups['k8s_nodes']}}"
   register: label_res
-  retries: 10
+  retries: 5
   until: label_res is success
   any_errors_fatal: true
   tags:
@@ -91,6 +115,9 @@
 
 - name: enabled local storage
   shell: kubectl apply -f /tmp/local-storage.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
@@ -99,6 +126,9 @@
 - name: Add Neo4J helm Repo
   shell: helm repo add neo4j https://helm.neo4j.com/neo4j
   environment: "{{ proxy_env }}"
+  register: label_res
+  retries: 5
+  until: label_res is success
   when:
     - not sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
@@ -106,18 +136,26 @@
     - k8s_addons
 
 - name: helm repo update
-  shell: helm repo update
+  shell: helm repo update4
+  register: label_res
+  retries: 5
+  until: label_res is success
   when: 
     - not sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
   environment: "{{ proxy_env }}"
+  register: label_res
+  retries: 5
+  until: label_res is success
   tags:
     - k8s_addons
 
 - name: helm install Neo4J
   shell: helm install my-neo4j neo4j/neo4j-standalone -f /tmp/neo4j-values.yaml
   environment: "{{ proxy_env }}"
-  ignore_errors: yes
+  register: label_res
+  retries: 5
+  until: label_res is success
   when: 
     - not sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
@@ -126,10 +164,12 @@
 
 - name: helm install Neo4J 
   shell: helm install my-neo4j neo4j-standalone-4.4.3.tgz  -f /tmp/neo4j-values.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
   when:
     - sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
-  ignore_errors: yes
   tags:
     - k8s_addons
 
@@ -172,6 +212,9 @@
 ####
 - name: Install vkaci
   shell: kubectl apply -f /tmp/vkaci.yaml.j2
+  register: label_res
+  retries: 5
+  until: label_res is success
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons

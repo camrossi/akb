@@ -401,17 +401,17 @@ def tf_apply():
 @app.route('/create', methods=['GET', 'POST'])
 def create():
     '''Page that creates the cluster'''
-    logger.info('create page: load env variables')
-    cluster = json.loads(getdotenv('cluster'))
-    vc = json.loads(getdotenv('vc'))
-    calico_nodes = json.loads(getdotenv('calico_nodes'))
     vkaci_ui = ""
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
+
     if request.method == 'GET':
-        if fabric_type == "aci":
-            try:
+        try:
+            cluster = json.loads(getdotenv('cluster'))
+            vc = json.loads(getdotenv('vc'))
+            calico_nodes = json.loads(getdotenv('calico_nodes'))
+            if fabric_type == "aci":
                 l3out = json.loads(getdotenv('l3out'))
                 apic = json.loads(getdotenv('apic'))
                 tf_apic = {}
@@ -435,13 +435,10 @@ def create():
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
                 with open('cluster.tfvars', 'w') as f:
                     f.write(config)
-            except(KeyError, json.JSONDecodeError, NameError) as e:
-                print(e)
-                config = []
-        elif fabric_type == "vxlan_evpn":
-            ndfc = json.loads(getdotenv('ndfc'))
-            overlay = json.loads(getdotenv('overlay'))
-            try:
+
+            elif fabric_type == "vxlan_evpn":
+                ndfc = json.loads(getdotenv('ndfc'))
+                overlay = json.loads(getdotenv('overlay'))
                 config = ndfc_create_tf_vars(fabric_type,
                                         vc,
                                         ndfc,
@@ -451,13 +448,14 @@ def create():
                 
                 with open('./ndfc/cluster.tfvars', 'w', encoding='utf-8') as f:
                     f.write(config)
-            except Exception as e:
-                print(e)
-                config = []
-        else:
-            config = json.dumps({
-                "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
-            })
+
+            else:
+                config = json.dumps({
+                    "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
+                })
+        except Exception as e:
+            print(e)
+            config = []
         return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
     if request.method == 'POST':
         req = request.form

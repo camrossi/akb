@@ -19,4 +19,4 @@ pytest
 selenium
 gunicorn
 gevent
-dotenv
+python-dotenv

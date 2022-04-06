@@ -1,6 +1,7 @@
 from asyncio.log import logger
 import json
 from logging import error
+from socket import gaierror
 import threading
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
@@ -32,7 +33,7 @@ formatter = logging.Formatter(
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
-# from flask_socketio import SocketIO
+
 
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
 TF_STATE_ACI = "terraform.tfstate"
@@ -927,9 +928,13 @@ def vctemplate():
         if button == None and req.get("dc"):
             try:
                 si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            except gaierror as e:
+                flash("Unable to connect to VC", 'error')
+                return redirect('/vcenterlogin')
             except Exception as e:
                 flash(e.msg, 'error')
-                return redirect('/vcenterlogin')
+                return redirect('/vcenterlogin')  
+
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
@@ -950,7 +955,14 @@ def vctemplate():
                                   target='template-upload-folder'))
 
         if button == "Upload":
-            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            try:
+                si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            except gaierror as e:
+                flash("Unable to connect to VC", 'error')
+                return redirect('/vcenterlogin')
+            except Exception as e:
+                flash(e.msg, 'error')
+                return redirect('/vcenterlogin')            
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
@@ -1003,6 +1015,9 @@ def vctemplate():
     if request.method == 'GET':
         try:
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except gaierror as e:
+            flash("Unable to connect to VC", 'error')
+            return redirect('/vcenterlogin')
         except Exception as e:
             flash(e.msg, 'error')
             return redirect('/vcenterlogin')
@@ -1053,7 +1068,14 @@ def vcenter():
             return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
 
         elif button == None and req.get("dc"):
-            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            try:
+                si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            except gaierror as e:
+                flash("Unable to connect to VC", 'error')
+                return redirect('/vcenterlogin')
+            except Exception as e:
+                flash(e.msg, 'error')
+                return redirect('/vcenterlogin')                     
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
@@ -1093,6 +1115,9 @@ def vcenter():
         vc = json.loads(getdotenv('vc'))
         try:
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except gaierror as e:
+            flash("Unable to connect to VC", 'error')
+            return redirect('/vcenterlogin')
         except Exception as e:
             flash(e.msg, 'error')
             return redirect('/vcenterlogin')

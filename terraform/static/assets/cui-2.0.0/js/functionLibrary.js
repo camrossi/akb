@@ -166,7 +166,7 @@ function endAutoScroll() {
 let autoScrollBool = true;
 function toggleAutoScroll() {
   autoScrollBool = !autoScrollBool;
-  autoScrollButton = document.getElementById("autoScrollToggle");
+  const autoScrollButton = document.getElementById("autoScrollToggle");
   // console.log(autoScrollButton);
   if (autoScrollBool) {
     autoScrollButton.value = "Stop Autoscroll";

@@ -49,7 +49,7 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://10.67.185.120:5001")
+driver.get("http://10.67.185.67/")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
@@ -57,7 +57,7 @@ elem.click()
 assert "Apic Login" in driver.title
 elem = driver.find_element(By.NAME,"fabric")
 elem.clear()
-elem.send_keys("fab1-apic1.cam.ciscolabs.com")
+elem.send_keys("10.67.185.106")
 elem = driver.find_element(By.NAME,"username")
 elem.clear()
 elem.send_keys("admin")
@@ -103,7 +103,7 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
 assert "vCenter Login" in driver.title
 elem = driver.find_element(By.NAME,"url")
-elem.send_keys("vc1.cam.ciscolabs.com")
+elem.send_keys("10.67.185.101")
 elem = driver.find_element(By.NAME,"username")
 elem.send_keys("administrator@vsphere.local")
 elem = driver.find_element(By.NAME,"pass")

@@ -42,8 +42,8 @@ TF_STATE_NDFC = "./ndfc/terraform.tfstate"
 TEMPLATE_NAME = "nkt_template"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
-executor = Executor(app)
 app.config['SECRET_KEY'] = 'cisco'
+executor = Executor(app)
 turbo = Turbo(app)
 
 def getdotenv(env):

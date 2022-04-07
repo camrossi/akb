@@ -39,7 +39,7 @@ logger.setLevel(logging.INFO)
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
 TF_STATE_ACI = "terraform.tfstate"
 TF_STATE_NDFC = "./ndfc/terraform.tfstate"
-TEMPLATE_NAME = "nkt_template"
+TEMPLATE_NAME = "nkt_template_test"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
 executor = Executor(app)

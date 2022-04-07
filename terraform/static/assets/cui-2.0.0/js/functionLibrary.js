@@ -138,23 +138,53 @@ function loadInputLimit(limitArr) {
   // console.log("Loaded saved inputs from local storage.");
 }
 
-let previousScrollTop = 0;
+let previousBottom = 0;
+let previousIframeSrc = "";
+let savedBottom = 0;
 function autoScroll(input) {
   const frame = document
     .querySelector("iframe")
     .contentWindow.document.querySelector("html");
-  const bottom = frame.scrollHeight;
-  if (frame.scrollTop == previousScrollTop || input !== null) {
-    frame.scrollTo(0, bottom);
-    previousScrollTop = frame.scrollTop;
+  const iframeSrc = document.querySelector("iframe").getAttribute("src");
+  const bottom = frame.scrollHeight - 564;
+  const currentHeight = frame.scrollTop;
+
+  if (savedBottom !== 0) {
+    if (savedBottom !== bottom) {
+      previousBottom = 0;
+      savedBottom = 0;
+    }
   }
+  else {
+    if (iframeSrc !== previousIframeSrc) {
+      console.log("iframe src: " + iframeSrc);
+      console.log("previous iframe src: " + previousIframeSrc);
+      console.log("changed iframe src");
+      // previousBottom = 0;
+      previousIframeSrc = iframeSrc;
+      savedBottom = bottom;
+      // endAutoScroll();
+      // startAutoScroll();
+    }
+
+    if (currentHeight >= previousBottom - 1 || input !== undefined) {
+      frame.scrollTo(0, bottom);
+      console.log("Previous Bottom: " + previousBottom);
+      console.log("frame.scrollTop: " + currentHeight);
+      console.log("autoScrolled");
+      previousBottom = bottom;
+    } else if (currentHeight < previousBottom - 1) {
+      console.log("Previous Bottom: " + previousBottom);
+      console.log("frame.scrollTop: " + currentHeight);
+      console.log("Cursor moved so will not autoscroll");
+    }
+  }  
 }
 
 let autoScrollTimer = null;
 function startAutoScroll() {
   autoScrollTimer = setInterval(() => {
     autoScroll();
-    console.log("autoScrolled")
   }, 200)
 }
 
@@ -170,6 +200,8 @@ function toggleAutoScroll() {
   // console.log(autoScrollButton);
   if (autoScrollBool) {
     autoScrollButton.value = "Stop Autoscroll";
+    previousBottom = 0;
+    // previousIframeSrc = "";
     startAutoScroll();
   } else {
     autoScrollButton.value = "Start Autoscroll";

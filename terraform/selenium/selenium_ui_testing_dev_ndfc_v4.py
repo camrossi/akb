@@ -119,7 +119,7 @@ def vcenter_page(driver):
 
     # Wait for vCenter API to populate the page
     try:
-        WebDriverWait(driver, 600).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
+        WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
     except ValueError as e:
         print(e)
         print("Loading took too much time!")

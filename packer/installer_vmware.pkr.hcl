@@ -20,7 +20,7 @@ source "vsphere-clone" "clone" {
   datacenter = "STLD"
   cluster = "Cluster"
   host = "esxi4.cam.ciscolabs.com"
-  datastore = "BM01"
+  datastore = "ESXi4-SSD3"
   insecure_connection  = true
   username       = "administrator@vsphere.local"
   password     = "123Cisco123!"

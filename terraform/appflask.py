@@ -280,7 +280,14 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
         ingress_ip = ""
         visibility_ip = ""
         neo4j_ip = ""
-    dns_servers = list(dns_servers.split(","))
+
+    #I need to have a DNS server configuired for core DNS, set one if the DNS server list is empty
+    
+    if dns_servers == "":
+        dns_servers = ['8.8.8.8.8']
+    else:
+        dns_servers = list(dns_servers.split(","))
+
     ubuntu_apt_mirror = normalize_apt_mirror(ubuntu_apt_mirror)
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
                 "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else None,

@@ -284,7 +284,7 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
     #I need to have a DNS server configuired for core DNS, set one if the DNS server list is empty
     
     if dns_servers == "":
-        dns_servers = ['8.8.8.8.8']
+        dns_servers = ['8.8.8.8']
     else:
         dns_servers = list(dns_servers.split(","))
 

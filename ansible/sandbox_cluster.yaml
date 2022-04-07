@@ -15,7 +15,7 @@
       delay: 5
       timeout: 5000
 
-  - name: Pause for 30s minutes to ensure the hosts are stable
+  - name: Pause for 30s to ensure the hosts are stable
     pause:
       seconds: 30
 

@@ -19,7 +19,7 @@ source "vsphere-clone" "clone" {
   boot_wait            = "10s"
   datacenter = "STLD"
   cluster = "Cluster"
-  host = "esxi5.cam.ciscolabs.com"
+  host = "esxi4.cam.ciscolabs.com"
   datastore = "BM01"
   insecure_connection  = true
   username       = "administrator@vsphere.local"

@@ -1,5 +1,6 @@
 https://github.com/datacenter/pyaci/archive/master.zip
 Flask
+flask_executor
 pyOpenSSL
 requests
 urllib3

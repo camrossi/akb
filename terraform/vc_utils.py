@@ -218,7 +218,7 @@ class OvfHandler(object):
 
     # class functions
 
-    def __init__(self, ovafile, update_progress_func):
+    def __init__(self, ovafile):
         """
         Performs necessary initialization, opening the OVA file,
         processing the files and reading the embedded ovf file.
@@ -229,7 +229,6 @@ class OvfHandler(object):
                                   self.tarfile.getnames()))[0]
         ovffile = self.tarfile.extractfile(ovffilename)
         self.descriptor = ovffile.read().decode()
-        self.update_progress_function = update_progress_func
 
     def _create_file_handle(self, entry):
         """
@@ -310,7 +309,6 @@ class OvfHandler(object):
         A simple way to keep updating progress while the disks are transferred.
         """
         Timer(5, self.timer).start()
-        # Timer(5, self.set_upload_progress(self.handle.progress())).start()
 
     def timer(self):
         """
@@ -323,7 +321,6 @@ class OvfHandler(object):
                                         vim.HttpNfcLease.State.error]:
                 self.start_timer()
             sys.stderr.write("Progress: %d%%\r" % prog)
-            # self.set_upload_progress(prog)
             self.upload_progress = prog
             return prog
         except Exception:  # Any exception means we should stop updating progress.
@@ -333,16 +330,6 @@ class OvfHandler(object):
         """
         Return the value of the upload_progress member variable.
         """
-        # print("get upload progress ran")
-        # print("get_upload_progress: " + str(self.upload_progress))
-        return self.upload_progress
-
-    def set_upload_progress(self, progress):
-        """
-        Update the upload_progress member variable and return the new value.
-        """
-        # print("set upload progress ran: " + progress)
-        self.upload_progress = progress
         return self.upload_progress
 
 

@@ -5,6 +5,7 @@ from socket import gaierror
 import threading
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
+from flask_executor import Executor
 import vc_utils
 from turbo_flask import Turbo
 import requests
@@ -41,6 +42,7 @@ TF_STATE_NDFC = "./ndfc/terraform.tfstate"
 TEMPLATE_NAME = "nkt_template"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
+executor = Executor(app)
 app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
@@ -893,26 +895,18 @@ def vcenterlogin():
 
 
 def update_load(ovf_handle):
-    with app.app_context():
-        # x=1
-        while ovf_handle.get_upload_progress() < 99:
-            time.sleep(.5)
-            # x = x + 1
-            htmlRendered = render_template('_template_upload_progress.html', progressVal=ovf_handle.get_upload_progress())
-            # below line prints the server-side rendered html and significantly helps debugging of the progress bar
-            # print(htmlRendered)
-            turbo.push(turbo.replace(htmlRendered, 'template-upload-progress'))
-
-def upload_progress_update(new_progress):
     ''' Updates the progress of the upload on the UI'''
-    print("upload_progress_update ran")
-    if turbo.can_stream():
-        print("returned turbo stream")
-        return turbo.stream(
-            turbo.update(render_template('_template_upload_progress.html', progressVal=new_progress),
-                         target='_template_upload_progress'))
-    else:
-        return render_template('_template_upload_progress.html', progressVal=new_progress)
+    while ovf_handle.get_upload_progress() < 99:
+        time.sleep(.5)
+        # x = x + 1
+        htmlRendered = render_template('_template_upload_progress.html', progressVal=ovf_handle.get_upload_progress())
+        # below line prints the server-side rendered html and significantly helps debugging of the progress bar
+        # print(htmlRendered)
+        if turbo.can_stream():
+            print("Web App:" , ovf_handle.get_upload_progress())
+            turbo.push(turbo.replace(htmlRendered, 'template-upload-progress'))
+        else:
+            print("can't stream")
 
 @app.route('/vctemplate', methods=['GET', 'POST'])
 def vctemplate():
@@ -967,7 +961,7 @@ def vctemplate():
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
             ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
-            ovf_handle = vc_utils.OvfHandler(ova_path, upload_progress_update)
+            ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
             cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
 
@@ -980,7 +974,7 @@ def vctemplate():
             ovf_handle.set_spec(cisr)
 
             # Run the update_load function in a new thread
-            threading.Thread(target=update_load, args=(ovf_handle)).start()
+            executor.submit(update_load, ovf_handle)
 
             #Start upload as a new thread
             #Find Folder

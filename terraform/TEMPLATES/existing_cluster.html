@@ -108,6 +108,11 @@
                                 <label>Terraform Output:
                                     <span data-title="Here is capture the output of Terraform and Ansible">ⓘ</span>
                                 </label>
+                                <label data-cubexswitch="container" notcomponent="" class="switch">
+                                    <input type="checkbox" checked="" id="_uidc016420c" onchange="toggleAutoScroll()">
+                                    <span class="switch__label">Auto Scroll</span>
+                                    <span class="switch__input"></span>
+                                 </label>
                                 <iframe id='iframe' src="" style="max-height: 92%"></iframe>
                             </div>
                         </div>
@@ -127,7 +132,6 @@
             <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
             <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
             <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
-            <input type="button" value="Stop Autoscroll" id="autoScrollToggle" class="btn btn--wide" name="button" onclick="toggleAutoScroll()">
         </div>
 
    </div>

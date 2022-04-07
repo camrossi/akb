@@ -125,7 +125,7 @@ select.select_by_visible_text("AKB")
 
 #Wait for vCenter API to populate the page
 try:
-    WebDriverWait(driver, 600).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
 except ValueError as e:
     print("Loading took too much time!")
 #elem = driver.find_element(By.ID,'datastore')

@@ -15,6 +15,10 @@
       delay: 5
       timeout: 5000
 
+  - name: Pause for 30s minutes to ensure the hosts are stable
+    pause:
+      seconds: 30
+
 - hosts: k8s_primary_master
   gather_facts: True
   roles:

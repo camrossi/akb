@@ -1,7 +1,11 @@
+from asyncio.log import logger
 import json
 from logging import error
+from socket import gaierror
+import threading
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
+from flask_executor import Executor
 import vc_utils
 from turbo_flask import Turbo
 import requests
@@ -19,15 +23,46 @@ import hcl
 from ndfc import NDFC, Fabric
 from jinja2 import Template
 import argparse
+from dotenv import load_dotenv
+import time
+import logging
+
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+        '%(asctime)s %(name)-1s %(levelname)-1s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
 
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
 TF_STATE_ACI = "terraform.tfstate"
 TF_STATE_NDFC = "./ndfc/terraform.tfstate"
+TEMPLATE_NAME = "nkt_template"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
+executor = Executor(app)
 app.config['SECRET_KEY'] = 'cisco'
 turbo = Turbo(app)
 
+def getdotenv(env):
+    '''Load dotenv'''
+    try:
+        load_dotenv(override=True)
+        val = os.getenv(env)
+        return val
+    except :
+        return None
+
+def setdotenv(key, value):
+    '''Set dotenv'''
+    if key :
+        if not value:
+            value = '\'\''
+        cmd = 'dotenv set ' + key + " '" + value + " '"
+        os.system(cmd)
+    return None
 
 def require_api_token(func):
     '''This function is used to block direct access to all pages unless you have a session token'''
@@ -56,7 +91,6 @@ def get_fabric_type(http_request: request) -> str:
         fabric_type = "aci"
     return fabric_type.lower()
 
-
 def normalize_url(hostname: str) -> str:
     if hostname.startswith('http://'):
         url = hostname.replace("http://", "https://")
@@ -80,32 +114,30 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
     ''' NDFC: Parse the data received from the fabric page  '''
 
     try:
-        global OVERLAY
-        global ipv6_enabled
-        OVERLAY = {}
-        OVERLAY["fabric_name"] = data["fabric_name"]
-        OVERLAY["asn"] = data["asn"]
-        OVERLAY["vrf"] = data["vrf"]
-        OVERLAY["loopback_ipv4"] = data["loopback_ipv4"]
-        OVERLAY["loopback_ipv6"] = data["loopback_ipv6"]
-        OVERLAY["gateway_v4"] = data["gateway_v4"]
-        OVERLAY["gateway_v6"] = data["gateway_v6"]
-        OVERLAY["node_sub"] = data["node_sub"]
-        OVERLAY["node_sub_v6"] = data["node_sub_v6"]
-        OVERLAY["ipv6_enabled"] = data["ipv6_enabled"]
-        OVERLAY["network"] = data["network"]
-        OVERLAY["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
-        OVERLAY["bgp_pass"] = data["bgp_pass"]
-        OVERLAY["k8s_integ"] = data["k8s_integ"]
-        OVERLAY["k8s_route_map"] = data["k8s_route_map"]
-        OVERLAY["route_tag"] = data["route_tag"]
-        OVERLAY["vpc_peers"] = []
+        overlay = {}
+        overlay["fabric_name"] = data["fabric_name"]
+        overlay["asn"] = data["asn"]
+        overlay["vrf"] = data["vrf"]
+        overlay["loopback_ipv4"] = data["loopback_ipv4"]
+        overlay["loopback_ipv6"] = data["loopback_ipv6"]
+        overlay["gateway_v4"] = data["gateway_v4"]
+        overlay["gateway_v6"] = data["gateway_v6"]
+        overlay["node_sub"] = data["node_sub"]
+        overlay["node_sub_v6"] = data["node_sub_v6"]
+        overlay["ipv6_enabled"] = data["ipv6_enabled"]
+        overlay["network"] = data["network"]
+        overlay["ibgp_peer_vlan"] = data["ibgp_peer_vlan"]
+        overlay["bgp_pass"] = data["bgp_pass"]
+        overlay["k8s_integ"] = data["k8s_integ"]
+        overlay["k8s_route_map"] = data["k8s_route_map"]
+        overlay["route_tag"] = data["route_tag"]
+        overlay["vpc_peers"] = []
         for peer in data["vpc_peers"]:
             primary = {
                 "hostname": peer["primary"],
                 "loopback_id": data["loopback_id"],
                 "loopback_ipv4": data["loopback_ipv4"][0],
-                "loopback_ipv6": data["loopback_ipv6"][0] if OVERLAY["ipv6_enabled"] else "",
+                "loopback_ipv6": data["loopback_ipv6"][0] if overlay["ipv6_enabled"] else "",
                 "ibgp_svi_ipv4": peer["primary_ipv4"],
                 "ibgp_peer_ipv4": peer["secondary_ipv4"].split("/")[0],
                 "ibgp_svi_ipv6": "",
@@ -116,16 +148,19 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
                 "hostname": peer["secondary"],
                 "loopback_id": data["loopback_id"],
                 "loopback_ipv4": data["loopback_ipv4"][1],
-                "loopback_ipv6": data["loopback_ipv6"][1] if OVERLAY["ipv6_enabled"] else "",
+                "loopback_ipv6": data["loopback_ipv6"][1] if overlay["ipv6_enabled"] else "",
                 "ibgp_svi_ipv4": peer["secondary_ipv4"],
                 "ibgp_peer_ipv4": peer["primary_ipv4"].split("/")[0],
                 "ibgp_svi_ipv6": "",
                 "ibgp_peer_ipv6": ""
             }
 
-            OVERLAY["vpc_peers"].append([primary, secondary])
-        ipv6_enabled = OVERLAY["ipv6_enabled"]
-            
+            overlay["vpc_peers"].append([primary, secondary])
+        
+        logger.info('set overlay variable')
+        setdotenv('overlay', json.dumps(overlay))
+        if overlay["ipv6_enabled"]:
+            setdotenv('ipv6_enabled', "")
     except KeyError as e:
         print(e)
         return False
@@ -232,8 +267,6 @@ def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="
     "vm_folder": vm_folder, "vm_deploy": vm_deploy
     }
     return vc_vars
-     
-
 
 def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
                         crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain=""):
@@ -283,8 +316,6 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
                 } 
     return cluster
 
-### DOCUMENTATION START ####
-
 
 @app.route('/docs/doc', methods=['GET', 'POST'])
 def docs():
@@ -312,10 +343,6 @@ def prereqaci():
 def doc_ndfc():
     '''Return the NDFC Documentation '''
     return render_template('docs/ndfc.html')
-
-##### DOCUMENTATION END #####
-
-
 
 @app.route('/tf_plan', methods=['GET', 'POST'])
 @require_api_token
@@ -374,22 +401,22 @@ def tf_apply():
         g.run(["bash", "-c", "terraform -chdir=ndfc apply -auto-approve -no-color plan"])
     return Response( read_process(g), mimetype='text/event-stream' )
 
-
-
 @app.route('/create', methods=['GET', 'POST'])
 def create():
     '''Page that creates the cluster'''
-    global cluster
-    global apic
-    global l3out
-    global vc
     vkaci_ui = ""
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
+
     if request.method == 'GET':
-        if fabric_type == "aci":
-            try:
+        try:
+            cluster = json.loads(getdotenv('cluster'))
+            vc = json.loads(getdotenv('vc'))
+            calico_nodes = json.loads(getdotenv('calico_nodes'))
+            if fabric_type == "aci":
+                l3out = json.loads(getdotenv('l3out'))
+                apic = json.loads(getdotenv('apic'))
                 tf_apic = {}
                 tf_apic['username'] = apic["nkt_user"]
                 tf_apic['cert_name'] = apic["nkt_user"]
@@ -411,27 +438,27 @@ def create():
                 config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
                 with open('cluster.tfvars', 'w') as f:
                     f.write(config)
-            except(KeyError, json.JSONDecodeError, NameError) as e:
-                print(e)
-                config = []
-        elif fabric_type == "vxlan_evpn":
-            try:
+
+            elif fabric_type == "vxlan_evpn":
+                ndfc = json.loads(getdotenv('ndfc'))
+                overlay = json.loads(getdotenv('overlay'))
                 config = ndfc_create_tf_vars(fabric_type,
                                         vc,
                                         ndfc,
-                                        OVERLAY,
+                                        overlay,
                                         calico_nodes,
                                         cluster)
                 
                 with open('./ndfc/cluster.tfvars', 'w', encoding='utf-8') as f:
                     f.write(config)
-            except Exception as e:
-                print(e)
-                config = []
-        else:
-            config = json.dumps({
-                "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
-            })
+
+            else:
+                config = json.dumps({
+                    "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
+                })
+        except Exception as e:
+            print(e)
+            config = []
         return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
     if request.method == 'POST':
         req = request.form
@@ -472,13 +499,14 @@ def calico_nodes_view():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    global calico_nodes
     calico_nodes = []
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
         if button == "Next":
             calico_nodes = json.loads(req.get("calico_nodes"))
+            logger.info('save calico_nodes variable')
+            setdotenv('calico_nodes', json.dumps(calico_nodes))     
             return redirect(f"/cluster?fabric_type={fabric_type}")
         if button == "Previous":
             return redirect('/vcenter')
@@ -508,6 +536,7 @@ def calico_nodes_view():
             if ipaddress.IPv4Network(ip, strict=False).network_address == ipaddress.IPv4Interface(ip).ip:
                 return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 can't be the network address " + ip)
             if fabric_type == "aci":
+                l3out = json.loads(getdotenv('l3out'))
                 if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]):
                     return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the IPv4 Cluster Subnet: " + l3out["ipv4_cluster_subnet"])
                 if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["floating_ip"]).ip:
@@ -515,8 +544,11 @@ def calico_nodes_view():
                 if ipaddress.IPv4Interface(ip).ip == ipaddress.IPv4Interface(l3out["secondary_ip"]).ip:
                     return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ip " + l3out["secondary_ip"])
             elif fabric_type == "vxlan_evpn":
-                if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(OVERLAY["node_sub"]):
-                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the selected Network Subnet: " + OVERLAY["node_sub"])
+                overlay = json.loads(getdotenv('overlay'))
+                if ipaddress.IPv4Interface(ip).ip not in ipaddress.IPv4Network(overlay["node_sub"]):
+                    return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv4 must be contained in the selected Network Subnet: " + overlay["node_sub"])
+            
+            ipv6_enabled = getdotenv('ipv6_enabled')
 
             if ipv6_enabled:
                 try:
@@ -536,8 +568,8 @@ def calico_nodes_view():
                     if ipaddress.IPv6Interface(ipv6).ip == ipaddress.IPv6Interface(l3out["secondary_ipv6"]).ip:
                         return calico_nodes_error(req.get("calico_nodes"), "The Node IP overlaps with the secondary_ipv6 " + l3out["secondary_ipv6"])
                 elif fabric_type == "vxlan_evpn":
-                    if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(OVERLAY["node_sub_v6"]):
-                        return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the Selected Network Subnet: " + OVERLAY["node_sub_v6"])
+                    if ipaddress.IPv6Interface(ipv6).ip not in ipaddress.IPv6Network(overlay["node_sub_v6"]):
+                        return calico_nodes_error(req.get("calico_nodes"), "The Primary IPv6 must be contained in the Selected Network Subnet: " + overlay["node_sub_v6"])
 
             if rack_id == "":
                 return calico_nodes_error(req.get("calico_nodes"), "The Calico Node Rack is mandatory")
@@ -581,16 +613,18 @@ def calico_nodes_view():
                     turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
                                 target='tf_calico_nodes'))
 
-    if request.method == 'GET':
+    if request.method == 'GET':        
         if calico_nodes == []:
             i = 1
             while i <= 3:
                 hostname = 'nkt-master-' + str(i)
                 if fabric_type == "aci":
+                    l3out = json.loads(getdotenv('l3out'))
                     ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
                 elif fabric_type == "vxlan_evpn":
-                    host = str(ipaddress.IPv4Network(OVERLAY['node_sub'])[i])
-                    prefixlen = str(ipaddress.IPv4Network(OVERLAY['node_sub']).prefixlen)
+                    overlay = json.loads(getdotenv('overlay'))
+                    host = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
+                    prefixlen = str(ipaddress.IPv4Network(overlay['node_sub']).prefixlen)
                     ip = f"{host}/{prefixlen}"
                 ipv6 = ""
                 natip = ""
@@ -598,11 +632,13 @@ def calico_nodes_view():
                 calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                 i += 1
         if fabric_type == "aci":
+            l3out = json.loads(getdotenv('l3out'))
             return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
         elif fabric_type == "vxlan_evpn":
+            overlay = json.loads(getdotenv('overlay'))
             return render_template('calico_nodes.html',
-                                   ipv4_cluster_subnet=OVERLAY["node_sub"],
-                                   ipv6_cluster_subnet=OVERLAY["node_sub_v6"],
+                                   ipv4_cluster_subnet=overlay["node_sub"],
+                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
                                    calico_nodes=json.dumps(calico_nodes, indent=4))
 
 
@@ -679,18 +715,21 @@ def cluster_view():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            global cluster
             if fabric_type == "aci":
+                l3out = json.loads(getdotenv('l3out'))
                 ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
                 ipv6_cluster_subnet = l3out['ipv6_cluster_subnet']
             elif fabric_type == "vxlan_evpn":
-                ipv4_cluster_subnet = OVERLAY["node_sub"]
-                ipv6_cluster_subnet = OVERLAY["node_sub_v6"]
+                overlay = json.loads(getdotenv('overlay'))
+                ipv4_cluster_subnet = overlay["node_sub"]
+                ipv6_cluster_subnet = overlay["node_sub_v6"]
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
             cluster = create_cluster_vars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
             req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"), req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
             req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"))
+            logger.info('save cluster variable')
+            setdotenv('cluster', json.dumps(cluster))
             if fabric_type == "aci":
                 return redirect('/cluster_network')
             elif fabric_type == "vxlan_evpn":
@@ -699,9 +738,11 @@ def cluster_view():
             return redirect('/calico_nodes')
     if request.method == 'GET':
         if fabric_type == "aci":
+            l3out = json.loads(getdotenv('l3out'))
             ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
         elif fabric_type == "vxlan_evpn":
-            ipv4_cluster_subnet = OVERLAY["node_sub"]
+            overlay = json.loads(getdotenv('overlay'))
+            ipv4_cluster_subnet = overlay["node_sub"]
 
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
 
@@ -717,18 +758,24 @@ def calculate_k8s_as(fabric_as):
 @app.route('/cluster_network', methods=['GET', 'POST'])
 def cluster_network():
     '''K8s Cluster networks definition'''
+    vc = json.loads(getdotenv('vc'))
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    # app.logger.info(apic+apic_password+apic_username)
     if request.method == 'POST':
+        ipv6_enabled = getdotenv('ipv6_enabled')
         req = request.form
         button = req.get("button")
         if button == "Next":
+            cluster = json.loads(getdotenv('cluster'))
             if not vc['vm_deploy']:
-                global cluster
                 cluster = create_cluster_vars()
-                l3out['vlan_id'] = req.get("vlan_id")
+                if fabric_type == "aci":
+                    l3out = json.loads(getdotenv('l3out'))
+                    l3out['vlan_id'] = req.get("vlan_id")
+                logger.info('save cluster and l3out variables')
+                setdotenv('cluster', json.dumps(cluster))
+                setdotenv('l3out', json.dumps(l3out))
             external_svc_subnet = req.get("ipv4_ext_svc_sub")
             cluster['pod_subnet'] = req.get("ipv4_pod_sub")
             cluster['external_svc_subnet'] = external_svc_subnet
@@ -748,6 +795,8 @@ def cluster_network():
                 cluster['cluster_svc_subnet_v6'] = ""
                 cluster['external_svc_subnet_v6'] = ""
             
+            logger.info('save cluster variable')
+            setdotenv('cluster', json.dumps(cluster))
             return redirect(f'/create?fabric_type={fabric_type}')
         if button == "Previous" and vc['vm_deploy']:
             return redirect(f'/cluster?fabric_type={fabric_type}')
@@ -758,11 +807,13 @@ def cluster_network():
                 return redirect('/fabric')
     if request.method == 'GET':
         if fabric_type == "aci":
+            l3out = json.loads(getdotenv('l3out'))
             ipv4_cluster_subnet = l3out['ipv4_cluster_subnet']
             k8s_local_as= calculate_k8s_as(l3out['local_as'])
         elif fabric_type == "vxlan_evpn":
-            ipv4_cluster_subnet = OVERLAY['node_sub']
-            k8s_local_as= calculate_k8s_as(OVERLAY["asn"])
+            overlay = json.loads(getdotenv('overlay'))
+            ipv4_cluster_subnet = overlay['node_sub']
+            k8s_local_as= calculate_k8s_as(overlay["asn"])
 
         # Calculate Subnets
         ipv4_cluster_subnet = BetterIPv4Network(ipv4_cluster_subnet)
@@ -782,11 +833,12 @@ def cluster_network():
         ipv6_pod_sub = ""
         ipv6_svc_sub = ""
         ipv6_ext_svc_sub = ""
-        if ipv6_enabled:
+
+        if getdotenv('ipv6_enabled'):
             if fabric_type == "aci":
                 ipv6_cluster_subnet = l3out['ipv6_cluster_subnet']
             elif fabric_type == "vxlan_evpn":
-                ipv6_cluster_subnet = OVERLAY["node_sub_v6"]
+                ipv6_cluster_subnet = overlay["node_sub_v6"]
             ipv6_cluster_subnet = BetterIPv6Network(ipv6_cluster_subnet, strict=False)
             ipv6_pod_sub = (ipv6_cluster_subnet + 1 * ipv6_cluster_subnet.size())
             ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
@@ -797,8 +849,8 @@ def cluster_network():
             return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
         elif fabric_type == "vxlan_evpn":
             return render_template('cluster_network.html',
-                                   ipv4_cluster_subnet=OVERLAY["node_sub"],
-                                   ipv6_cluster_subnet=OVERLAY["node_sub_v6"],
+                                   ipv4_cluster_subnet=overlay["node_sub"],
+                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
                                    ipv4_pod_sub=ipv4_pod_sub,
                                    ipv6_pod_sub=ipv6_pod_sub,
                                    ipv4_svc_sub=ipv4_svc_sub,
@@ -808,12 +860,9 @@ def cluster_network():
                                    k8s_local_as=k8s_local_as,
                                    vm_deploy=vc['vm_deploy'])
 
-
-
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
 def vcenterlogin():
     '''vCenter Login page'''
-    global vc
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -825,6 +874,8 @@ def vcenterlogin():
             vc["url"] = req.get("url")
             vc["username"] = req.get("username")
             vc["pass"] = req.get("pass")
+            logger.info('save vc variable')
+            setdotenv('vc', json.dumps(vc))
             if fabric_type == "aci":
                 if req.get("template"):
                     return redirect('/vctemplate')
@@ -842,10 +893,25 @@ def vcenterlogin():
         if fabric_type == "vxlan_evpn":
             return render_template('vcenter-login.html', fabric_type=fabric_type)
 
+
+def update_load(ovf_handle):
+    ''' Updates the progress of the upload on the UI'''
+    while ovf_handle.get_upload_progress() < 99:
+        time.sleep(.5)
+        # x = x + 1
+        htmlRendered = render_template('_template_upload_progress.html', progressVal=ovf_handle.get_upload_progress())
+        # below line prints the server-side rendered html and significantly helps debugging of the progress bar
+        # print(htmlRendered)
+        if turbo.can_stream():
+            print("Web App:" , ovf_handle.get_upload_progress())
+            turbo.push(turbo.replace(htmlRendered, 'template-upload-progress'))
+        else:
+            print("can't stream")
+
 @app.route('/vctemplate', methods=['GET', 'POST'])
 def vctemplate():
     '''vCenter Update VM Template Page'''
-    global vc
+    vc = json.loads(getdotenv('vc'))
     vc_folders = []
     dss = []
     if request.method == 'POST':
@@ -856,9 +922,13 @@ def vctemplate():
         if button == None and req.get("dc"):
             try:
                 si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            except gaierror as e:
+                flash("Unable to connect to VC", 'error')
+                return redirect('/vcenterlogin')
             except Exception as e:
                 flash(e.msg, 'error')
-                return redirect('/vcenterlogin')
+                return redirect('/vcenterlogin')  
+
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
@@ -879,15 +949,21 @@ def vctemplate():
                                   target='template-upload-folder'))
 
         if button == "Upload":
-            template_name = "nkt_template"
-            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            try:
+                si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            except gaierror as e:
+                flash("Unable to connect to VC", 'error')
+                return redirect('/vcenterlogin')
+            except Exception as e:
+                flash(e.msg, 'error')
+                return redirect('/vcenterlogin')            
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
             resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
-            ova_path = str(os.getcwd()) + "/static/vm_templates/nkt_template.ova"
+            ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
             ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
-            cisp = vc_utils.import_spec_params(entityName=template_name, diskProvisioning='thin')
+            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
 
             cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(), resource_pool, datastore, cisp)
             if cisr.error:
@@ -897,6 +973,8 @@ def vctemplate():
 
             ovf_handle.set_spec(cisr)
 
+            # Run the update_load function in a new thread
+            executor.submit(update_load, ovf_handle)
 
             #Start upload as a new thread
             #Find Folder
@@ -907,7 +985,7 @@ def vctemplate():
                         folder = child
 
             # If the template already exists, delete it!
-            vm = vc_utils.find_by_name(si,folder,template_name)
+            vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)
             if vm:
                 task = vm.Destroy_Task()
                 vc_utils.wait_for_tasks(si, [task])
@@ -915,24 +993,35 @@ def vctemplate():
             upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
             # Wait for upload to complete UI freeze here
             upload.shutdown(wait=True)
-            vm = vc_utils.find_by_name(si,folder,template_name)
+            vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)
             vm.CreateSnapshot_Task(name=str(datetime.now()),
                                         description="Snapshot",
                                         memory=False,
                                         quiesce=False)
+
+            # Add Note to VM:
+            spec = vc_utils.vim.vm.ConfigSpec()
+            spec.annotation = TEMPLATE_NAME
+            vm.ReconfigVM_Task(spec)
 
             return redirect('/vcenter')
 
     if request.method == 'GET':
         try:
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except gaierror as e:
+            flash("Unable to connect to VC", 'error')
+            return redirect('/vcenterlogin')
         except Exception as e:
             flash(e.msg, 'error')
             return redirect('/vcenterlogin')
 
         dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
-        return render_template('vc_template_upload.html', dcs=dcs.values(), progress=0)
+        return render_template('vc_template_upload.html', dcs=dcs.values(), progressVal=0)
+        # return turbo.stream(
+        #     turbo.update(render_template('vc_template_upload.html', dcs=dcs.values(), progressVal=0),
+        #                  target='vc_template_upload'))
 
 @app.route('/vcenter', methods=['GET', 'POST'])
 def vcenter():
@@ -942,14 +1031,15 @@ def vcenter():
         return redirect('/')
     dvss = []
     vm_templates = []
-    global vm_templates_and_ds
     vc_folders = []
     pgs = []
     clusters = []
     if request.method == 'POST':
+        vc = json.loads(getdotenv('vc'))
         req = request.form
         button = req.get("button")
         if button == "Next":
+            vm_templates_and_ds = json.loads(getdotenv('vm_templates_and_ds'))
             vc["vm_template"] = req.get('vm_templates')
             vc["vm_folder"] = req.get('vm_folder')
             vc["dc"] = req.get('dc')
@@ -958,8 +1048,12 @@ def vcenter():
             vc["dvs"] = req.get('port_group').split('/')[0]
             vc["port_group"] = req.get('port_group').split('/')[1]
             if fabric_type == "aci":
+                l3out = json.loads(getdotenv('l3out'))
                 l3out['vlan_id'] = req.get('port_group').split('/')[2].split('-')[1]
-
+                logger.info('save l3out, variable')
+                setdotenv('l3out', json.dumps(l3out))
+            logger.info('save vc, variable')
+            setdotenv('vc', json.dumps(vc))
             if fabric_type == "vxlan_evpn":
                 return redirect(f'/calico_nodes?fabric_type={fabric_type}')
             else:
@@ -968,13 +1062,20 @@ def vcenter():
             return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
 
         elif button == None and req.get("dc"):
-            si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            try:
+                si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+            except gaierror as e:
+                flash("Unable to connect to VC", 'error')
+                return redirect('/vcenterlogin')
+            except Exception as e:
+                flash(e.msg, 'error')
+                return redirect('/vcenterlogin')                     
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
                 if dc.name == dc_name:
-                    vc_utils.find_vms(dc, vm_templates)
-                    #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly 
+                    vc_utils.find_vms(dc, vm_templates, TEMPLATE_NAME)
+                    #once I found the VMs I made a dic of VM to Datastore so I can get the DS directly
                     vm_templates_and_ds = {}
                     for vm in vm_templates:
                         dsl = []
@@ -985,8 +1086,6 @@ def vcenter():
                     for child in dc.hostFolder.childEntity:
                         if (vc_utils.find_compute_cluster(child)):
                             clusters.append(child.name)
-
-
                     # Get only 1st level folder
                     for child in dc.vmFolder.childEntity:
                         if vc_utils.find_folders(child):
@@ -999,15 +1098,20 @@ def vcenter():
             pgs = sorted(pgs, key=str.lower)
             clusters = sorted(clusters, key=str.lower)
             vc_utils.disconnect(si)
-
+            logger.info('save vm_templates_and_ds variable')
+            setdotenv('vm_templates_and_ds', json.dumps(vm_templates_and_ds))
             if turbo.can_stream():
                 return turbo.stream(
                     turbo.replace(render_template('_vc_details.html', clusters=clusters, vm_templates=vm_templates_names, vc_folders=vc_folders, pgs=pgs),
                                   target='vc'))
 
     if request.method == 'GET':
+        vc = json.loads(getdotenv('vc'))
         try:
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
+        except gaierror as e:
+            flash("Unable to connect to VC", 'error')
+            return redirect('/vcenterlogin')
         except Exception as e:
             flash(e.msg, 'error')
             return redirect('/vcenterlogin')
@@ -1027,7 +1131,8 @@ def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):
 
 @app.route('/l3out', methods=['GET', 'POST'])
 def l3out_view():
-    '''l3out page view'''
+    ''' l3out page view '''
+    apic = json.loads(getdotenv('apic'))
     phys_dom = []
     tenants = []
     vrfs = ["Select a Tenant"]
@@ -1037,17 +1142,17 @@ def l3out_view():
     meta_path = home + '/.aci-meta/aci-meta.json'
     pyaci_apic = Node(apic['url'], aciMetaFilePath=meta_path)
     rtr_id_counter = ipaddress.IPv4Address("1.1.1.1")
-    global ipv6_enabled
     try:
         pyaci_apic.useX509CertAuth(apic['nkt_user'],apic["nkt_user"],apic['private_key'])
     except FileNotFoundError as e:
         print(e)
         return redirect('/login')
     if request.method == 'POST':
+        vc = json.loads(getdotenv('vc'))
+        ipv6_enabled = True if getdotenv('ipv6_enabled') else False
         req = request.form
         button = req.get("button")
         if button == "Next":
-            global l3out
             mtu = int(req.get("mtu"))
             if mtu < 1280 or mtu > 9000:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
@@ -1067,6 +1172,8 @@ def l3out_view():
 
             l3out = create_l3out_vars(ipv6_enabled, req.get("l3out_tenant"), req.get("name"), req.get("vrf_name"), req.get("physical_dom"), req.get("mtu"), req.get("ipv4_cluster_subnet"), req.get("ipv6_cluster_subnet"), req.get("def_ext_epg"), req.get(
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("anchor_nodes"))
+            logger.info('save l3out variable')
+            setdotenv('l3out', json.dumps(l3out))
             if vc['vm_deploy']:
                 return redirect('/vcenterlogin')
             else:
@@ -1110,8 +1217,12 @@ def l3out_view():
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Invalid JSON:" + str(e))
             if req.get("ipv6_cluster_subnet") == "":
                 ipv6_enabled = False
+
             else:
+                logger.info('save ipv6_enabled variable')
                 ipv6_enabled = True
+                setdotenv('ipv6_enabled', "")
+            
             rack_id = req.get("rack_id")
             rtr_id = req.get("rtr_id")
             primary_ip = req.get("node_ipv4")
@@ -1120,8 +1231,10 @@ def l3out_view():
 
             try:
                 # Use the Netwrok to ensure that the mask is always present
-                ipaddress.IPv4Network(
-                    req.get("ipv4_cluster_subnet"), strict=False)
+                if ipaddress.IPv4Network(
+                    req.get("ipv4_cluster_subnet"), strict=True).prefixlen == 32:
+                    raise ValueError("Please Specify a Prefix Len in /XX format")
+
             except ValueError as e:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "IPv4 Cluster Subnet Error: " + str(e))
 
@@ -1211,6 +1324,9 @@ def l3out_view():
             pod_ids.append(pod.id)
         for node in nodes:
             nodes_id.append(node.id)
+
+        # Set APIC OOB to an empty list, so if we refresh the page we do not keep appending the same IPs
+        apic['oob_ips'] = ""
         for a in apics:
             apic['oob_ips'] += (a.oobMgmtAddr) + ","
         #Remove the last comma
@@ -1219,8 +1335,9 @@ def l3out_view():
         tenants = sorted(tenants, key=str.lower)
         session['nodes_id'] = sorted(nodes_id, key=int)
         session['pod_ids'] = sorted(pod_ids, key=int)
+        logger.info('save apic variable')
+        setdotenv('apic', json.dumps(apic))
         return render_template('l3out.html', phys_dom=phys_dom, tenants=tenants, vrfs=vrfs, local_as=local_as, pod_ids=session['pod_ids'], nodes_id=session['nodes_id'], rtr_id=str(rtr_id_counter))
-
 
 @app.route("/fabric", methods=["GET", "POST"])
 def fabric():
@@ -1228,11 +1345,12 @@ def fabric():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    if "ndfc" not in globals():
+    if not getdotenv("ndfc"):
         return redirect(f"/login?fabric_type={fabric_type}")
     if request.method == "GET":
         if fabric_type == "vxlan_evpn":
             fabrics = []
+            ndfc = json.loads(getdotenv('ndfc'))
             inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
             inst_ndfc.logon()
             result = inst_ndfc.get_fabrics()
@@ -1261,6 +1379,8 @@ def query_ndfc():
     query_net = request.args.get("query_network")
     query_inv = request.args.get("query_inv")
     vrf_name = request.args.get("vrf_name")
+    logger.info('fabric page: load env variables')
+    ndfc = json.loads(getdotenv('ndfc'))
     inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
     logon = inst_ndfc.logon()
     if not logon:
@@ -1307,9 +1427,7 @@ def query_ndfc():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     '''Login page to get details for ACI or NDFC'''
-    global apic
     apic = {}
-    global vc
     vc = create_vc_vars()
     ansible_output = ''
     fabric_type = get_fabric_type(request)
@@ -1342,6 +1460,10 @@ def login():
             if not os.path.exists(meta_path):
                 os.makedirs(meta_path)
             open(meta_path + '/aci-meta.json', 'wb').write(r.content)
+            logger.info('login page: set apic variables')
+            setdotenv('apic', json.dumps(apic))
+            logger.info('login page: set vc variables')
+            setdotenv('vc', json.dumps(vc))
     ## Generate the inventory file for the APIC, this looks ugly might want to clean up
             config = f"""apic: #You ACI Fabric Name
   hosts:
@@ -1375,7 +1497,6 @@ def login():
             else:
                 return (Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
         if fabric_type == "vxlan_evpn":
-            global ndfc
             ndfc = {}
             ndfc["url"] = normalize_url(request.json["url"])
             ndfc["username"] = request.json["username"]
@@ -1384,10 +1505,18 @@ def login():
             inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
             if not inst_ndfc.logon():
                 return json.dumps({"error": "login fail"}), 400
+            logger.info('login page: set ndfc variable')
+            setdotenv('ndfc', json.dumps(ndfc))
             return json.dumps({"ok": "login success"}), 200
         if button == "Previous":
             return redirect('/prereqaci')
     if request.method == "GET":
+
+        #I wanna have an clean environment so if .env exists I epty it
+        if os.path.exists('.env'):
+            with open('.env', 'w'):
+                logger.info('Cleared .env file')
+
         if fabric_type == "aci":
             return render_template('login.html')
         elif fabric_type == "vxlan_evpn":

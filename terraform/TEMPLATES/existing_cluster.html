@@ -159,7 +159,7 @@
             <div class="modal__body">
                 <div class="alert alert--info">
                     <div class="alert__icon icon-info-outline"></div>
-                    <div class="alert__message">Reset Envrionment?</div>
+                    <div class="alert__message">This will delete the terraform state. If VMs/ACI Config are present they will need to be manually deleted!</div>
                 </div>
             </div>
             <div class="modal__footer">
@@ -205,13 +205,8 @@
 <!-- End Main Content -->
 </div>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/lodash.min.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/clipboard.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/highcharts.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/exporting.js') }}"></script>
-<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/html2canvas.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
+<script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
 <script>
     $(document).ready(function () {
         $("#btn_destroy_confirm").click(function (e) {

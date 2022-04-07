@@ -13,3 +13,5 @@ plan
 id_rsa
 __pycache__
 labs
+*.ova
+*.backup

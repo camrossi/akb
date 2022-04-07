@@ -13,4 +13,4 @@
   roles:
     - sandbox
   vars:
-    ubuntu_apt_mirror: "https://us.archive.ubuntu.com/ubuntu"
+    ubuntu_apt_mirror: "http://us.archive.ubuntu.com/ubuntu"

@@ -8,6 +8,8 @@ import ssl
 from urllib.request import Request, urlopen
 import sys
 
+import appflask
+
 def connect(url, username, vc_pass, port):
     return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)
 
@@ -57,20 +59,27 @@ def find_pgs(obj, pgs):
             elif(isinstance(child, vim.Folder)):
                 find_pgs(child, pgs)
 
-def find_vms(obj, vms):
+def find_vms(obj, vms, note = ""):
+    ''' Find VMs optionally filtering by note'''
     if isinstance(obj, vim.Datacenter):
         for child in obj.vmFolder.childEntity:
             if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child)
+                if note == "":
+                    vms.append(child)
+                elif (child.config) and child.config.annotation == note:
+                    vms.append(child)
             elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
+                find_vms(child, vms, note)
     elif isinstance(obj, vim.Folder):
         for child in obj.childEntity:
             if (isinstance(child, vim.VirtualMachine)):
-                vms.append(child)
+                if note == "":
+                    vms.append(child)
+                elif (child.config) and child.config.annotation == note:
+                    vms.append(child)
             elif(isinstance(child, vim.Folder)):
-                find_vms(child, vms)
-
+                find_vms(child, vms, note)
+    
 def find_by_name(si, folder,vm_name):
     return si.content.searchIndex.FindChild(folder, vm_name)
 
@@ -203,6 +212,12 @@ class OvfHandler(object):
     It processes the tarfile, matches disk keys to files and
     uploads the disks, while keeping the progress up to date for the lease.
     """
+
+    # class variables
+    upload_progress = 0
+
+    # class functions
+
     def __init__(self, ovafile):
         """
         Performs necessary initialization, opening the OVA file,
@@ -306,9 +321,17 @@ class OvfHandler(object):
                                         vim.HttpNfcLease.State.error]:
                 self.start_timer()
             sys.stderr.write("Progress: %d%%\r" % prog)
+            self.upload_progress = prog
             return prog
         except Exception:  # Any exception means we should stop updating progress.
             pass
+    
+    def get_upload_progress(self):
+        """
+        Return the value of the upload_progress member variable.
+        """
+        return self.upload_progress
+
 
 class FileHandle(object):
     def __init__(self, filename):

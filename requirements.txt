@@ -1,5 +1,6 @@
 https://github.com/datacenter/pyaci/archive/master.zip
 Flask
+flask_executor
 pyOpenSSL
 requests
 urllib3
@@ -17,3 +18,6 @@ pyhcl
 jinja2
 pytest
 selenium
+gunicorn
+gevent
+python-dotenv

@@ -97,17 +97,18 @@
             </p>
          </div>
 
-    <!--
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
-                              <label for="node_sub">Node Subnet:</label>
-                              <input type="text" id="node_sub" name="node_sub" value="{{ ipv4_cluster_subnet }}" readonly class="bg-gray-200" >
-            
+                              <label for="cni_plugin">CNI Plugin:</label>
+                              <input list="cni_plugin_list" id="cni_plugin" name="cni_plugin" >
+                              <datalist id="cni_plugin_list">
+                                 <option value="Calico">
+                                 <option value="Cilium">
+                              </datalist>
                            </div>
                         </div>
                      </div>
-   -->
 
                      <div id="checkbox-unchecked" {% if  vm_deploy %} style="display:none";{% endif %}  >     
                         <div class="container">

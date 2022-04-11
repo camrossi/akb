@@ -784,6 +784,7 @@ def cluster_network():
                 setdotenv('cluster', json.dumps(cluster))
                 setdotenv('l3out', json.dumps(l3out))
             external_svc_subnet = req.get("ipv4_ext_svc_sub")
+            cluster['cni_plugin'] = req.get("cni_plugin")
             cluster['pod_subnet'] = req.get("ipv4_pod_sub")
             cluster['external_svc_subnet'] = external_svc_subnet
             cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")

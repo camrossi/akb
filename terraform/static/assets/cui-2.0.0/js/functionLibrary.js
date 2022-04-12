@@ -16,7 +16,7 @@ function saveInput() {
     inputs = document.getElementsByTagName(tag[0]);
     // iterate through all of 
     for (index = 0; index < inputs.length; ++index) {
-      currentElem = inputs[index];
+      const currentElem = inputs[index];
       if (
         tag.length === 1 ||
         !(

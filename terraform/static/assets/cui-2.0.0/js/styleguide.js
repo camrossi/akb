@@ -201,7 +201,7 @@ function debounce(func, wait) {
     var timeout;
     var context = this, args = arguments;
     clearTimeout(timeout);
-    timeout = setTimeout(function () {
+    setTimeout(function () {
         func.apply(context, args);
     }, wait || 0);
 }
@@ -321,7 +321,7 @@ $(document).ready(function () {
 
     // Wire pagination
     $(document).on('click','main ul.pagination > li > a',function () {
-        var el = $(this).parent().siblings().find('.active');
+        $(this).parent().siblings().find('.active');
         $(this).parent().siblings().removeClass('active');
         $(this).parent().addClass('active');
     });

@@ -1,0 +1,69 @@
+---
+
+- name: Add cilium helm Repo
+  shell: helm repo add cilium https://helm.cilium.io/
+  environment: "{{ proxy_env }}"
+  when: not sandbox_status
+  tags:
+    - cilium
+
+- name: helm repo update
+  shell: helm repo update
+  when: not sandbox_status
+  environment: "{{ proxy_env }}"
+  tags:
+    - cilium
+
+#Labels the node with the rack_id
+- name: Labels Nodes with rack_id
+  shell: |
+    kubectl label node {{ item }} rack_id="{{ hostvars[item]['rack_id'] }}" --overwrite
+  loop: "{{groups['k8s_nodes']}}"
+  register: label_res
+  retries: 10
+  until: label_res is success
+  any_errors_fatal: true
+  tags:
+    - cilium
+
+- name: Copy cilium configs 
+  template:
+    src: "{{ item }}"
+    dest: /tmp/{{ item }}
+    force: yes
+  with_items:
+    - cilium-bgp-config.yaml
+    - cilium-values.yaml
+  tags:
+    - cilium
+
+- name: helm install cilium 
+  shell: | 
+    helm install cilium cilium/cilium --version 1.12.0-rc1 --namespace kube-system -f /tmp/cilium-values.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
+  environment: "{{ proxy_env }}"
+  when: not sandbox_status
+  tags:
+    - cilium
+
+- name: helm install cilium 
+  shell: helm install -n kube-system cilium cilium-4.0.17.tgz  -f /tmp/cilium-values.yaml
+  register: label_res
+  retries: 5
+  until: label_res is success
+  environment: "{{ proxy_env }}"
+  when: sandbox_status
+  tags:
+    - cilium
+
+- name: Apply Cilium Config Map
+  shell: |
+    kubectl apply -f /tmp/cilium-bgp-config.yaml
+  register: label_res
+  retries: 10
+  until: label_res is success
+  any_errors_fatal: true
+  tags:
+    - cilium

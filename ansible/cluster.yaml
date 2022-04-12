@@ -18,20 +18,22 @@
   roles:
     - workers
 
-- hosts: k8s_primary_master
-  gather_facts: false
-  roles:
-    - calico
-
-- hosts: k8s_primary_master
-  gather_facts: false
-  roles:
-    - calico
-
 - hosts: k8s_masters
   gather_facts: false
   roles:
     - helm
+
+- hosts: k8s_primary_master
+  gather_facts: false
+  roles:
+    - role: calico
+      when: cni_plugin == "Calico"
+
+- hosts: k8s_primary_master
+  gather_facts: false
+  roles:
+    - role: cilium
+      when: cni_plugin == "Cilium"
 
 - hosts: k8s_primary_master
   gather_facts: false

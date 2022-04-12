@@ -1,0 +1,18 @@
+{% for leaf in bgp_peers %}
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeeringPolicy
+metadata:
+  name: "{{ leaf.id }}"
+  namespace: kube-system
+spec:
+ nodeSelector:
+   matchLabels:
+     rack_id: "{{ leaf.rack_id }}"
+ virtualRouters: # []CiliumBGPVirtualRouter
+ - localASN: {{ calico_as }}
+   exportPodCIDR: true
+   neighbors: # []CiliumBGPNeighbor
+    - peerAddress: "{{ leaf.primary_ip }}/32"
+      peerASN: {{ aci_as }}
+{% endfor %}

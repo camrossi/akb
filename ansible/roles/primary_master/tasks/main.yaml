@@ -302,7 +302,7 @@
     - primary_master
 
 - name: Bootstrap first Master
-  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs 
+  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs {% if cni_plugin == "Cilium" %} --skip-phases=addon/kube-proxy {% endif %}
   tags:
     - primary_master
 

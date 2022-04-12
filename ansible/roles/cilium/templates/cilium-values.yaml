@@ -1,0 +1,28 @@
+# CiliumBGPPeeringPolicy CRDs.
+bgpControlPlane:
+  enabled: true
+
+ipam:
+  mode: "cluster-pool"
+  operator:
+    clusterPoolIPv4PodCIDRList: ["{{ pod_subnet | ansible.netcommon.ipaddr('subnet') }}"]
+    clusterPoolIPv4MaskSize: 27
+ipv4:
+  enabled: true
+ipv6:
+  enabled: false
+loadBalancer:
+  algorithm: maglev
+operator:
+  replicas: 1
+# Disable the encapsulation, enable routing for the node subnets 
+# and turn off NAT for everything
+tunnel: disabled
+enable-endpoint-routes: true
+enableIPv6Masquerade: false
+enableIPv4Masquerade: false
+
+#Disable Kube Proxy
+kubeProxyReplacement: "strict"
+k8sServiceHost: {{ control_plane_vip }}
+k8sServicePort: {{ vip_port }}

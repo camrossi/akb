@@ -55,7 +55,7 @@
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/existing_cluster">
+<form name="existingCluster" method="post" action="/existing_cluster">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -129,6 +129,7 @@
             <p id="streaming_text"></p>
       </div>
         <div class="container base-margin-bottom">
+            <input type="submit" value="Manage Nodes" id="manage_nodes" class="btn btn--wide" name="button">
             <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
             <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
             <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">

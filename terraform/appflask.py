@@ -1,8 +1,6 @@
-from asyncio.log import logger
 import json
 from logging import error
 from socket import gaierror
-import threading
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
 from flask_executor import Executor
@@ -62,6 +60,12 @@ def setdotenv(key, value):
             value = '\'\''
         cmd = 'dotenv set ' + key + " '" + value + " '"
         os.system(cmd)
+    return None
+
+def deldotenv(key):
+    '''Del dotenv'''
+    cmd = 'dotenv unset ' + key
+    os.system(cmd)
     return None
 
 def require_api_token(func):
@@ -393,6 +397,19 @@ def tf_plan():
     
     return Response(read_process(g), mimetype='text/event-stream')
 
+def node_delta():
+    '''Calculte the new and removed k8s nodes'''
+    stream = os.popen('terraform show -json plan')
+    new_nodes = set()
+    removed_nodes = set()
+    changes = json.loads(stream.read())
+    for change in changes['resource_changes']:
+        if "module.k8s_node.vsphere_virtual_machine.vm" in change['address']:
+            if "create" in change['change']['actions']:
+                new_nodes.add(change['index'])
+            if "delete" in change['change']['actions']:
+                removed_nodes.add(change['index'])
+    return new_nodes, removed_nodes
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
 @require_api_token
@@ -401,71 +418,117 @@ def tf_apply():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
+    if not os.path.exists('plan'):
+        return Response('Please run "Plan" before "Apply"')
     g = proc.Group()
     if fabric_type == "aci":
-        g.run(["bash", "-c", "terraform apply -auto-approve -no-color plan" ])
+        chdir ="."
     elif fabric_type == "vxlan_evpn":
-        g.run(["bash", "-c", "terraform -chdir=ndfc apply -auto-approve -no-color plan"])
+        chdir ="ndfc"
+    new_nodes, removed_nodes = node_delta()
+    cluster_status = check_if_new_cluster()
+    if cluster_status == 'new':
+        logger.info("Creating new Cluster")
+        g.run(["bash", "-c","terraform -chdir="+chdir+" apply -auto-approve -no-color plan"])
+    else:
+       
+        rm_cmd = ""
+        add_cmd = ""
+        plan_cmd = ""
+        if len(removed_nodes) > 0:
+            limit = ','.join(str(s) for s in removed_nodes)
+            logger.info("Removing Nodes %s", limit)
+            rm_cmd="ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook \
+                -i ../ansible/inventory/nodes.ini ../ansible/remove_k8s_nodes.yaml --limit='"+ limit+"' &&\
+                terraform -chdir="+chdir+" apply -auto-approve -no-color plan"
+        if len(new_nodes) > 0:
+            
+            # I need to update labes etc... so I need to pass the primary master as well
+            primary_master = json.loads(getdotenv('calico_nodes'))[0]['hostname']
+            new_nodes.add(primary_master)
+            limit = ','.join(str(s) for s in new_nodes)
+            logger.info("Adding Nodes %s", limit)
+            add_cmd="terraform -chdir="+chdir+" apply -auto-approve -no-color plan && \
+                    ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b \
+                    -i ../ansible/inventory/nodes.ini ../ansible/add_nodes.yaml \
+                    --limit='"+ limit+"'"
+        # If I am adding and removing I need to plan again in the middle
+        if len(new_nodes) > 0 and len(removed_nodes) > 0:
+            plan_cmd = "terraform -chdir="+chdir+" plan -no-color -var-file='cluster.tfvars' -out='plan'"
+        
+        '''I don't particularly like runing all this with && but shellgob.Proc schedule the tasks in 
+           parallel so it ends up running add and remove in parallel and bricks the cluster, need to evaluate changing
+           to a diffrent library perhaps 
+        '''
+        cmds = [rm_cmd, plan_cmd, add_cmd]
+        g.run(["bash", "-c", '&&'.join(filter(None, cmds))])
+
+
     return Response( read_process(g), mimetype='text/event-stream' )
+
+def create_tf_config(fabric_type):
+    ''' Puts all the config pieces togehter and generate the TF config'''
+    try:
+        cluster = json.loads(getdotenv('cluster'))
+        vc = json.loads(getdotenv('vc'))
+        calico_nodes = json.loads(getdotenv('calico_nodes'))
+        if fabric_type == "aci":
+            l3out = json.loads(getdotenv('l3out'))
+            apic = json.loads(getdotenv('apic'))
+            tf_apic = {}
+            tf_apic['username'] = apic["nkt_user"]
+            tf_apic['cert_name'] = apic["nkt_user"]
+            tf_apic['private_key'] = apic["private_key"]
+            tf_apic['url'] = apic["url"]
+            tf_apic['oob_ips'] = apic["oob_ips"]
+            if calico_nodes[0]['natip'] != "":
+                ext_ip = calico_nodes[0]['natip']
+            else:
+                ext_ip = calico_nodes[0]['ip'].split("/")[0]
+            vkaci_ui = "http://" + ext_ip + ":30000"
+            config = "apic =" + json.dumps(tf_apic, indent=4)
+            config += "\nl3out =" + json.dumps(l3out, indent=4)
+            if vc['vm_deploy']:
+                config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
+            else:
+                config += "\ncalico_nodes = null"
+            config += "\nvc =" + json.dumps(vc, indent=4)
+            config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
+            with open('cluster.tfvars', 'w') as f:
+                f.write(config)
+
+        elif fabric_type == "vxlan_evpn":
+            ndfc = json.loads(getdotenv('ndfc'))
+            overlay = json.loads(getdotenv('overlay'))
+            config = ndfc_create_tf_vars(fabric_type,
+                                    vc,
+                                    ndfc,
+                                    overlay,
+                                    calico_nodes,
+                                    cluster)
+            
+            with open('./ndfc/cluster.tfvars', 'w', encoding='utf-8') as f:
+                f.write(config)
+
+        else:
+            config = json.dumps({
+                "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
+            })
+    except Exception as e:
+        print(e)
+        config = []
+    return config, vkaci_ui
 
 @app.route('/create', methods=['GET', 'POST'])
 def create():
     '''Page that creates the cluster'''
     vkaci_ui = ""
-    fabric_type = get_fabric_type(request)
+    fabric_type = get_fabric_type(request) 
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
 
     if request.method == 'GET':
-        try:
-            cluster = json.loads(getdotenv('cluster'))
-            vc = json.loads(getdotenv('vc'))
-            calico_nodes = json.loads(getdotenv('calico_nodes'))
-            if fabric_type == "aci":
-                l3out = json.loads(getdotenv('l3out'))
-                apic = json.loads(getdotenv('apic'))
-                tf_apic = {}
-                tf_apic['username'] = apic["nkt_user"]
-                tf_apic['cert_name'] = apic["nkt_user"]
-                tf_apic['private_key'] = apic["private_key"]
-                tf_apic['url'] = apic["url"]
-                tf_apic['oob_ips'] = apic["oob_ips"]
-                if calico_nodes[0]['natip'] != "":
-                    ext_ip = calico_nodes[0]['natip']
-                else:
-                    ext_ip = calico_nodes[0]['ip'].split("/")[0]
-                vkaci_ui = "http://" + ext_ip + ":30000"
-                config = "apic =" + json.dumps(tf_apic, indent=4)
-                config += "\nl3out =" + json.dumps(l3out, indent=4)
-                if vc['vm_deploy']:
-                    config += "\ncalico_nodes =" + json.dumps(calico_nodes, indent=4)
-                else:
-                    config += "\ncalico_nodes = null"
-                config += "\nvc =" + json.dumps(vc, indent=4)
-                config += "\nk8s_cluster =" + json.dumps(cluster, indent=4)
-                with open('cluster.tfvars', 'w') as f:
-                    f.write(config)
-
-            elif fabric_type == "vxlan_evpn":
-                ndfc = json.loads(getdotenv('ndfc'))
-                overlay = json.loads(getdotenv('overlay'))
-                config = ndfc_create_tf_vars(fabric_type,
-                                        vc,
-                                        ndfc,
-                                        overlay,
-                                        calico_nodes,
-                                        cluster)
-                
-                with open('./ndfc/cluster.tfvars', 'w', encoding='utf-8') as f:
-                    f.write(config)
-
-            else:
-                config = json.dumps({
-                    "error": "fabric_type is invalid, chose between aci and vxlan_evpn"
-                })
-        except Exception as e:
-            print(e)
-            config = []
+        config, vkaci_ui = create_tf_config(fabric_type)
         return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
     if request.method == 'POST':
         req = request.form
@@ -529,7 +592,7 @@ def calico_nodes_view():
             natip = req.get("natip")
             rack_id = req.get("rack_id")
             if not is_valid_hostname(hostname):
-                return calico_nodes_error(calico_nodes, "Error: Ivalid Hostname")
+                return calico_nodes_error(json.dumps(calico_nodes, indent=4), "Error: Ivalid Hostname")
 
             # Check IP addresses
             try:
@@ -614,13 +677,40 @@ def calico_nodes_view():
 
             calico_nodes.append({"hostname": hostname, "ip": ip,
                                 "ipv6": ipv6, "natip": natip, "rack_id": rack_id})
-
+            if turbo.can_stream():
+                return turbo.stream(
+                    turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
+                                target='tf_calico_nodes'))
+        if button == "Remove Node":
+            hostname = req.get("hostname")
+            calico_nodes = json.loads(req.get("calico_nodes"))
+            if hostname in list(d['hostname'] for d in calico_nodes[0:3]):
+                return calico_nodes_error(req.get("calico_nodes"), "Cannot Remove Master Nodes")
+            
+            for node in calico_nodes:
+                if hostname == node['hostname']:
+                    calico_nodes.remove(node)
             if turbo.can_stream():
                 return turbo.stream(
                     turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
                                 target='tf_calico_nodes'))
 
-    if request.method == 'GET':        
+            return calico_nodes_error(calico_nodes, "Error: Hostname not found")
+        if button == "Apply Node Config Update":
+            #Update the calico node env virable with the new config
+            calico_nodes = json.loads(req.get("calico_nodes"))
+            logger.info('save calico_nodes variable')
+            setdotenv('calico_nodes', json.dumps(calico_nodes))
+            create_tf_config(get_fabric_type(request))
+            return redirect(f"/create")
+
+    if request.method == 'GET':
+        # Try to load the calico nodes from the env file.
+        #If it fails assume is empty and move on to pre-populate
+        try:
+            calico_nodes = json.loads(getdotenv('calico_nodes'))
+        except TypeError:
+            pass
         if calico_nodes == []:
             i = 1
             while i <= 3:
@@ -647,6 +737,7 @@ def calico_nodes_view():
                                    ipv4_cluster_subnet=overlay["node_sub"],
                                    ipv6_cluster_subnet=overlay["node_sub_v6"],
                                    calico_nodes=json.dumps(calico_nodes, indent=4))
+
 
 
 def is_valid_hostname(hostname):
@@ -1563,38 +1654,44 @@ def reset():
         except Exception:
            return Response("Reset Failed")
 
-@app.route('/existing_cluster', methods=['GET'])
+@app.route('/existing_cluster', methods=['GET', 'POST'])
 @require_api_token
 def existing_cluster():
     '''Page that detects an existing cluster and allow the user to destroy it'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    if fabric_type == "aci":
-        try:
-            f = open("cluster.tfvars")
-            current_config =  f.read()
-            # Derive vkaci IP address:
-            master = hcl.loads(current_config)['calico_nodes'][0]
-            if master['natip'] != "":
-                ext_ip = master['natip']
-            else:
-                ext_ip = master['ip'].split("/")[0]
+    if request.method == "POST":
+        req = request.form
+        button = req.get("button")
+        if button == "Manage Nodes":
+            return redirect('/calico_nodes')
+    if request.method == "GET":
+        if fabric_type == "aci":
+            try:
+                f = open("cluster.tfvars")
+                current_config =  f.read()
+                # Derive vkaci IP address:
+                master = hcl.loads(current_config)['calico_nodes'][0]
+                if master['natip'] != "":
+                    ext_ip = master['natip']
+                else:
+                    ext_ip = master['ip'].split("/")[0]
 
-            vkaci_ui = "http://" + ext_ip + ":30000"
-            # Do something with the file
-        except IOError:
-            return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
-        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui)
-    elif fabric_type == "vxlan_evpn":
-        ndfc_tfvars = "./ndfc/cluster.tfvars"
-        if not os.path.exists(ndfc_tfvars):
-            return render_template('/existing_cluster.html?fabric_type=vxlan_evpn',
-                                   text_area_title="Error",
-                                   config="Config File Not Found but terraform.tfstate file is present")
-        with open(ndfc_tfvars, "r") as f:
-            tf_vars = f.read()
-        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=tf_vars)
+                vkaci_ui = "http://" + ext_ip + ":30000"
+                # Do something with the file
+            except IOError:
+                return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
+            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui)
+        elif fabric_type == "vxlan_evpn":
+            ndfc_tfvars = "./ndfc/cluster.tfvars"
+            if not os.path.exists(ndfc_tfvars):
+                return render_template('/existing_cluster.html?fabric_type=vxlan_evpn',
+                                    text_area_title="Error",
+                                    config="Config File Not Found but terraform.tfstate file is present")
+            with open(ndfc_tfvars, "r") as f:
+                tf_vars = f.read()
+            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=tf_vars)
 
 
 @app.route('/destroy', methods=['GET'])
@@ -1620,10 +1717,24 @@ def destroy():
         g.run(["bash", "-c", cmd])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
+def check_if_new_cluster():
+        # if no tf state existed, return the intro page
+    if not os.path.exists(TF_STATE_ACI) and not os.path.exists(TF_STATE_NDFC):
+        return 'new'
+    if os.path.exists(TF_STATE_ACI):
+        with open('terraform.tfstate', 'r', encoding='utf-8') as f:
+            state_aci = json.load(f)
+        if state_aci['resources'] != []:
+            return 'aci'
 
-
-
-
+    if os.path.exists(TF_STATE_NDFC):
+        with open('./ndfc/terraform.tfstate', 'r', encoding='utf-8') as f:
+            state_ndfc = json.load(f)
+            # If there are resources the cluster is there
+        if state_ndfc['resources'] != []:
+            return 'ndfc'
+        # If the resources are not present go to intro
+    return 'new'
 @app.route('/')
 @app.route('/intro', methods=['GET', 'POST'])
 def get_page():
@@ -1640,24 +1751,15 @@ def get_page():
         if button == "Next":
             return redirect(f'/login?fabric_type={fabric_type}')
     if request.method == "GET":
+        cluster_status = check_if_new_cluster()
+        logger.info('cluster_status %s', cluster_status)
         # if no tf state existed, return the intro page
-        if not os.path.exists(TF_STATE_ACI) and not os.path.exists(TF_STATE_NDFC):
+        if cluster_status == 'new':
             return render_template('intro.html')
-
-        if os.path.exists(TF_STATE_ACI):
-            with open('terraform.tfstate', 'r', encoding='utf-8') as f:
-                state_aci = json.load(f)
-            if state_aci['resources'] != []:
-                return redirect('/existing_cluster')
-
-        if os.path.exists(TF_STATE_NDFC):
-            with open('./ndfc/terraform.tfstate', 'r', encoding='utf-8') as f:
-                state_ndfc = json.load(f)
-                # If there are resources the cluster is there
-            if state_ndfc['resources'] != []:
-                return redirect('/existing_cluster?fabric_type=vxlan_evpn')
-            # If the resources are not present go to intro
-        return render_template('intro.html')
+        if cluster_status == 'aci':
+            return redirect('/existing_cluster')
+        if cluster_status == 'ndfc':
+            return redirect('/existing_cluster?fabric_type=vxlan_evpn')
 
 
 if __name__ == "__main__":

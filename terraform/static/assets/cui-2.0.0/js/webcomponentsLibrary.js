@@ -52,7 +52,7 @@
 
 // // })
 const pages = [
-  ["", "required"],
+  // ["", "required"],
   ["login", "required"],
   ["l3out", "required"],
   ["vcenterlogin", "required"],
@@ -83,39 +83,81 @@ class StatusBar extends HTMLElement {
   constructor(name) {
       super();
     
-      const containerDiv = document.createElement("div");
-      containerDiv.style =
-          "width: 95%; height: 150px; background-color: white; border-style: solid; margin: auto; display:flex; justify-content: space-evenly";
-      for (const page of pages) {
-        const pageName = page[0];
-        const child = document.createElement("div");
-
-        if (pageName !== "") {
-          child.innerText = pageName;
-        } else {
-          child.innerText = "Pick Fabric";
-        } 
-        containerDiv.appendChild(child);
+    const containerDiv = document.createElement("div");
+    containerDiv.classList.add("pagination")
+    containerDiv.style =
+        "width: 95%; height: 20px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
+    
+    const currentPage = pageNumber(getPageName());
+    let index = 0;
+    for (const page of pages) {
+      const pageName = page[0];
+      const child = document.createElement("a");
+      if (pageName !== "") {
+        child.innerText = pageName;
+        child.href = pageName
+      } else {
+        child.innerText = "pick fabric";
+        child.href = ""
+      } 
+      if (currentPage > index) {
+        child.style.color = "green";
+      } else if (currentPage === index) {
+        child.style.color = "yellow";
+      } else {
+        child.style.color = "grey";
       }
-      console.log(containerDiv)
+      containerDiv.appendChild(child);
+      index++;
+    }
+    console.log(containerDiv)
       
-          // document.querySelector("status-bar-container")
-          template.content.appendChild(containerDiv)
+    // document.querySelector("status-bar-container")
+    template.content.appendChild(containerDiv)
     this.attachShadow({ mode: "open" });
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-    // this.shadowRoot.querySelector("h3").innerText = this.getAttribute("name");
 
-    // this.shadowRoot.querySelector("h3").innerText = "Node" + " " + name;
-      console.log(this.shadowRoot.querySelector("status-bar-container"));
-      console.log(document.getElementById("status-bar-container"));
-    // 		this.innerHTML = `
-    // 	    <div
-    //       style="width: 100px; height: 100px; background-color: green; border-style: solid;"
-    //     >
-    // 		<h3 style="justify-content: center;"></h3>
-    // 		</div>
-    // `;
+    // console.log(this.shadowRoot.querySelector("status-bar-container"));
+    // console.log(document.getElementById("status-bar-container"));
   }
+}
+
+function getPageName() {
+  const path = window.location.pathname;
+  const page = path.split("/").pop();
+  console.log(page);
+  return page;
+}
+
+function pageNumber(pageName) {
+  let index = 0;
+  for (const arr of pages) {
+    if (arr[0] === pageName) {
+      return index;
+    }
+    index++;
+  }
+  return -1;
+}
+
+function changePage(futurePage, currentPage) {
+  if (typeof (currentPage) === "string")
+    currentPage = pageNumber(currentPage);
+  if (typeof futurePage === "string")
+    futurePage = pageNumber(futurePage);
+  if (typeof (currentPage) === "number" && typeof (futurePage) === "number") {
+    // if the page user wants to switch to is before the current page, that is always allowed
+    if (futurePage < currentPage) return futurePage;
+    // this is if the page user wants to switch to is the create page, or the last page
+    else if (futurePage === pages.length - 1) return futurePage;
+    // this is if the page user wants to switch to is after the current page but not the create page
+    else {
+      return currentPage;
+    }
+  }
+  else
+    console.log("currentPage or futurePage or both of them do not have number values")
+  return currentPage;
 }
 
 window.customElements.define("status-bar", StatusBar);

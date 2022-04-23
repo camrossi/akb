@@ -6,11 +6,16 @@ const tags = [
   // ["span", "checkbox__input"],
   // ["input", "checkbox"],
 ];
-function saveInput() {
-  var inputs, index;
+function getPageName() {
   const path = window.location.pathname;
   const page = path.split("/").pop();
   console.log(page);
+  return page;
+}
+
+function saveInput() {
+  var inputs, index;
+  const page = getPageName();
   for (const tag of tags) {
     // collects all the elements in the HTML with the given tag
     inputs = document.getElementsByTagName(tag[0]);
@@ -54,8 +59,7 @@ function loadInput() {
   var inputs, index;
   // console.log(JSON.stringify(sessionStorage, null, 2));
 
-  const path = window.location.pathname;
-  const page = path.split("/").pop();
+  const page = getPageName();
   // console.log(page);
   // console.log("load attempt")
   for (const tag of tags) {
@@ -98,9 +102,7 @@ function loadInputLimit(limitArr) {
   var inputs, index;
   console.log(JSON.stringify(sessionStorage, null, 2));
 
-  const path = window.location.pathname;
-  const page = path.split("/").pop();
-  console.log(page);
+  const page = getPageName();
   // console.log("load attempt")
   for (const tag of limitArr) {
     inputs = document.getElementsByTagName(tag[0]);

@@ -63,12 +63,25 @@
                </div>
             </div>
          </header>
-         <div class="flexrow">
+         <!-- <div class="flexrow">
             <div class="cell"></div>
             <div class="cell"> </div>
-         </div>
+         </div> -->
+         <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/webcomponentsLibrary.js') }}"></script>
+         <status-bar></status-bar>
          <div class="container bg-gray">
-            <status-bar></status-bar>
+            <!-- <pagination></pagination> -->
+            <div class="pagination">
+                  <a href="#">&laquo;</a>
+                    <a href="#">1</a>
+                    <a class="active" href="#">2</a>
+                    <a href="#">3</a>
+                    <a href="#">4</a>
+                    <a href="#">5</a>
+                    <a href="#">6</a>
+                    <a href="#">&raquo;</a>
+            </div>
+            
             <h2>NKT Project Information</h2>
             <p>
                <br> This is the Nexus Kubernetes Tools Project.

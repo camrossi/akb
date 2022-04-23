@@ -86,28 +86,31 @@ class StatusBar extends HTMLElement {
     const containerDiv = document.createElement("div");
     // containerDiv.classList.add("pagination")
     containerDiv.style =
-        "width: 95%; height: 20px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
+        "width: 95%; height: 75px; font-size: 16px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
     
     const currentPage = pageNumber(getPageName());
     let index = 0;
     for (const page of pages) {
       const pageName = page[0];
       const child = document.createElement("a");
+      child.style = "display: flex; justify-content: space-around;";
       if (pageName !== "") {
         child.innerText = pageName;
-        child.href = pageName
+        child.href = pageName;
       } else {
         child.innerText = "pick fabric";
-        child.href = ""
+        child.href = "";
       } 
+      const iconContainer = document.createElement("div");
+      iconContainer.style = "display: flex; justify-content: space-around;";
       const childIcon = document.createElement("img");
+      childIcon.style="margins: auto;"
       if (currentPage > index) {
         child.style.color = "green";
         childIcon.src =
           "../../../../static/images/done_FILL0_wght400_GRAD0_opsz48.svg";
-        // <img src="../static/images/connectivity.png" alt="High Level Connectivity"></img>
       } else if (currentPage === index) {
-        child.style.color = "yellow";
+        child.style.color = "orange";
         childIcon.src =
           "../../../../static/images/pending_FILL0_wght400_GRAD0_opsz48.svg";
       } else {
@@ -119,7 +122,8 @@ class StatusBar extends HTMLElement {
       // const icon = document.createElement("div");
 
       nameAndIcon.appendChild(child);
-      nameAndIcon.appendChild(childIcon);
+      iconContainer.appendChild(childIcon);
+      nameAndIcon.appendChild(iconContainer);
       containerDiv.appendChild(nameAndIcon);
       index++;
     }

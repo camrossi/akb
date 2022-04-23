@@ -84,7 +84,7 @@ class StatusBar extends HTMLElement {
       super();
     
     const containerDiv = document.createElement("div");
-    containerDiv.classList.add("pagination")
+    // containerDiv.classList.add("pagination")
     containerDiv.style =
         "width: 95%; height: 20px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
     
@@ -100,17 +100,31 @@ class StatusBar extends HTMLElement {
         child.innerText = "pick fabric";
         child.href = ""
       } 
+      const childIcon = document.createElement("img");
       if (currentPage > index) {
         child.style.color = "green";
+        childIcon.src =
+          "../../../../static/images/done_FILL0_wght400_GRAD0_opsz48.svg";
+        // <img src="../static/images/connectivity.png" alt="High Level Connectivity"></img>
       } else if (currentPage === index) {
         child.style.color = "yellow";
+        childIcon.src =
+          "../../../../static/images/pending_FILL0_wght400_GRAD0_opsz48.svg";
       } else {
         child.style.color = "grey";
+        childIcon.src =
+          "../../../../static/images/minimize_FILL0_wght400_GRAD0_opsz48.svg";
       }
-      containerDiv.appendChild(child);
+      const nameAndIcon = document.createElement("div");
+      // const icon = document.createElement("div");
+
+      nameAndIcon.appendChild(child);
+      nameAndIcon.appendChild(childIcon);
+      containerDiv.appendChild(nameAndIcon);
       index++;
     }
-    console.log(containerDiv)
+    // console.log(containerDiv)
+    // const nameAndIcon = document.createElement("div");
       
     // document.querySelector("status-bar-container")
     template.content.appendChild(containerDiv)

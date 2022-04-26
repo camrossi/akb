@@ -211,13 +211,13 @@ function toggleAutoScroll() {
 
 function loadInputVCenter() {
   // console.log(JSON.stringify(sessionStorage, null, 2))
-  dcElem = document.getElementById("dc");
+  const dcElem = document.getElementById("dc");
 
   const path = window.location.pathname;
   const page = path.split("/").pop();
 
   // load in the vCenter DC Name
-  retrievedVal = sessionStorage.getItem(page + " " + "dc");
+  const retrievedVal = sessionStorage.getItem(page + " " + "dc");
   if (retrievedVal !== null && retrievedVal !== "") {
     dcElem.value = retrievedVal;
     dcElem.form.requestSubmit();

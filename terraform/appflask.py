@@ -91,6 +91,7 @@ def get_fabric_type(http_request: request) -> str:
         fabric_type = "aci"
     return fabric_type.lower()
 
+
 def normalize_url(hostname: str) -> str:
     if hostname.startswith('http://'):
         url = hostname.replace("http://", "https://")
@@ -108,6 +109,25 @@ def normalize_apt_mirror(mirror: str) -> str:
         return mirror
     else:
         return "https://" + mirror
+
+
+def validate_fabric_input(data: dict) -> (bool, str):
+    print(data)
+    inval_key = []
+    for key, value in data.items():
+        if value:
+            continue
+        # none mandatory keys
+        if key in ["k8s_integ", "bgp_pass", "ipv6_enabled"]:
+            continue
+        # none mandatory ipv6 keys if ipv6 is not enabled
+        if key in ["loopback_ipv6", "node_sub_v6", "gateway_v6"] and not data["ipv6_enabled"]:
+            continue
+        inval_key.append(key)
+    if inval_key != []:
+        return False, f"Invalid keys:[{inval_key}]"
+    else:
+        return True, "valid input!"
 
 
 def ndfc_process_fabric_setting(data: dict) -> bool:
@@ -156,7 +176,7 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
             }
 
             overlay["vpc_peers"].append([primary, secondary])
-        
+
         logger.info('set overlay variable')
         setdotenv('overlay', json.dumps(overlay))
         if overlay["ipv6_enabled"]:
@@ -168,11 +188,11 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
 
 
 def ndfc_create_tf_vars(fabric_type: str,
-                   vc: dict,
-                   ndfc: dict,
-                   OVERLAY: dict,
-                   calico_nodes: dict,
-                   cluster: dict) -> str:
+                        vc: dict,
+                        ndfc: dict,
+                        OVERLAY: dict,
+                        calico_nodes: dict,
+                        cluster: dict) -> str:
     '''Create the terraform variables for NDFC deployment'''
     with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r", encoding='utf8') as f:
         tf_template = Template(f.read())
@@ -1374,6 +1394,9 @@ def fabric():
             return render_template("fabric.html", fabrics=fabrics)
     if request.method == "POST":
         data = request.json
+        is_valid, message = validate_fabric_input(data)
+        if not is_valid:
+            return json.dumps({"error": message}), 400
         result = ndfc_process_fabric_setting(data)
         if result:
             return json.dumps({"ok": "fabric setting configured"}), 200
@@ -1421,7 +1444,7 @@ def query_ndfc():
         result = fabric.get_network_detail(vrf_name=vrf_name)
         if result:
             for item in result:
-                subnet_v4 = str(ipaddress.IPv4Interface(item.gateway).network)
+                subnet_v4 = str(ipaddress.IPv4Interface(item.gateway).network) if item.gateway else ""
                 subnet_v6 = str(ipaddress.IPv6Interface(item.gateway_v6).network) if item.gateway_v6 else ""
                 net = {
                     "name": item.name,

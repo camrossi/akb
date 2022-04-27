@@ -15,7 +15,7 @@
 - name: Normalize Times
   set_fact:
     apic_time: "{{ (apic_topSys.imdata[0]['topSystem']['attributes']['currentTime'] | to_datetime('%Y-%m-%dT%H:%M:%S.%f%z')).timestamp() }}"
-    nkt_time:  "{{ (now().isoformat()  | to_datetime('%Y-%m-%dT%H:%M:%S.%f')).timestamp() }}"
+    nkt_time:  "{{ ( (now(utc=True).isoformat() ~ '+0000')  | to_datetime('%Y-%m-%dT%H:%M:%S.%f%z')).timestamp() }}"
   tags:
     - apic_user 
 

@@ -351,6 +351,7 @@
     <script>
 
         function gather_farbic_input () {
+            
             var fabric_name = $("#fabric").val();
             var asn = $("#fabric_asn").val();
             var vrf = $("#vrf").val();
@@ -368,7 +369,7 @@
             var node_sub_v6 = $("#ipv6_cluster_subnet").val();
             var bgp_pass = ""; // seet to emplty untiil it is supported
             var k8s_integ = $("#k8s_integ").is(":checked")
-
+            console.log(gateway_v4)
             var vpc_peers = []
             $("#leaf_switches").children().each(function() {
                 var peer = {

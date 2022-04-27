@@ -1,4 +1,50 @@
 ---
+
+- name: Get APIC TIME
+  cisco.aci.aci_rest:
+    host: "{{ inventory_hostname }}"
+    username: "{{ admin_user }}"
+    password: "{{ admin_pass }}"
+    validate_certs: "{{ validate_certs }}"
+    method: get
+    path: /api/node/class/topSystem.json?query-target-filter=and(eq(topSystem.role,"controller"))
+  register: apic_topSys
+  tags:
+    - apic_user 
+
+- name: Get NKT Installer Time
+  delegate_to: localhost
+  shell: |
+    date
+  register: nkt_time
+  tags:
+    - apic_user 
+
+- name: Normalize Times
+  set_fact:
+    apic_time: "{{ (apic_topSys.imdata[0]['topSystem']['attributes']['currentTime'] | to_datetime('%Y-%m-%dT%H:%M:%S.%f%z')).timestamp() }}"
+    nkt_time: "{{ (nkt_time.stdout  | to_datetime('%a %d %b %Y %H:%M:%S %Z')).timestamp() }}"
+  tags:
+    - apic_user 
+
+- name: Calculate time diff
+  set_fact:
+    timediff: "{{ ((apic_time | int) - (nkt_time | int)) | abs }}"
+  tags:
+    - apic_user 
+
+- name: APIC to NKT installer timediff
+  debug: 
+    msg: "{{ timediff }} seconds"
+  tags:
+    - apic_user 
+
+- name: Stop if timediff > 10s
+  fail: msg="!!!Please ensure the NKT and APIC clocks are in sync!!!"
+  when: timediff | int >= 10
+  tags:
+    - apic_user 
+
 - name: Generate an OpenSSL private key.
   openssl_privatekey:
     path: "{{ './roles/aci/files/' + aci_temp_username + '-user.key' }}"

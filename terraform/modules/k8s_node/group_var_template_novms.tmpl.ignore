@@ -19,10 +19,9 @@ vrf_name: ${vrf_name}
 bgp_peers:
 %{ for node in bgp_peers ~}
   - id: ${node.node_id}
-    primary_ip: ${split("/",node.primary_ip)[0]}
-    primary_ipv6: ${split("/",node.primary_ipv6)[0]}
+    primary_ip: ${split("/",node.ip)[0]}
+    primary_ipv6: ${split("/",node.ipv6)[0]}
     rack_id: "${node.rack_id}"
 %{ endfor ~}
 
 bgp_pass: ${bgp_pass}
-eBPF_status: ${k8s_cluster.eBPF_status}

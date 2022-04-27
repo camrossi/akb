@@ -12,18 +12,10 @@
   tags:
     - apic_user 
 
-- name: Get NKT Installer Time
-  delegate_to: localhost
-  shell: |
-    date
-  register: nkt_time
-  tags:
-    - apic_user 
-
 - name: Normalize Times
   set_fact:
     apic_time: "{{ (apic_topSys.imdata[0]['topSystem']['attributes']['currentTime'] | to_datetime('%Y-%m-%dT%H:%M:%S.%f%z')).timestamp() }}"
-    nkt_time: "{{ (nkt_time.stdout  | to_datetime('%a %d %b %Y %H:%M:%S %Z')).timestamp() }}"
+    nkt_time:  "{{ (now().isoformat()  | to_datetime('%Y-%m-%dT%H:%M:%S.%f')).timestamp() }}"
   tags:
     - apic_user 
 

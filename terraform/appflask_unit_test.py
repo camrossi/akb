@@ -72,6 +72,23 @@ def test_normalize_url(input, expected):
             'k8s_integ': True
         },
         (False, "Invalid keys: ['vrf', 'loopback_ipv4', 'gateway_v4']")
+    ),
+    (
+        {
+            'fabric_name': 'fabric-cylon',
+            'asn': '65004',
+            'vrf': 'test',
+            'loopback_id': '100',
+            'loopback_ipv4': ["1.1.1.1"],
+            'gateway_v4': '192.168.10.1/24',
+            'gateway_v6': '',
+            'ibgp_peer_vlan': '3965',
+            'route_tag': '65535',
+            'ipv6_enabled': True,
+            'bgp_pass': '',
+            'k8s_integ': True
+        },
+        (False, "Invalid keys: ['gateway_v6']")
     )
 ])
 def test_validate_fabric_input(input, expected):

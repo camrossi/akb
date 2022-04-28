@@ -31,9 +31,9 @@
   tags:
     - apic_user 
 
-- name: Stop if timediff > 10s
+- name: Stop if timediff > 60s
   fail: msg="!!!Please ensure the NKT and APIC clocks are in sync!!!"
-  when: timediff | int >= 10
+  when: timediff | int >= 60
   tags:
     - apic_user 
 

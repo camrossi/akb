@@ -1195,6 +1195,9 @@ def l3out_view():
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
             if req.get("anchor_nodes") == "":
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "At least one anchor node is required")
+            if req.get("l3out_tenant") == "" or req.get("vrf_name") == "" or req.get("contract") == "" :
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Tenant, VRF, and Contract are mandatory parameters")
+
             try:
                 anchor_nodes = json.loads(req.get("anchor_nodes"))
             except ValueError as e:

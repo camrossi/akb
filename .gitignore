@@ -15,4 +15,5 @@ __pycache__
 labs
 *.ova
 *.backup
-.env
+terraform/.env
+terraform/static/manifests/*

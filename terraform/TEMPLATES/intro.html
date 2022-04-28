@@ -138,7 +138,7 @@
     $(document).ready(function () {
         $('body').find('[data-oneuihighcharts="container"]').each((key, val) => {
             var finalJson = val.getAttribute('data-highchartfinaljson') || '[]';
-            var myChart = Highcharts.chart(val, JSON.parse(finalJson));
+            Highcharts.chart(val, JSON.parse(finalJson));
         })
         $("#btn_doc").on("click", function(){
             var fabric_type = $("#fabric_type").val();
@@ -153,7 +153,7 @@
         html2canvas(document.body, {}).then(canvas => {
             html2canvas(document.body, {}).then(canvas => {
                 document.body.appendChild(canvas);
-                getCanvas = canvas;
+                const getCanvas = canvas;
                 var imgageData = getCanvas.toDataURL('image/png');
                 var newData = imgageData.replace(
                     /^data:image\/png/,

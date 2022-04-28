@@ -16,7 +16,7 @@ function saveInput() {
     inputs = document.getElementsByTagName(tag[0]);
     // iterate through all of 
     for (index = 0; index < inputs.length; ++index) {
-      currentElem = inputs[index];
+      const currentElem = inputs[index];
       if (
         tag.length === 1 ||
         !(
@@ -207,4 +207,37 @@ function toggleAutoScroll() {
     autoScrollButton.value = "Start Autoscroll";
     endAutoScroll();
   }
+}
+
+function loadInputVCenter() {
+  // console.log(JSON.stringify(sessionStorage, null, 2))
+  const dcElem = document.getElementById("dc");
+
+  const path = window.location.pathname;
+  const page = path.split("/").pop();
+
+  // load in the vCenter DC Name
+  const retrievedVal = sessionStorage.getItem(page + " " + "dc");
+  if (retrievedVal !== null && retrievedVal !== "") {
+    dcElem.value = retrievedVal;
+    dcElem.form.requestSubmit();
+    console.log("if condition ran");
+  } else console.log("No saved value for vCenter DC Name");
+}
+
+function loadListenerCreator() {
+      console.log("turbo:load fired");
+      loadInputVCenter();
+
+      const dummyC = document.getElementById('dummy_container')
+
+      const observer = new MutationObserver((mutationsList, observered) => {
+         console.log('Mutation observer body is being ran!')
+         loadInput();
+         observer.disconnect();
+
+         document.removeEventListener('turbo:load', null)
+
+      })
+      observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
 }

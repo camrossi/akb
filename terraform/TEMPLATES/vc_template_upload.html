@@ -90,7 +90,9 @@
                               </div>
                            </div>       
                         </div>
+                        <div id="dummy_container">
                            {% include '_template_folder.html' %}
+                        </div>
                            {% include '_template_upload_progress.html' %}
                      </div>
             </div>
@@ -131,7 +133,7 @@
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
 <script>
-   loadInput();
+   const loadListener = document.addEventListener('turbo:load', loadListenerCreator);
 </script>
    <script>
       var source = new EventSource("/vctemplate");

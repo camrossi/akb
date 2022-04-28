@@ -815,6 +815,11 @@ def cluster_network():
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
                     l3out['vlan_id'] = req.get("vlan_id")
+                    if l3out['vlan_id'] == 
+                    "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
+                        logger.info('Invalid VLAN detected')
+                        flash("Please Specify a valid VLAN ID (2-4094)")
+                        return redirect('/cluster_network')
                 logger.info('save l3out variables')
                 setdotenv('l3out', json.dumps(l3out))
             if ipv6_enabled: 

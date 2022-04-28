@@ -125,7 +125,7 @@ def validate_fabric_input(data: dict) -> (bool, str):
             continue
         inval_key.append(key)
     if inval_key != []:
-        return False, f"Invalid keys:[{inval_key}]"
+        return False, f"Invalid keys: {inval_key}"
     else:
         return True, "valid input!"
 

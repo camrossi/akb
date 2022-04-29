@@ -1,8 +1,6 @@
-from asyncio.log import logger
 import json
 from logging import error
 from socket import gaierror
-import threading
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
 from flask_executor import Executor
@@ -353,7 +351,7 @@ def doc_ndfc():
 
 @app.route('/tf_plan', methods=['GET', 'POST'])
 @require_api_token
-def tf_plan():
+def tf_plan():    
     '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
@@ -363,6 +361,10 @@ def tf_plan():
     # Get the current dir
     cwd = os.getcwd()
     if fabric_type == "aci":
+        apic = json.loads(getdotenv('apic'))
+        ret = create_apic_user(apic)
+        if ret != 'OK':
+            return ret
         with open("cluster.tfvars", 'r') as fp:
             current_config = hcl.load(fp)
         if not current_config['vc']['vm_deploy']:
@@ -405,8 +407,7 @@ def tf_plan():
             g.run(["bash", "-c", "terraform -chdir=ndfc init -no-color && terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
         else:
             g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
-    # p = g.run("ls")
-    
+
     return Response(read_process(g), mimetype='text/event-stream')
 
 
@@ -1462,13 +1463,50 @@ def query_ndfc():
                 networks.append(net)
         return json.dumps(networks), 200
 
+def create_apic_user(apic):
+    logger.info('Create APIC User')
+    ansible_output = ''
+    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
+    config = f"""apic: #You ACI Fabric Name
+    hosts:
+        {apic['url'].replace("https://",'')}:
+            validate_certs: no
+            # APIC HTTPs Port
+            port: 443
+            # APIC user with admin credential
+            admin_user: {apic['username']}
+            admin_pass: {apic['password']}
+            # APIC User that we create only for the duration of this playbook
+            # We also create certificates for this user name to use cert based authentication
+            aci_temp_username: {apic['nkt_user']}
+            aci_temp_pass: {apic['nkt_pass']}"""
+
+    with open('../ansible/inventory/apic.yaml', 'w') as f:
+        f.write(config)
+    # Generate temporary user and certificate
+    g = proc.Group()
+    g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
+    #Just wait for terraform to finish
+    for s in read_process(g):
+        ansible_output += str(s, 'utf-8')
+
+    # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
+    # This for some reason does not work on Alpine so I do a hacky thing:
+    #if g.get_exit_codes()[0][1] == 0 :
+    #    return redirect('/l3out')
+    # If something failed then the user creation failed.
+    if "failed=0" in ansible_output:
+        return 'OK'
+    else:
+        logger.info('Unable to create nkt user')
+        return Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype='text/event-stream')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     '''Login page to get details for ACI or NDFC'''
     apic = {}
     vc = create_vc_vars()
-    ansible_output = ''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -1503,38 +1541,12 @@ def login():
             setdotenv('apic', json.dumps(apic))
             logger.info('login page: set vc variables')
             setdotenv('vc', json.dumps(vc))
-    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
-            config = f"""apic: #You ACI Fabric Name
-  hosts:
-    {apic['url'].replace("https://",'')}:
-      validate_certs: no
-      # APIC HTTPs Port
-      port: 443
-      # APIC user with admin credential
-      admin_user: {apic['username']}
-      admin_pass: {apic['password']}
-      # APIC User that we create only for the duration of this playbook
-      # We also create certificates for this user name to use cert based authentication
-      aci_temp_username: {apic['nkt_user']}
-      aci_temp_pass: {apic['nkt_pass']}"""
-            with open('../ansible/inventory/apic.yaml', 'w') as f:
-                f.write(config)
-            # Generate temporary user and certificate
-            g = proc.Group()
-            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
-            #Just wait for terraform to finish
-            for s in read_process(g):
-                ansible_output += str(s, 'utf-8')
+            ret = create_apic_user(apic)
+            if ret != 'OK':
+                return ret
+            return redirect('/l3out')
 
-            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
-            # This for some reason does not work on Alpine so I do a hacky thing:
-            #if g.get_exit_codes()[0][1] == 0 :
-            #    return redirect('/l3out')
-            # If something failed then the user creation failed.
-            if "failed=0" in ansible_output:
-                return redirect('/l3out')
-            else:
-                return (Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
+                
         if fabric_type == "vxlan_evpn":
             ndfc = {}
             ndfc["url"] = normalize_url(request.json["url"])
@@ -1654,9 +1666,6 @@ def destroy():
         g.run(["bash", "-c", cmd])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
-
-
-
 
 @app.route('/')
 @app.route('/intro', methods=['GET', 'POST'])

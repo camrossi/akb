@@ -95,6 +95,14 @@ def get_fabric_type(http_request: request) -> str:
         fabric_type = "aci"
     return fabric_type.lower()
 
+def get_manage_cluster(http_request: request) -> bool:
+    ''' get manage cluster from url parameters '''
+    manage_cluster = 'False' if not http_request else http_request.args.get("manage", 'False')
+    manage_cluster = str(manage_cluster).lower()
+    if manage_cluster == "true":
+        return True
+    return False
+
 def normalize_url(hostname: str) -> str:
     if hostname.startswith('http://'):
         url = hostname.replace("http://", "https://")
@@ -567,6 +575,7 @@ def update_config():
 def calico_nodes_view():
     ''' Page to configure the Kubernetes nodes '''
     fabric_type = get_fabric_type(request)
+    manage_cluster = get_manage_cluster(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
     calico_nodes = []
@@ -592,7 +601,7 @@ def calico_nodes_view():
             natip = req.get("natip")
             rack_id = req.get("rack_id")
             if not is_valid_hostname(hostname):
-                return calico_nodes_error(json.dumps(calico_nodes, indent=4), "Error: Ivalid Hostname")
+                return calico_nodes_error(json.dumps(calico_nodes, indent=4), "Error: Invalid Hostname")
 
             # Check IP addresses
             try:
@@ -668,12 +677,12 @@ def calico_nodes_view():
             for calico_node in calico_nodes:
 
                 if calico_node['hostname'] == hostname:
-                    return calico_nodes_error(req.get("calico_nodes"), "Duplicated Hostname" + hostname)
+                    return calico_nodes_error(req.get("calico_nodes"), "Duplicated Hostname " + hostname)
                 if calico_node['ip'] == ip:
-                    return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv4:" + ip)
+                    return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv4: " + ip)
                 if ipv6_enabled:
                     if calico_node['ipv6'] == ipv6:
-                        return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv6:" + ipv6)
+                        return calico_nodes_error(req.get("calico_nodes"), "Duplicated Node IPv6: " + ipv6)
 
             calico_nodes.append({"hostname": hostname, "ip": ip,
                                 "ipv6": ipv6, "natip": natip, "rack_id": rack_id})
@@ -730,14 +739,20 @@ def calico_nodes_view():
                 i += 1
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
-            return render_template('calico_nodes.html', ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], calico_nodes=json.dumps(calico_nodes, indent=4))
+            return render_template('calico_nodes.html', 
+                                    ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], 
+                                    ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], 
+                                    calico_nodes=json.dumps(calico_nodes, indent=4),
+                                    hostnames =  [d['hostname'] for d in calico_nodes],
+                                    manage_cluster=manage_cluster)
         elif fabric_type == "vxlan_evpn":
             overlay = json.loads(getdotenv('overlay'))
             return render_template('calico_nodes.html',
                                    ipv4_cluster_subnet=overlay["node_sub"],
                                    ipv6_cluster_subnet=overlay["node_sub_v6"],
-                                   calico_nodes=json.dumps(calico_nodes, indent=4))
-
+                                   calico_nodes=json.dumps(calico_nodes, indent=4),
+                                   hostnames =  [d['hostname'] for d in calico_nodes],
+                                   manage_cluster=manage_cluster)
 
 
 def is_valid_hostname(hostname):
@@ -1665,7 +1680,7 @@ def existing_cluster():
         req = request.form
         button = req.get("button")
         if button == "Manage Nodes":
-            return redirect('/calico_nodes')
+            return redirect('/calico_nodes?manage=true')
     if request.method == "GET":
         if fabric_type == "aci":
             try:

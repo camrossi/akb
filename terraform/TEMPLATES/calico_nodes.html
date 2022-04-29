@@ -79,7 +79,7 @@
                <div class="col-md-6">
                   <div class="form-group base-margin-bottom">
                      <div class="form-group__text">
-                        <div class="form-group__text"><input type="text" name="hostname" id="hostname"><label>Hostname</label></div>
+                        <div class="form-group__text"><input type="text" name="hostname" id="hostname" list="hostname-list"><label>Hostname</label></div>
                      </div>
                   </div>
                   <div class="form-group base-margin-bottom">
@@ -98,6 +98,11 @@
                         </label>
                      </div>
                   </div>
+                  <datalist id="hostname-list">
+                     {%for h in hostnames %}
+                        <option>{{h}}</option>
+                     {%endfor%}
+                  </datalist>
                   <input id="add_node" type="submit" value="Add Node" class="btn btn--wide" name="button">
                   <input id="remove_node" type="submit" value="Remove Node" class="btn btn--wide" name="button">
             </div>
@@ -107,9 +112,12 @@
 
          <div class="container">
             <div class="navibox">
-               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
-               <input type="submit" value="Apply Node Config Update" class="btn btn--wide" name="button" style="margin-left: 0px">
+               {% if manage_cluster %}
+                  <input type="submit" value="Apply Node Config Update" class="btn btn--wide" name="button" style="margin-left: 0px">
+               {% else %}
+                  <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+                  <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+               {% endif %}
             </div>
          </div>
 

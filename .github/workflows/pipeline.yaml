@@ -149,7 +149,7 @@ jobs:
           gunicorn -w 4 -k gevent -b 0.0.0.0:5007 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium/selenium_ui_testing_no_cluster_v4.py --headless
+          python3 selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless
       - name: Terraform plan
         run: | 
           curl -c cookie.txt -s http://10.67.185.120:5007/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5007/tf_plan

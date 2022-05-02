@@ -1,5 +1,8 @@
 import json
 from logging import error
+import requests
+from OpenSSL.crypto import sign, load_privatekey, FILETYPE_PEM
+import base64
 from socket import gaierror
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session
@@ -1463,7 +1466,41 @@ def query_ndfc():
                 networks.append(net)
         return json.dumps(networks), 200
 
+def check_apic_user(apic):
+    logger.info('Check if certificate based APIC user already exists!')
+    method = 'GET'
+    path = '/api/node/class/infraCont.json'
+    payload = ""
+    try:
+        with open('../ansible/roles/aci/files/'+apic['nkt_user']+'-user.key') as f:
+            private_key_content = f.read()
+    except FileNotFoundError:
+        logger.info('Certificate based APIC user does not exits!')
+        return False
+    sig_key = load_privatekey(FILETYPE_PEM, private_key_content)
+    sig_request = method + path + payload
+    sig_signature = sign(sig_key, sig_request, "sha256")
+
+    sig_dn = 'uni/userext/user-'+apic['nkt_user']+'/usercert-'+apic['nkt_user']+''
+    headers = {}
+    headers["Cookie"] = (
+                "APIC-Certificate-Algorithm=v1.0; "
+                + "APIC-Certificate-DN=%s; " % sig_dn
+                + "APIC-Certificate-Fingerprint=fingerprint; "
+                + "APIC-Request-Signature=%s" % base64.b64encode(sig_signature).decode("utf-8")
+            )
+    url = apic['url'] + path
+    req = requests.get(url, headers=headers, data=payload, verify=False)
+    if req.status_code == 200:
+        logger.info('Certificate based APIC user already exists!')
+        return True
+    else:
+        logger.info('Certificate based APIC user does not exits!')
+        return False
+
 def create_apic_user(apic):
+    if check_apic_user(apic):
+        return 'OK'
     logger.info('Create APIC User')
     ansible_output = ''
     ## Generate the inventory file for the APIC, this looks ugly might want to clean up

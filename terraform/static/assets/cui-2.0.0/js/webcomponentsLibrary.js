@@ -86,7 +86,7 @@ class StatusBar extends HTMLElement {
     const containerDiv = document.createElement("div");
     // containerDiv.classList.add("pagination")
     containerDiv.style =
-        "width: 95%; height: 75px; font-size: 16px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
+        "width: 100%; height: 75px; font-size: 16px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
     
     const currentPage = pageNumber(getPageName());
     let index = 0;

@@ -220,6 +220,7 @@
 <script>
    function updateiFrame(button) {
        if (button.value === 'Plan') {
+           
            document.getElementById('iframe').src = "{{ url_for("tf_plan") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
        }
        if (button.value === 'Apply') {

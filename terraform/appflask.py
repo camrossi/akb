@@ -351,6 +351,12 @@ def doc_ndfc():
     '''Return the NDFC Documentation '''
     return render_template('docs/ndfc.html')
 
+@app.route('/tf_status', methods=['GET', 'POST'])
+def tf_status():
+    if os.path.exists(".terraform.tfstate.lock.info"):
+        return Response( 'Running', mimetype='text/plain')
+    return Response( 'Not Running', mimetype='text/plain')
+
 @app.route('/tf_plan', methods=['GET', 'POST'])
 @require_api_token
 def tf_plan():

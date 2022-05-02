@@ -17,3 +17,5 @@ labs
 *.backup
 terraform/.env
 terraform/static/manifests/*
+ansible/inventory/group_vars/all.yml
+ansible/roles/primary_master/files/pki/sa.pub

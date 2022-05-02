@@ -357,6 +357,12 @@ def tf_status():
         return Response( 'Running', mimetype='text/plain')
     return Response( 'Not Running', mimetype='text/plain')
 
+@app.route('/ansible_status', methods=['GET', 'POST'])
+def ansible_status():
+    if os.path.exists(".terraform.tfstate.lock.info"):
+        return Response( 'Running', mimetype='text/plain')
+    return Response( 'Not Running', mimetype='text/plain')
+
 @app.route('/tf_plan', methods=['GET', 'POST'])
 @require_api_token
 def tf_plan():

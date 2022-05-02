@@ -131,7 +131,9 @@ class StatusBar extends HTMLElement {
     // const nameAndIcon = document.createElement("div");
       
     // document.querySelector("status-bar-container")
-    template.content.appendChild(containerDiv)
+    // console.log(containerDiv);
+    template.content.removeChild(template.content.firstElementChild)
+    template.content.appendChild(containerDiv);
     this.attachShadow({ mode: "open" });
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 

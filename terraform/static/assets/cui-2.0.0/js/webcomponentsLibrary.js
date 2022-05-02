@@ -52,7 +52,7 @@
 
 // // })
 const pages = [
-  // ["", "required"],
+  ["", "required"],
   ["login", "required"],
   ["l3out", "required"],
   ["vcenterlogin", "required"],
@@ -94,12 +94,13 @@ class StatusBar extends HTMLElement {
       const pageName = page[0];
       const child = document.createElement("a");
       child.style = "display: flex; justify-content: space-around;";
+      
       if (pageName !== "") {
         child.innerText = pageName;
-        child.href = pageName;
+        // child.href = pageName;
       } else {
         child.innerText = "pick fabric";
-        child.href = "";
+        // child.href = "";
       } 
       const iconContainer = document.createElement("div");
       iconContainer.style = "display: flex; justify-content: space-around;";
@@ -124,6 +125,8 @@ class StatusBar extends HTMLElement {
       nameAndIcon.appendChild(child);
       iconContainer.appendChild(childIcon);
       nameAndIcon.appendChild(iconContainer);
+      nameAndIcon.setAttribute("indexNumber", index)
+      nameAndIcon.setAttribute("onclick", "changePage(parseInt(this.getAttribute('indexNumber')))");
       containerDiv.appendChild(nameAndIcon);
       index++;
     }
@@ -160,16 +163,36 @@ function pageNumber(pageName) {
   return -1;
 }
 
+function pageNumberToName(pageNumber) {
+  return pages[pageNumber];
+}
+
 function changePage(futurePage, currentPage) {
+  if (currentPage === undefined)
+    currentPage = getPageName();
   if (typeof (currentPage) === "string")
     currentPage = pageNumber(currentPage);
   if (typeof futurePage === "string")
     futurePage = pageNumber(futurePage);
-  if (typeof (currentPage) === "number" && typeof (futurePage) === "number") {
+  console.log("current page: " + currentPage);
+  console.log("future page: " + futurePage);
+  
+  if (typeof (currentPage) === "number" && typeof (futurePage) === "number" && futurePage >= 0) {
     // if the page user wants to switch to is before the current page, that is always allowed
-    if (futurePage < currentPage) return futurePage;
+    if (futurePage < currentPage) {
+      // window.location.href = window.location.href
+      console.log("go to future page: " + futurePage)
+      window.location.href = window.location.origin + "/" + pages[futurePage][0];
+      return futurePage;
+    }
+
     // this is if the page user wants to switch to is the create page, or the last page
-    else if (futurePage === pages.length - 1) return futurePage;
+    else if (futurePage === pages.length - 1) {
+      console.log("go to create page: " + futurePage);
+      window.location.href = window.location.origin + "/" + pages[futurePage][0];
+      return futurePage;
+    }
+
     // this is if the page user wants to switch to is after the current page but not the create page
     else {
       return currentPage;

@@ -4,7 +4,7 @@ from logging import error
 from socket import gaierror
 import threading
 from functools import wraps
-from flask import Flask, Response, request, render_template, redirect, flash, session
+from flask import Flask, Response, request, render_template, redirect, flash, session, escape
 from flask_executor import Executor
 import vc_utils
 from turbo_flask import Turbo
@@ -1396,7 +1396,7 @@ def fabric():
         data = request.json
         is_valid, message = validate_fabric_input(data)
         if not is_valid:
-            return json.dumps({"error": message}), 400
+            return json.dumps({"error": escape(message)}), 400
         result = ndfc_process_fabric_setting(data)
         if result:
             return json.dumps({"ok": "fabric setting configured"}), 200

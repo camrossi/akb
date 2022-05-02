@@ -8,8 +8,6 @@ import ssl
 from urllib.request import Request, urlopen
 import sys
 
-import appflask
-
 def connect(url, username, vc_pass, port):
     return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)
 

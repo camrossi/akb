@@ -9,7 +9,6 @@ from flask import Flask, Response, request, render_template, redirect, flash, se
 from flask_executor import Executor
 import vc_utils
 from turbo_flask import Turbo
-import requests
 import os
 from pyaci import Node, options, filters
 import ipaddress

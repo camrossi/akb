@@ -1467,6 +1467,7 @@ def query_ndfc():
         return json.dumps(networks), 200
 
 def check_apic_user(apic):
+    '''Check if a certificate based APIC user already exists'''
     logger.info('Check if certificate based APIC user already exists!')
     method = 'GET'
     path = '/api/node/class/infraCont.json'
@@ -1499,6 +1500,7 @@ def check_apic_user(apic):
         return False
 
 def create_apic_user(apic):
+    ''' Create Certificate based APIC user if is missing or not working'''
     if check_apic_user(apic):
         return 'OK'
     logger.info('Create APIC User')

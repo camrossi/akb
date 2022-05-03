@@ -1,0 +1,24 @@
+### Generate Ansible config file
+resource "local_file" "AnsibleConfig" {
+  content = templatefile("${path.module}/group_var_template_novms.tmpl",
+    {
+      k8s_cluster     = var.k8s_cluster
+      as              = var.fabric.as
+      bgp_pass        = var.fabric.bgp_pass
+      bgp_peers       = var.bgp_peers
+      vrf_tenant      = var.fabric.vrf_tenant
+      vrf_name        = var.fabric.vrf_name
+      controller      = var.controller
+      fabric_type     = var.fabric.type
+      ssh_private_key = abspath("${var.ansible_dir}/roles/sandbox/files/id_rsa")
+    }
+  )
+  filename = "${var.ansible_dir}/inventory/group_vars/all.yml"
+}
+
+resource "null_resource" "sandbox_cluster" {
+  depends_on = [local_file.AnsibleConfig]
+  provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ${var.ansible_dir}/manifests_novms.yaml --extra-vars=@${var.ansible_dir}/inventory/group_vars/all.yml"
+  }
+}

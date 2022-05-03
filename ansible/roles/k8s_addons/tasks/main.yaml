@@ -199,7 +199,6 @@
   tags:
     - k8s_addons
 
-
 - name: Copy vkaci addons manifests
   template:
     src: vkaci.yaml.j2

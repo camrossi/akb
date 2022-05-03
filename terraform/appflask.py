@@ -302,22 +302,22 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
         neo4j_ip = ""
 
     #I need to have a DNS server configuired for core DNS, set one if the DNS server list is empty
-    
     if dns_servers == "":
         dns_servers = ['8.8.8.8']
+
     else:
         dns_servers = list(dns_servers.split(","))
 
     ubuntu_apt_mirror = normalize_apt_mirror(ubuntu_apt_mirror)
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
-                "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else None,
+                "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else 0,
                 "pod_subnet": ipv4_pod_sub, 
                 "pod_subnet_v6": ipv6_pod_sub,
                 "cluster_svc_subnet": ipv4_svc_sub,
                 "cluster_svc_subnet_v6": ipv6_svc_sub,
                 "external_svc_subnet": external_svc_subnet,
                 "external_svc_subnet_v6": external_svc_subnet_v6,
-                "local_as" : local_as,
+                "local_as" : local_as if local_as != "" else 0,
                 "ingress_ip": ingress_ip,
                 "visibility_ip": visibility_ip,
                 "neo4j_ip": neo4j_ip,
@@ -386,19 +386,35 @@ def tf_plan():
         with open("cluster.tfvars", 'r') as fp:
             current_config = hcl.load(fp)
         if not current_config['vc']['vm_deploy']:
+            logger.info('K8s Cluster deployment disabled')
             #Change to the VM module directory
             os.chdir("modules/k8s_node")
             if os.path.exists("vms.tf"):
+                logger.info('Disable VM Deployment')
                 os.rename("vms.tf","vms.tf.ignore")
             if os.path.exists("outputs.tf"):
+                logger.info('Enable Config Only outputs')
                 os.rename("outputs.tf","outputs.tf.ignore")
+                os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
+            if os.path.exists("group_var_template.tmpl"):
+                logger.info('Enable Config Only Templates')
+                os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
+                os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
             os.chdir(cwd)
         if current_config['vc']['vm_deploy']:
+            logger.info('K8s Cluster enbaled, enable vms and output tf files')
             os.chdir("modules/k8s_node")
             if os.path.exists("vms.tf.ignore"):
+                logger.info('Enable VM Deployment')
                 os.rename("vms.tf.ignore","vms.tf")
             if os.path.exists("outputs.tf.ignore"):
+                logger.info('Enable Cluster Deployment outputs')
                 os.rename("outputs.tf.ignore","outputs.tf")
+                os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
+            if os.path.exists("group_var_template.tmpl.ignore"):
+                logger.info('Enable Cluster Templates')
+                os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
+                os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
             os.chdir(cwd)
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
@@ -435,12 +451,11 @@ def create():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-
+    vc = json.loads(getdotenv('vc'))
     if request.method == 'GET':
-        try:
+        try: 
             cluster = json.loads(getdotenv('cluster'))
-            vc = json.loads(getdotenv('vc'))
-            calico_nodes = json.loads(getdotenv('calico_nodes'))
+            
             if fabric_type == "aci":
                 l3out = json.loads(getdotenv('l3out'))
                 apic = json.loads(getdotenv('apic'))
@@ -450,10 +465,13 @@ def create():
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
                 tf_apic['oob_ips'] = apic["oob_ips"]
-                if calico_nodes[0]['natip'] != "":
-                    ext_ip = calico_nodes[0]['natip']
-                else:
-                    ext_ip = calico_nodes[0]['ip'].split("/")[0]
+                ext_ip = ""
+                if vc['vm_deploy']:
+                    calico_nodes = json.loads(getdotenv('calico_nodes'))
+                    if calico_nodes[0]['natip'] != "":
+                        ext_ip = calico_nodes[0]['natip']
+                    else:
+                        ext_ip = calico_nodes[0]['ip'].split("/")[0]
                 vkaci_ui = "http://" + ext_ip + ":30000"
                 config = "apic =" + json.dumps(tf_apic, indent=4)
                 config += "\nl3out =" + json.dumps(l3out, indent=4)
@@ -467,6 +485,10 @@ def create():
                     f.write(config)
 
             elif fabric_type == "vxlan_evpn":
+                if vc['vm_deploy']:
+                    calico_nodes = json.loads(getdotenv('calico_nodes'))
+                else:
+                    calico_nodes = ""
                 ndfc = json.loads(getdotenv('ndfc'))
                 overlay = json.loads(getdotenv('overlay'))
                 config = ndfc_create_tf_vars(fabric_type,
@@ -486,7 +508,7 @@ def create():
         except Exception as e:
             print(e)
             config = []
-        return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
+        return render_template('create.html', config=config, vkaci_ui=vkaci_ui, vm_deploy=vc['vm_deploy'])
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
@@ -496,7 +518,7 @@ def create():
             config = req.get('config')
             with open('cluster.tfvars', 'w', encoding='utf-8') as f:
                 f.write(config)
-            return render_template('create.html', config=config)
+            return render_template('create.html', config=config,  vkaci_ui=vkaci_ui, vm_deploy=vc['vm_deploy'])
 
 
 @app.route('/update_config', methods=['GET', 'POST'])
@@ -794,23 +816,31 @@ def cluster_network():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            cluster = json.loads(getdotenv('cluster'))
-            if not vc['vm_deploy']:
+            if vc['vm_deploy']:
+                cluster = json.loads(getdotenv('cluster'))
+                external_svc_subnet = req.get("ipv4_ext_svc_sub")
+                cluster['pod_subnet'] = req.get("ipv4_pod_sub")
+                cluster['external_svc_subnet'] = external_svc_subnet
+                cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
+                cluster['local_as'] = req.get("k8s_local_as")
+                cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
+                cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
+                cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
+            else:
                 cluster = create_cluster_vars()
+                cluster['pod_subnet'] = req.get("ipv4_pod_sub")
+                cluster['external_svc_subnet'] = req.get("ipv4_ext_svc_sub")
+                cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
+                cluster['local_as'] = req.get("k8s_local_as")
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
                     l3out['vlan_id'] = req.get("vlan_id")
-                logger.info('save cluster and l3out variables')
-                setdotenv('cluster', json.dumps(cluster))
+                    if l3out['vlan_id'] == "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
+                        logger.info('Invalid VLAN detected')
+                        flash("Please Specify a valid VLAN ID (2-4094)")
+                        return redirect('/cluster_network')
+                logger.info('save l3out variables')
                 setdotenv('l3out', json.dumps(l3out))
-            external_svc_subnet = req.get("ipv4_ext_svc_sub")
-            cluster['pod_subnet'] = req.get("ipv4_pod_sub")
-            cluster['external_svc_subnet'] = external_svc_subnet
-            cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
-            cluster['local_as'] = req.get("k8s_local_as")
-            cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
-            cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
-            cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
             if ipv6_enabled: 
                 cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
                 cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
@@ -821,7 +851,6 @@ def cluster_network():
                 cluster['pod_subnet_v6'] = ""
                 cluster['cluster_svc_subnet_v6'] = ""
                 cluster['external_svc_subnet_v6'] = ""
-            
             logger.info('save cluster variable')
             setdotenv('cluster', json.dumps(cluster))
             return redirect(f'/create?fabric_type={fabric_type}')
@@ -1601,17 +1630,19 @@ def existing_cluster():
             f = open("cluster.tfvars")
             current_config =  f.read()
             # Derive vkaci IP address:
-            master = hcl.loads(current_config)['calico_nodes'][0]
-            if master['natip'] != "":
-                ext_ip = master['natip']
-            else:
-                ext_ip = master['ip'].split("/")[0]
-
+            deployed_cluster = hcl.loads(current_config)['vc']['vm_deploy']
+            ext_ip = ""
+            if deployed_cluster:
+                master = hcl.loads(current_config)['calico_nodes'][0]
+                if master['natip'] != "":
+                    ext_ip = master['natip']
+                else:
+                    ext_ip = master['ip'].split("/")[0]
             vkaci_ui = "http://" + ext_ip + ":30000"
             # Do something with the file
         except IOError:
-            return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
-        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui)
+            return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present", vm_deploy=deployed_cluster)
+        return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui,  vm_deploy=deployed_cluster)
     elif fabric_type == "vxlan_evpn":
         ndfc_tfvars = "./ndfc/cluster.tfvars"
         if not os.path.exists(ndfc_tfvars):

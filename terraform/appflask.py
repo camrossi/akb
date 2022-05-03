@@ -710,8 +710,8 @@ def calico_nodes_view():
             calico_nodes = json.loads(req.get("calico_nodes"))
             logger.info('save calico_nodes variable')
             setdotenv('calico_nodes', json.dumps(calico_nodes))
-            create_tf_config(get_fabric_type(request))
-            return redirect(f"/create")
+            create_tf_config(fabric_type)
+            return redirect(f"/create?fabric_type={fabric_type}")
 
     if request.method == 'GET':
         # Try to load the calico nodes from the env file.
@@ -1680,7 +1680,7 @@ def existing_cluster():
         req = request.form
         button = req.get("button")
         if button == "Manage Nodes":
-            return redirect('/calico_nodes?manage=true')
+            return redirect(f'/calico_nodes?fabric_type={fabric_type}&manage=true')
     if request.method == "GET":
         if fabric_type == "aci":
             try:

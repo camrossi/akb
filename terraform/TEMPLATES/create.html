@@ -241,7 +241,10 @@
                 data: JSON.stringify({ config: $("#config").val()}),
                 success: function (result, status, xhr) {
                     $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
-                },
+                    setTimeout(function(){
+                     window.location.reload(1);
+                  }, 500);                
+               },
                 error: function (xhr, status, error) {
                     $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
                 }

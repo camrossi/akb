@@ -1,7 +1,5 @@
 fabric_type = "{{ fabric_type }}"
 
-ndfc_k8s_integ = "{{ overlay.k8s_integ | lower}}"
-
 vc = {
   "url" : "{{vc.url}}",
   "username" : "{{vc.username}}",
@@ -13,6 +11,7 @@ vc = {
   "port_group" : "{{vc.port_group}}",
   "vm_template" : "{{vc.vm_template}}",
   "vm_folder" : "{{vc.vm_folder}}"
+  "vm_deploy" : "{{vc.vm_deploy}}"
 }
 
 ndfc = {
@@ -30,6 +29,8 @@ overlay = {
   "bgp_passwd" : "",
   "k8s_route_map" : "{{overlay.k8s_route_map}}",
   "route_tag" : {{overlay.route_tag}},
+  "k8s_integ" : {{ overlay.k8s_integ | lower}}
+  "ipv6_enabled" : {{overlay.ipv6_enabled | lower}},
   "vpc_peers" : [
     {%- for peer in overlay.vpc_peers %}
       [
@@ -79,7 +80,6 @@ calico_nodes = [
 k8s_cluster = {
   "control_plane_vip" : "{{cluster.control_plane_vip}}",
   "vip_port" : "{{cluster.vip_port}}",
-  "ipv6_enabled" : {{overlay.ipv6_enabled | lower}},
   "pod_subnet" : "{{cluster.pod_subnet}}",
   "pod_subnet_v6" : "{{cluster.pod_subnet_v6}}",
   "cluster_svc_subnet" : "{{cluster.cluster_svc_subnet}}",

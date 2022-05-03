@@ -1,14 +1,14 @@
-from asyncio.log import logger
 import json
 from logging import error
+import requests
+from OpenSSL.crypto import sign, load_privatekey, FILETYPE_PEM
+import base64
 from socket import gaierror
-import threading
 from functools import wraps
 from flask import Flask, Response, request, render_template, redirect, flash, session, escape
 from flask_executor import Executor
 import vc_utils
 from turbo_flask import Turbo
-import requests
 import os
 from pyaci import Node, options, filters
 import ipaddress
@@ -19,7 +19,7 @@ import random
 import string
 from datetime import datetime
 import concurrent.futures
-import hcl
+import hcl2
 from ndfc import NDFC, Fabric
 from jinja2 import Template
 import argparse
@@ -51,8 +51,10 @@ def getdotenv(env):
     try:
         load_dotenv(override=True)
         val = os.getenv(env)
+        logger.debug('getdotenv %s %s', env, val)
         return val
     except :
+        logger.error('getdotenv failed to load %s', env)
         return None
 
 def setdotenv(key, value):
@@ -63,6 +65,23 @@ def setdotenv(key, value):
         cmd = 'dotenv set ' + key + " '" + value + " '"
         os.system(cmd)
     return None
+def update_all_dotenv(config):
+    logger.info('update_all_dotenv')
+    config = hcl2.loads(config)
+    if 'apic' in config:
+        setdotenv('apic', json.dumps(config['apic']))
+    if 'calico_nodes' in config:
+        setdotenv('calico_nodes', json.dumps(config['calico_nodes']))
+    if 'k8s_cluster' in config:
+        setdotenv('cluster', json.dumps(config['k8s_cluster']))
+    if 'l3out' in config:
+        setdotenv('l3out', json.dumps(config['l3out']))
+    if 'vc' in config:
+        setdotenv('vc', json.dumps(config['vc']))
+    if 'ndfc' in config:
+        setdotenv('ndfc', json.dumps(config['ndfc']))
+    if 'overlay' in config:
+        setdotenv('overlay', json.dumps(config['overlay']))
 
 def require_api_token(func):
     '''This function is used to block direct access to all pages unless you have a session token'''
@@ -373,7 +392,7 @@ def doc_ndfc():
 
 @app.route('/tf_plan', methods=['GET', 'POST'])
 @require_api_token
-def tf_plan():
+def tf_plan():    
     '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
@@ -383,8 +402,12 @@ def tf_plan():
     # Get the current dir
     cwd = os.getcwd()
     if fabric_type == "aci":
+        apic = json.loads(getdotenv('apic'))
+        ret = create_apic_user(apic)
+        if ret != 'OK':
+            return ret
         with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl.load(fp)
+            current_config = hcl2.load(fp)
         if not current_config['vc']['vm_deploy']:
             logger.info('K8s Cluster deployment disabled')
             #Change to the VM module directory
@@ -421,12 +444,11 @@ def tf_plan():
         else:
             g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     elif fabric_type == "vxlan_evpn":
-        if not os.path.exists('.terraform'):
+        if not os.path.exists('ndfc/.terraform'):
             g.run(["bash", "-c", "terraform -chdir=ndfc init -no-color && terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
         else:
             g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
-    # p = g.run("ls")
-    
+
     return Response(read_process(g), mimetype='text/event-stream')
 
 
@@ -451,16 +473,19 @@ def create():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    vc = json.loads(getdotenv('vc'))
+    try:
+        vc = json.loads(getdotenv('vc'))
+    except Exception as e:
+        vc = {}
+        vc['vm_deploy'] = True
     if request.method == 'GET':
         try: 
             cluster = json.loads(getdotenv('cluster'))
-            
             if fabric_type == "aci":
                 l3out = json.loads(getdotenv('l3out'))
                 apic = json.loads(getdotenv('apic'))
                 tf_apic = {}
-                tf_apic['username'] = apic["nkt_user"]
+                tf_apic['nkt_user'] = apic["nkt_user"]
                 tf_apic['cert_name'] = apic["nkt_user"]
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
@@ -514,12 +539,6 @@ def create():
         button = req.get("button")
         if button == "Previous":
             return redirect('/cluster_network?fabric_type=' + fabric_type)
-        if button == "Update Config":
-            config = req.get('config')
-            with open('cluster.tfvars', 'w', encoding='utf-8') as f:
-                f.write(config)
-            return render_template('create.html', config=config,  vkaci_ui=vkaci_ui, vm_deploy=vc['vm_deploy'])
-
 
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
@@ -530,11 +549,13 @@ def update_config():
     if request.method == "POST":
         if fabric_type == "aci":
             config = request.json.get("config", "[]")
+            update_all_dotenv(config)
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
             return json.dumps({"msg": "Config update success!"}), 200
         elif fabric_type == "vxlan_evpn":
             config = request.json.get("config", "[]")
+            update_all_dotenv(config)
             with open('./ndfc/cluster.tfvars', 'w') as f:
                 f.write(config)
             return json.dumps({"msg": "Config update success!"}), 200
@@ -937,6 +958,8 @@ def vcenterlogin():
                     return redirect('/vctemplate')
                 return redirect('/vcenter')
             if fabric_type == "vxlan_evpn":
+                if req.get("template"):
+                    return redirect('/vctemplate')
                 return redirect(f"/vcenter?fabric_type={fabric_type}")
         if button == "Previous":
             if fabric_type == "aci":
@@ -1485,13 +1508,92 @@ def query_ndfc():
                 networks.append(net)
         return json.dumps(networks), 200
 
+def check_apic_user(apic):
+    '''Check if a certificate based APIC user already exists'''
+    logger.info('Check if certificate based APIC user already exists!')
+    method = 'GET'
+    path = '/api/node/class/infraCont.json'
+    payload = ""
+    try:
+        with open('../ansible/roles/aci/files/'+apic['nkt_user']+'-user.key') as f:
+            private_key_content = f.read()
+    except FileNotFoundError:
+        logger.info('Certificate based APIC user does not exits!')
+        return False
+    sig_key = load_privatekey(FILETYPE_PEM, private_key_content)
+    sig_request = method + path + payload
+    sig_signature = sign(sig_key, sig_request, "sha256")
+
+    sig_dn = 'uni/userext/user-'+apic['nkt_user']+'/usercert-'+apic['nkt_user']+''
+    headers = {}
+    headers["Cookie"] = (
+                "APIC-Certificate-Algorithm=v1.0; "
+                + "APIC-Certificate-DN=%s; " % sig_dn
+                + "APIC-Certificate-Fingerprint=fingerprint; "
+                + "APIC-Request-Signature=%s" % base64.b64encode(sig_signature).decode("utf-8")
+            )
+    url = apic['url'] + path
+    req = requests.get(url, headers=headers, data=payload, verify=False)
+    if req.status_code == 200:
+        logger.info('Certificate based APIC user already exists!')
+        return True
+    else:
+        logger.info('Certificate based APIC user does not exits!')
+        return False
+
+def create_apic_user(apic):
+    ''' Create Certificate based APIC user if is missing or not working'''
+    if check_apic_user(apic):
+        return 'OK'
+    
+    #In case we are accessing the create page directly a nkt_user is set but we need to gen generate a random pass
+    # For it or APIC won't let us add a new user
+    if 'nkt_user' in apic and 'nkt_pass' not in apic:
+        apic['nkt_pass'] = get_random_string(20)
+        setdotenv('apic', json.dumps(apic))
+    logger.info('Create APIC User')
+    ansible_output = ''
+    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
+    config = f"""apic: #You ACI Fabric Name
+    hosts:
+        {apic['url'].replace("https://",'')}:
+            validate_certs: no
+            # APIC HTTPs Port
+            port: 443
+            # APIC user with admin credential
+            admin_user: {apic['adminuser']}
+            admin_pass: {apic['adminpass']}
+            # APIC User that we create only for the duration of this playbook
+            # We also create certificates for this user name to use cert based authentication
+            aci_temp_username: {apic['nkt_user']}
+            aci_temp_pass: {apic['nkt_pass']}"""
+
+    with open('../ansible/inventory/apic.yaml', 'w') as f:
+        f.write(config)
+    # Generate temporary user and certificate
+    g = proc.Group()
+    g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
+    #Just wait for terraform to finish
+    for s in read_process(g):
+        ansible_output += str(s, 'utf-8')
+
+    # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
+    # This for some reason does not work on Alpine so I do a hacky thing:
+    #if g.get_exit_codes()[0][1] == 0 :
+    #    return redirect('/l3out')
+    # If something failed then the user creation failed.
+    if "failed=0" in ansible_output:
+        return 'OK'
+    else:
+        logger.info('Unable to create nkt user')
+        return Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype='text/event-stream')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     '''Login page to get details for ACI or NDFC'''
     apic = {}
     vc = create_vc_vars()
-    ansible_output = ''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -1500,8 +1602,8 @@ def login():
         button = req.get("button")
         if button == "Login":
             apic['url'] = normalize_url(request.form['fabric'])
-            apic['username'] = request.form['username']
-            apic['password'] = request.form['password']
+            apic['adminuser'] = request.form['username']
+            apic['adminpass'] = request.form['password']
             apic['nkt_user'] = "nkt_user_" + get_random_string(6) #request.form['nkt_user']
             apic['nkt_pass'] = get_random_string(20)
             apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
@@ -1526,39 +1628,16 @@ def login():
             setdotenv('apic', json.dumps(apic))
             logger.info('login page: set vc variables')
             setdotenv('vc', json.dumps(vc))
-    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
-            config = f"""apic: #You ACI Fabric Name
-  hosts:
-    {apic['url'].replace("https://",'')}:
-      validate_certs: no
-      # APIC HTTPs Port
-      port: 443
-      # APIC user with admin credential
-      admin_user: {apic['username']}
-      admin_pass: {apic['password']}
-      # APIC User that we create only for the duration of this playbook
-      # We also create certificates for this user name to use cert based authentication
-      aci_temp_username: {apic['nkt_user']}
-      aci_temp_pass: {apic['nkt_pass']}"""
-            with open('../ansible/inventory/apic.yaml', 'w') as f:
-                f.write(config)
-            # Generate temporary user and certificate
-            g = proc.Group()
-            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
-            #Just wait for terraform to finish
-            for s in read_process(g):
-                ansible_output += str(s, 'utf-8')
+            ret = create_apic_user(apic)
+            if ret != 'OK':
+                return ret
+            return redirect('/l3out')
 
-            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
-            # This for some reason does not work on Alpine so I do a hacky thing:
-            #if g.get_exit_codes()[0][1] == 0 :
-            #    return redirect('/l3out')
-            # If something failed then the user creation failed.
-            if "failed=0" in ansible_output:
-                return redirect('/l3out')
-            else:
-                return (Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
+                
         if fabric_type == "vxlan_evpn":
+            
+            # NDC does not support yet selecting VM deployment option so settin it here to true
+            vc['vm_deploy'] = request.json["deploy_vm"]
             ndfc = {}
             ndfc["url"] = normalize_url(request.json["url"])
             ndfc["username"] = request.json["username"]
@@ -1567,8 +1646,9 @@ def login():
             inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
             if not inst_ndfc.logon():
                 return json.dumps({"error": "login fail"}), 400
-            logger.info('login page: set ndfc variable')
+            logger.info('login page: set ndfc and vc variable')
             setdotenv('ndfc', json.dumps(ndfc))
+            setdotenv('vc', json.dumps(vc))
             return json.dumps({"ok": "login success"}), 200
         if button == "Previous":
             return redirect('/prereqaci')
@@ -1630,10 +1710,10 @@ def existing_cluster():
             f = open("cluster.tfvars")
             current_config =  f.read()
             # Derive vkaci IP address:
-            deployed_cluster = hcl.loads(current_config)['vc']['vm_deploy']
+            deployed_cluster = hcl2.loads(current_config)['vc']['vm_deploy']
             ext_ip = ""
             if deployed_cluster:
-                master = hcl.loads(current_config)['calico_nodes'][0]
+                master = hcl2.loads(current_config)['calico_nodes'][0]
                 if master['natip'] != "":
                     ext_ip = master['natip']
                 else:
@@ -1677,9 +1757,6 @@ def destroy():
         g.run(["bash", "-c", cmd])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
-
-
-
 
 @app.route('/')
 @app.route('/intro', methods=['GET', 'POST'])

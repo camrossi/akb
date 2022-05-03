@@ -185,7 +185,11 @@ $(document).ready(function() {
             };
 
             var ipv4_addr = $("#input_lo_ipv4").val();
-            var lo_label = '<span class="label label--info label--raised base-margin-left"><span>' + ipv4_addr + '</span> <span class="icon-close"></span></span>';
+            var lo_label = $('<span class="label label--info label--raised base-margin-left"></span>');
+            lo_label.append($("<span><span>").text(ipv4_addr))
+            lo_label.append('<span class="icon-close"></span>')
+
+            console.log(lo_label)
             var label_ipv4 = $(lo_label).appendTo("#loopback_ipv4");
             label_ipv4.data("ipv4", ipv4_addr);
             lo_ipv4_addrs.push(ipv4_addr);

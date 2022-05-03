@@ -230,7 +230,9 @@ $(document).ready(function() {
             };
 
             var ipv6_addr = $("#input_lo_ipv6").val();
-            var lo_label = '<span class="label label--info label--raised base-margin-left"><span>' + ipv6_addr + '</span> <span class="icon-close"></span></span>';
+            var lo_label = $('<span class="label label--info label--raised base-margin-left"></span>');
+            lo_label.append($("<span></span>").text(ipv6_addr));
+            lo_label.append($('<span class="icon-close"></span>'))
             var label_ipv6 = $(lo_label).appendTo("#loopback_ipv6");
             label_ipv6.data("ipv6", ipv6_addr);
             lo_ipv6_addrs.push(ipv6_addr);
@@ -284,12 +286,12 @@ $(document).ready(function() {
 
         if (dup) { return false};
 
-        var line1 = '<span class="label label--raised label--large label--primary base-margin-left"><span class="text-size-12">';
-        var line2 = $("#primary").val() + "(" + $("#primary_ipv4").val() +")<br>";
-        var line3 = $("#secondary").val() + "(" + $("#secondary_ipv4").val() +")<br>";
-        var line4 = '</span><span class="icon-close"></span></span>';
-        var label_peers = [line1,line2,line3,line4].join("");
-        var peer = $(label_peers).appendTo($("#leaf_switches"))
+        var peer_label = $('<span class="label label--raised label--large label--primary base-margin-left"><span class="text-size-12"></span><span class="icon-close"></span></span>');
+        peer_label.find("span").first().append($("<span></span>").text($("#primary").val() + "(" + $("#primary_ipv4").val() +")"));
+        peer_label.find("span").first().append("<br>")
+        peer_label.find("span").first().append($("<span></span>").text($("#secondary").val() + "(" + $("#secondary_ipv4").val() +")"));
+        peer_label.find("span").first().append("<br>")
+        var peer = peer_label.appendTo($("#leaf_switches"))
         peer.data("primary", $("#primary").val());
         peer.data("secondary", $("#secondary").val());
         peer.data("primary_ipv4", $("#primary_ipv4").val());

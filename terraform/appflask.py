@@ -51,7 +51,7 @@ def getdotenv(env):
     try:
         load_dotenv(override=True)
         val = os.getenv(env)
-        logger.info('getdotenv %s %s', env, val)
+        logger.debug('getdotenv %s %s', env, val)
         return val
     except :
         logger.error('getdotenv failed to load %s', env)
@@ -78,14 +78,10 @@ def update_all_dotenv(config):
         setdotenv('l3out', json.dumps(config['l3out']))
     if 'vc' in config:
         setdotenv('vc', json.dumps(config['vc']))
-    if 'fabric_type' in config:
-        setdotenv('fabric_type', json.dumps(config['fabric_type']))
     if 'ndfc' in config:
         setdotenv('ndfc', json.dumps(config['ndfc']))
     if 'overlay' in config:
         setdotenv('overlay', json.dumps(config['overlay']))
-    if 'bgp_peers' in config:
-        setdotenv('bgp_peers', json.dumps(config['bgp_peers']))
 
 def require_api_token(func):
     '''This function is used to block direct access to all pages unless you have a session token'''

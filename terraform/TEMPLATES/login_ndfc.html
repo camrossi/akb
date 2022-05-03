@@ -184,6 +184,7 @@
                         url: $("#url").val(),
                         username: $("#username").val(),
                         password: $("#password").val(),
+                        deploy_vm: $("#deploy_vm").is(":checked"),
                     }),
                     success: function (data, status, xhr) {
                         $(location).attr('href',"{{ url_for("fabric") }}?fabric_type=vxlan_evpn");

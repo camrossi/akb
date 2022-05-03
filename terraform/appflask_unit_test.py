@@ -1,6 +1,9 @@
 
 import pytest
-from appflask import is_valid_hostname, get_random_string, k8s_versions, normalize_url, get_fabric_type, create_vc_vars, create_l3out_vars, normalize_apt_mirror
+from appflask import is_valid_hostname, \
+    get_random_string, k8s_versions, normalize_url, \
+    get_fabric_type, create_vc_vars, create_l3out_vars, \
+    normalize_apt_mirror, validate_fabric_input
 
 
 class Expando(object):
@@ -51,6 +54,45 @@ def test_k8s_versions():
 ])
 def test_normalize_url(input, expected):
     assert normalize_url(input) == expected
+
+
+@pytest.mark.parametrize("input, expected", [
+    (
+        {
+            'fabric_name': 'fabric-cylon',
+            'asn': '65004',
+            'vrf': '',
+            'loopback_id': '100',
+            'loopback_ipv4': [],
+            'gateway_v4': '',
+            'ibgp_peer_vlan': '3965',
+            'route_tag': '65535',
+            'ipv6_enabled': False,
+            'bgp_pass': '',
+            'k8s_integ': True
+        },
+        (False, "Invalid keys: ['vrf', 'loopback_ipv4', 'gateway_v4']")
+    ),
+    (
+        {
+            'fabric_name': 'fabric-cylon',
+            'asn': '65004',
+            'vrf': 'test',
+            'loopback_id': '100',
+            'loopback_ipv4': ["1.1.1.1"],
+            'gateway_v4': '192.168.10.1/24',
+            'gateway_v6': '',
+            'ibgp_peer_vlan': '3965',
+            'route_tag': '65535',
+            'ipv6_enabled': True,
+            'bgp_pass': '',
+            'k8s_integ': True
+        },
+        (False, "Invalid keys: ['gateway_v6']")
+    )
+])
+def test_validate_fabric_input(input, expected):
+    assert validate_fabric_input(input) == expected
 
 
 @pytest.mark.parametrize(

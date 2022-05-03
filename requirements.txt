@@ -14,7 +14,7 @@ python-dateutil
 turbo_flask
 pyVmomi
 netaddr
-pyhcl
+python-hcl2
 jinja2
 pytest
 selenium

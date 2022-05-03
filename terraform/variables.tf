@@ -1,6 +1,6 @@
 variable "apic" {
   type = object({
-  username          = string
+  nkt_user          = string
   cert_name         = string
   private_key       = string
   url               = string

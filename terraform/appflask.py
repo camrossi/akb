@@ -19,7 +19,7 @@ import random
 import string
 from datetime import datetime
 import concurrent.futures
-import hcl
+import hcl2
 from ndfc import NDFC, Fabric
 from jinja2 import Template
 import argparse
@@ -51,8 +51,10 @@ def getdotenv(env):
     try:
         load_dotenv(override=True)
         val = os.getenv(env)
+        logger.info('getdotenv %s %s', env, val)
         return val
     except :
+        logger.error('getdotenv failed to load %s', env)
         return None
 
 def setdotenv(key, value):
@@ -63,6 +65,27 @@ def setdotenv(key, value):
         cmd = 'dotenv set ' + key + " '" + value + " '"
         os.system(cmd)
     return None
+def update_all_dotenv(config):
+    logger.info('update_all_dotenv')
+    config = hcl2.loads(config)
+    if 'apic' in config:
+        setdotenv('apic', json.dumps(config['apic']))
+    if 'calico_nodes' in config:
+        setdotenv('calico_nodes', json.dumps(config['calico_nodes']))
+    if 'k8s_cluster' in config:
+        setdotenv('cluster', json.dumps(config['k8s_cluster']))
+    if 'l3out' in config:
+        setdotenv('l3out', json.dumps(config['l3out']))
+    if 'vc' in config:
+        setdotenv('vc', json.dumps(config['vc']))
+    if 'fabric_type' in config:
+        setdotenv('fabric_type', json.dumps(config['fabric_type']))
+    if 'ndfc' in config:
+        setdotenv('ndfc', json.dumps(config['ndfc']))
+    if 'overlay' in config:
+        setdotenv('overlay', json.dumps(config['overlay']))
+    if 'bgp_peers' in config:
+        setdotenv('bgp_peers', json.dumps(config['bgp_peers']))
 
 def require_api_token(func):
     '''This function is used to block direct access to all pages unless you have a session token'''
@@ -368,7 +391,7 @@ def tf_plan():
         if ret != 'OK':
             return ret
         with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl.load(fp)
+            current_config = hcl2.load(fp)
         if not current_config['vc']['vm_deploy']:
             logger.info('K8s Cluster deployment disabled')
             #Change to the VM module directory
@@ -405,7 +428,7 @@ def tf_plan():
         else:
             g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     elif fabric_type == "vxlan_evpn":
-        if not os.path.exists('.terraform'):
+        if not os.path.exists('ndfc/.terraform'):
             g.run(["bash", "-c", "terraform -chdir=ndfc init -no-color && terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
         else:
             g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
@@ -434,16 +457,19 @@ def create():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    vc = json.loads(getdotenv('vc'))
+    try:
+        vc = json.loads(getdotenv('vc'))
+    except Exception as e:
+        vc = {}
+        vc['vm_deploy'] = True
     if request.method == 'GET':
         try: 
             cluster = json.loads(getdotenv('cluster'))
-            
             if fabric_type == "aci":
                 l3out = json.loads(getdotenv('l3out'))
                 apic = json.loads(getdotenv('apic'))
                 tf_apic = {}
-                tf_apic['username'] = apic["nkt_user"]
+                tf_apic['nkt_user'] = apic["nkt_user"]
                 tf_apic['cert_name'] = apic["nkt_user"]
                 tf_apic['private_key'] = apic["private_key"]
                 tf_apic['url'] = apic["url"]
@@ -497,12 +523,6 @@ def create():
         button = req.get("button")
         if button == "Previous":
             return redirect('/cluster_network?fabric_type=' + fabric_type)
-        if button == "Update Config":
-            config = req.get('config')
-            with open('cluster.tfvars', 'w', encoding='utf-8') as f:
-                f.write(config)
-            return render_template('create.html', config=config,  vkaci_ui=vkaci_ui, vm_deploy=vc['vm_deploy'])
-
 
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
@@ -513,11 +533,13 @@ def update_config():
     if request.method == "POST":
         if fabric_type == "aci":
             config = request.json.get("config", "[]")
+            update_all_dotenv(config)
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
             return json.dumps({"msg": "Config update success!"}), 200
         elif fabric_type == "vxlan_evpn":
             config = request.json.get("config", "[]")
+            update_all_dotenv(config)
             with open('./ndfc/cluster.tfvars', 'w') as f:
                 f.write(config)
             return json.dumps({"msg": "Config update success!"}), 200
@@ -920,6 +942,8 @@ def vcenterlogin():
                     return redirect('/vctemplate')
                 return redirect('/vcenter')
             if fabric_type == "vxlan_evpn":
+                if req.get("template"):
+                    return redirect('/vctemplate')
                 return redirect(f"/vcenter?fabric_type={fabric_type}")
         if button == "Previous":
             if fabric_type == "aci":
@@ -1502,6 +1526,12 @@ def create_apic_user(apic):
     ''' Create Certificate based APIC user if is missing or not working'''
     if check_apic_user(apic):
         return 'OK'
+    
+    #In case we are accessing the create page directly a nkt_user is set but we need to gen generate a random pass
+    # For it or APIC won't let us add a new user
+    if 'nkt_user' in apic and 'nkt_pass' not in apic:
+        apic['nkt_pass'] = get_random_string(20)
+        setdotenv('apic', json.dumps(apic))
     logger.info('Create APIC User')
     ansible_output = ''
     ## Generate the inventory file for the APIC, this looks ugly might want to clean up
@@ -1512,8 +1542,8 @@ def create_apic_user(apic):
             # APIC HTTPs Port
             port: 443
             # APIC user with admin credential
-            admin_user: {apic['username']}
-            admin_pass: {apic['password']}
+            admin_user: {apic['adminuser']}
+            admin_pass: {apic['adminpass']}
             # APIC User that we create only for the duration of this playbook
             # We also create certificates for this user name to use cert based authentication
             aci_temp_username: {apic['nkt_user']}
@@ -1553,8 +1583,8 @@ def login():
         button = req.get("button")
         if button == "Login":
             apic['url'] = normalize_url(request.form['fabric'])
-            apic['username'] = request.form['username']
-            apic['password'] = request.form['password']
+            apic['adminuser'] = request.form['username']
+            apic['adminpass'] = request.form['password']
             apic['nkt_user'] = "nkt_user_" + get_random_string(6) #request.form['nkt_user']
             apic['nkt_pass'] = get_random_string(20)
             apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
@@ -1586,6 +1616,9 @@ def login():
 
                 
         if fabric_type == "vxlan_evpn":
+            
+            # NDC does not support yet selecting VM deployment option so settin it here to true
+            vc['vm_deploy'] = request.json["deploy_vm"]
             ndfc = {}
             ndfc["url"] = normalize_url(request.json["url"])
             ndfc["username"] = request.json["username"]
@@ -1594,8 +1627,9 @@ def login():
             inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
             if not inst_ndfc.logon():
                 return json.dumps({"error": "login fail"}), 400
-            logger.info('login page: set ndfc variable')
+            logger.info('login page: set ndfc and vc variable')
             setdotenv('ndfc', json.dumps(ndfc))
+            setdotenv('vc', json.dumps(vc))
             return json.dumps({"ok": "login success"}), 200
         if button == "Previous":
             return redirect('/prereqaci')
@@ -1657,10 +1691,10 @@ def existing_cluster():
             f = open("cluster.tfvars")
             current_config =  f.read()
             # Derive vkaci IP address:
-            deployed_cluster = hcl.loads(current_config)['vc']['vm_deploy']
+            deployed_cluster = hcl2.loads(current_config)['vc']['vm_deploy']
             ext_ip = ""
             if deployed_cluster:
-                master = hcl.loads(current_config)['calico_nodes'][0]
+                master = hcl2.loads(current_config)['calico_nodes'][0]
                 if master['natip'] != "":
                     ext_ip = master['natip']
                 else:

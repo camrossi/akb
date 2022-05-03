@@ -4,6 +4,7 @@
 *.swp
 .DS_Store
 terraform/cluster.tfvars
+terraform/ndfc/cluster.tfvars
 *.crt
 *.key
 *.csr 
@@ -17,3 +18,4 @@ labs
 *.backup
 terraform/static/manifests/*
 terraform/.env
+ansible/roles/primary_master/files/*

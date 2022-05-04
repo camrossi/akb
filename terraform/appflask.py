@@ -737,7 +737,6 @@ def calico_nodes_view():
                 calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                 i += 1
         if fabric_type == "aci":
-            print(calico_nodes)
             l3out = json.loads(getdotenv('l3out'))
             return render_template('calico_nodes.html', 
                                     ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], 

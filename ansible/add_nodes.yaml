@@ -1,16 +1,13 @@
 - hosts: k8s_workers
   gather_facts: false
   roles:
-    - k8s_nodes
-- hosts: k8s_workers
-  gather_facts: false
-  roles:
-    - workers
+    - role: k8s_nodes
+      when: not sandbox_status
+    - role: workers
 
 - hosts: k8s_primary_master
   gather_facts: False
   tasks:
-
   - name: Labels Nodes with Natted IP
     shell: |
       kubectl label node {{ item }} external-ip={{ hostvars[item].ansible_host }} --overwrite

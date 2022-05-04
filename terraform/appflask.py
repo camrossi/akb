@@ -401,8 +401,6 @@ def tf_plan():
             g.run(["bash", "-c", "terraform -chdir=ndfc init -no-color && terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
         else:
             g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
-    # p = g.run("ls")
-    
     return Response(read_process(g), mimetype='text/event-stream')
 
 def node_delta():
@@ -450,12 +448,13 @@ def tf_apply():
                 -i ../ansible/inventory/nodes.ini ../ansible/remove_k8s_nodes.yaml --limit='"+ limit+"' &&\
                 terraform -chdir="+chdir+" apply -auto-approve -no-color plan"
         if len(new_nodes) > 0:
-            
+            limit = ','.join(str(s) for s in new_nodes)
+            logger.info("Adding Nodes %s", limit)
             # I need to update labes etc... so I need to pass the primary master as well
             primary_master = json.loads(getdotenv('calico_nodes'))[0]['hostname']
             new_nodes.add(primary_master)
+            
             limit = ','.join(str(s) for s in new_nodes)
-            logger.info("Adding Nodes %s", limit)
             add_cmd="terraform -chdir="+chdir+" apply -auto-approve -no-color plan && \
                     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b \
                     -i ../ansible/inventory/nodes.ini ../ansible/add_nodes.yaml \
@@ -738,6 +737,7 @@ def calico_nodes_view():
                 calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                 i += 1
         if fabric_type == "aci":
+            print(calico_nodes)
             l3out = json.loads(getdotenv('l3out'))
             return render_template('calico_nodes.html', 
                                     ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], 

@@ -17,40 +17,7 @@
 
 <form id="form_vcenter" name="tenantForm" method="post" action="/vcenter">
 <script>
-   function loadInputVCenter() {
-      // console.log(JSON.stringify(sessionStorage, null, 2))
-      dcElem = document.getElementById("dc");
-      
-      const path = window.location.pathname;
-      const page = path.split("/").pop();
-
-      // load in the vCenter DC Name
-      retrievedVal = sessionStorage.getItem(page + " " + "dc")
-      if (retrievedVal !== null && retrievedVal !== "") {
-         dcElem.value = retrievedVal;
-         dcElem.form.requestSubmit();
-         console.log("if condition ran")
-      }
-      else 
-         console.log("No saved value for vCenter DC Name")
-   }
-
-   const loadListener = document.addEventListener('turbo:load', function () {
-      console.log("turbo:load fired");
-      loadInputVCenter();
-
-      const dummyC = document.getElementById('dummy_container')
-
-      const observer = new MutationObserver((mutationsList, observered) => {
-         // console.log('Mutation observer body is being ran!')
-         loadInput();
-         observer.disconnect();
-
-         document.removeEventListener('turbo:load', null)
-
-      })
-      observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
-   });
+   const loadListener = document.addEventListener('turbo:load', loadListenerCreator);
 </script>
   <body class="cui cui--animated cui--compressed" data-theme="">
 

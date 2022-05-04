@@ -107,7 +107,9 @@
             <input type="submit" value="Manage Nodes" id="manage_nodes" class="btn btn--wide" name="button">
             <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
             <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
-            <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            <input type="button" {% if not vm_deploy %} style="display:none";{% endif %} value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            <input type="button" {% if vm_deploy %} style="display:none";{% endif %} value="Download Manifests" id="manifest" class="btn btn--wide" name="button" onclick="window.open('static/manifests/manifests.zip','_blank')">
+
         </div>
 
    </div>

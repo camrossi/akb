@@ -1,12 +1,14 @@
 import json
 from logging import error
+import requests
+from OpenSSL.crypto import sign, load_privatekey, FILETYPE_PEM
+import base64
 from socket import gaierror
 from functools import wraps
-from flask import Flask, Response, request, render_template, redirect, flash, session
+from flask import Flask, Response, request, render_template, redirect, flash, session, escape
 from flask_executor import Executor
 import vc_utils
 from turbo_flask import Turbo
-import requests
 import os
 from pyaci import Node, options, filters
 import ipaddress
@@ -17,7 +19,7 @@ import random
 import string
 from datetime import datetime
 import concurrent.futures
-import hcl
+import hcl2
 from ndfc import NDFC, Fabric
 from jinja2 import Template
 import argparse
@@ -49,8 +51,10 @@ def getdotenv(env):
     try:
         load_dotenv(override=True)
         val = os.getenv(env)
+        logger.debug('getdotenv %s %s', env, val)
         return val
     except :
+        logger.error('getdotenv failed to load %s', env)
         return None
 
 def setdotenv(key, value):
@@ -61,6 +65,23 @@ def setdotenv(key, value):
         cmd = 'dotenv set ' + key + " '" + value + " '"
         os.system(cmd)
     return None
+def update_all_dotenv(config):
+    logger.info('update_all_dotenv')
+    config = hcl2.loads(config)
+    if 'apic' in config:
+        setdotenv('apic', json.dumps(config['apic']))
+    if 'calico_nodes' in config:
+        setdotenv('calico_nodes', json.dumps(config['calico_nodes']))
+    if 'k8s_cluster' in config:
+        setdotenv('cluster', json.dumps(config['k8s_cluster']))
+    if 'l3out' in config:
+        setdotenv('l3out', json.dumps(config['l3out']))
+    if 'vc' in config:
+        setdotenv('vc', json.dumps(config['vc']))
+    if 'ndfc' in config:
+        setdotenv('ndfc', json.dumps(config['ndfc']))
+    if 'overlay' in config:
+        setdotenv('overlay', json.dumps(config['overlay']))
 
 def deldotenv(key):
     '''Del dotenv'''
@@ -122,6 +143,25 @@ def normalize_apt_mirror(mirror: str) -> str:
         return "https://" + mirror
 
 
+def validate_fabric_input(data: dict) -> (bool, str):
+    print(data)
+    inval_key = []
+    for key, value in data.items():
+        if value:
+            continue
+        # none mandatory keys
+        if key in ["k8s_integ", "bgp_pass", "ipv6_enabled"]:
+            continue
+        # none mandatory ipv6 keys if ipv6 is not enabled
+        if key in ["loopback_ipv6", "node_sub_v6", "gateway_v6"] and not data["ipv6_enabled"]:
+            continue
+        inval_key.append(key)
+    if inval_key != []:
+        return False, f"Invalid keys: {inval_key}"
+    else:
+        return True, "valid input!"
+
+
 def ndfc_process_fabric_setting(data: dict) -> bool:
     ''' NDFC: Parse the data received from the fabric page  '''
 
@@ -168,7 +208,7 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
             }
 
             overlay["vpc_peers"].append([primary, secondary])
-        
+
         logger.info('set overlay variable')
         setdotenv('overlay', json.dumps(overlay))
         if overlay["ipv6_enabled"]:
@@ -180,11 +220,11 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
 
 
 def ndfc_create_tf_vars(fabric_type: str,
-                   vc: dict,
-                   ndfc: dict,
-                   OVERLAY: dict,
-                   calico_nodes: dict,
-                   cluster: dict) -> str:
+                        vc: dict,
+                        ndfc: dict,
+                        OVERLAY: dict,
+                        calico_nodes: dict,
+                        cluster: dict) -> str:
     '''Create the terraform variables for NDFC deployment'''
     with open("TEMPLATES/cluster_ndfc.tfvar.j2", "r", encoding='utf8') as f:
         tf_template = Template(f.read())
@@ -294,22 +334,22 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
         neo4j_ip = ""
 
     #I need to have a DNS server configuired for core DNS, set one if the DNS server list is empty
-    
     if dns_servers == "":
         dns_servers = ['8.8.8.8']
+
     else:
         dns_servers = list(dns_servers.split(","))
 
     ubuntu_apt_mirror = normalize_apt_mirror(ubuntu_apt_mirror)
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
-                "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else None,
+                "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else 0,
                 "pod_subnet": ipv4_pod_sub, 
                 "pod_subnet_v6": ipv6_pod_sub,
                 "cluster_svc_subnet": ipv4_svc_sub,
                 "cluster_svc_subnet_v6": ipv6_svc_sub,
                 "external_svc_subnet": external_svc_subnet,
                 "external_svc_subnet_v6": external_svc_subnet_v6,
-                "local_as" : local_as,
+                "local_as" : local_as if local_as != "" else 0,
                 "ingress_ip": ingress_ip,
                 "visibility_ip": visibility_ip,
                 "neo4j_ip": neo4j_ip,
@@ -365,7 +405,7 @@ def doc_ndfc():
 
 @app.route('/tf_plan', methods=['GET', 'POST'])
 @require_api_token
-def tf_plan():
+def tf_plan():    
     '''Create a stream that is then fed to an iFrame to auto populate the content on the fly'''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
@@ -375,29 +415,49 @@ def tf_plan():
     # Get the current dir
     cwd = os.getcwd()
     if fabric_type == "aci":
+        apic = json.loads(getdotenv('apic'))
+        ret = create_apic_user(apic)
+        if ret != 'OK':
+            return ret
         with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl.load(fp)
+            current_config = hcl2.load(fp)
         if not current_config['vc']['vm_deploy']:
+            logger.info('K8s Cluster deployment disabled')
             #Change to the VM module directory
             os.chdir("modules/k8s_node")
             if os.path.exists("vms.tf"):
+                logger.info('Disable VM Deployment')
                 os.rename("vms.tf","vms.tf.ignore")
             if os.path.exists("outputs.tf"):
+                logger.info('Enable Config Only outputs')
                 os.rename("outputs.tf","outputs.tf.ignore")
+                os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
+            if os.path.exists("group_var_template.tmpl"):
+                logger.info('Enable Config Only Templates')
+                os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
+                os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
             os.chdir(cwd)
         if current_config['vc']['vm_deploy']:
+            logger.info('K8s Cluster enbaled, enable vms and output tf files')
             os.chdir("modules/k8s_node")
             if os.path.exists("vms.tf.ignore"):
+                logger.info('Enable VM Deployment')
                 os.rename("vms.tf.ignore","vms.tf")
             if os.path.exists("outputs.tf.ignore"):
+                logger.info('Enable Cluster Deployment outputs')
                 os.rename("outputs.tf.ignore","outputs.tf")
+                os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
+            if os.path.exists("group_var_template.tmpl.ignore"):
+                logger.info('Enable Cluster Templates')
+                os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
+                os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
             os.chdir(cwd)
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
             g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     elif fabric_type == "vxlan_evpn":
-        if not os.path.exists('.terraform'):
+        if not os.path.exists('ndfc/.terraform'):
             g.run(["bash", "-c", "terraform -chdir=ndfc init -no-color && terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
         else:
             g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
@@ -475,7 +535,7 @@ def tf_apply():
 
 def create_tf_config(fabric_type):
     ''' Puts all the config pieces togehter and generate the TF config'''
-    try:
+    try: 
         cluster = json.loads(getdotenv('cluster'))
         vc = json.loads(getdotenv('vc'))
         calico_nodes = json.loads(getdotenv('calico_nodes'))
@@ -483,15 +543,18 @@ def create_tf_config(fabric_type):
             l3out = json.loads(getdotenv('l3out'))
             apic = json.loads(getdotenv('apic'))
             tf_apic = {}
-            tf_apic['username'] = apic["nkt_user"]
+            tf_apic['nkt_user'] = apic["nkt_user"]
             tf_apic['cert_name'] = apic["nkt_user"]
             tf_apic['private_key'] = apic["private_key"]
             tf_apic['url'] = apic["url"]
             tf_apic['oob_ips'] = apic["oob_ips"]
-            if calico_nodes[0]['natip'] != "":
-                ext_ip = calico_nodes[0]['natip']
-            else:
-                ext_ip = calico_nodes[0]['ip'].split("/")[0]
+            ext_ip = ""
+            if vc['vm_deploy']:
+                calico_nodes = json.loads(getdotenv('calico_nodes'))
+                if calico_nodes[0]['natip'] != "":
+                    ext_ip = calico_nodes[0]['natip']
+                else:
+                    ext_ip = calico_nodes[0]['ip'].split("/")[0]
             vkaci_ui = "http://" + ext_ip + ":30000"
             config = "apic =" + json.dumps(tf_apic, indent=4)
             config += "\nl3out =" + json.dumps(l3out, indent=4)
@@ -505,6 +568,10 @@ def create_tf_config(fabric_type):
                 f.write(config)
 
         elif fabric_type == "vxlan_evpn":
+            if vc['vm_deploy']:
+                calico_nodes = json.loads(getdotenv('calico_nodes'))
+            else:
+                calico_nodes = ""
             ndfc = json.loads(getdotenv('ndfc'))
             overlay = json.loads(getdotenv('overlay'))
             config = ndfc_create_tf_vars(fabric_type,
@@ -533,7 +600,11 @@ def create():
     fabric_type = get_fabric_type(request) 
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-
+    try:
+        vc = json.loads(getdotenv('vc'))
+    except Exception as e:
+        vc = {}
+        vc['vm_deploy'] = True
     if request.method == 'GET':
         config, vkaci_ui = create_tf_config(fabric_type)
         return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
@@ -542,12 +613,6 @@ def create():
         button = req.get("button")
         if button == "Previous":
             return redirect('/cluster_network?fabric_type=' + fabric_type)
-        if button == "Update Config":
-            config = req.get('config')
-            with open('cluster.tfvars', 'w', encoding='utf-8') as f:
-                f.write(config)
-            return render_template('create.html', config=config)
-
 
 @app.route('/update_config', methods=['GET', 'POST'])
 def update_config():
@@ -558,11 +623,13 @@ def update_config():
     if request.method == "POST":
         if fabric_type == "aci":
             config = request.json.get("config", "[]")
+            update_all_dotenv(config)
             with open('cluster.tfvars', 'w') as f:
                 f.write(config)
             return json.dumps({"msg": "Config update success!"}), 200
         elif fabric_type == "vxlan_evpn":
             config = request.json.get("config", "[]")
+            update_all_dotenv(config)
             with open('./ndfc/cluster.tfvars', 'w') as f:
                 f.write(config)
             return json.dumps({"msg": "Config update success!"}), 200
@@ -879,23 +946,31 @@ def cluster_network():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            cluster = json.loads(getdotenv('cluster'))
-            if not vc['vm_deploy']:
+            if vc['vm_deploy']:
+                cluster = json.loads(getdotenv('cluster'))
+                external_svc_subnet = req.get("ipv4_ext_svc_sub")
+                cluster['pod_subnet'] = req.get("ipv4_pod_sub")
+                cluster['external_svc_subnet'] = external_svc_subnet
+                cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
+                cluster['local_as'] = req.get("k8s_local_as")
+                cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
+                cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
+                cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
+            else:
                 cluster = create_cluster_vars()
+                cluster['pod_subnet'] = req.get("ipv4_pod_sub")
+                cluster['external_svc_subnet'] = req.get("ipv4_ext_svc_sub")
+                cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
+                cluster['local_as'] = req.get("k8s_local_as")
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
                     l3out['vlan_id'] = req.get("vlan_id")
-                logger.info('save cluster and l3out variables')
-                setdotenv('cluster', json.dumps(cluster))
+                    if l3out['vlan_id'] == "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
+                        logger.info('Invalid VLAN detected')
+                        flash("Please Specify a valid VLAN ID (2-4094)")
+                        return redirect('/cluster_network')
+                logger.info('save l3out variables')
                 setdotenv('l3out', json.dumps(l3out))
-            external_svc_subnet = req.get("ipv4_ext_svc_sub")
-            cluster['pod_subnet'] = req.get("ipv4_pod_sub")
-            cluster['external_svc_subnet'] = external_svc_subnet
-            cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
-            cluster['local_as'] = req.get("k8s_local_as")
-            cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
-            cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
-            cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
             if ipv6_enabled: 
                 cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
                 cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
@@ -906,7 +981,6 @@ def cluster_network():
                 cluster['pod_subnet_v6'] = ""
                 cluster['cluster_svc_subnet_v6'] = ""
                 cluster['external_svc_subnet_v6'] = ""
-            
             logger.info('save cluster variable')
             setdotenv('cluster', json.dumps(cluster))
             return redirect(f'/create?fabric_type={fabric_type}')
@@ -993,6 +1067,8 @@ def vcenterlogin():
                     return redirect('/vctemplate')
                 return redirect('/vcenter')
             if fabric_type == "vxlan_evpn":
+                if req.get("template"):
+                    return redirect('/vctemplate')
                 return redirect(f"/vcenter?fabric_type={fabric_type}")
         if button == "Previous":
             if fabric_type == "aci":
@@ -1270,6 +1346,9 @@ def l3out_view():
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
             if req.get("anchor_nodes") == "":
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "At least one anchor node is required")
+            if req.get("l3out_tenant") == "" or req.get("vrf_name") == "" or req.get("contract") == "" :
+                return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Tenant, VRF, and Contract are mandatory parameters")
+
             try:
                 anchor_nodes = json.loads(req.get("anchor_nodes"))
             except ValueError as e:
@@ -1476,6 +1555,9 @@ def fabric():
             return render_template("fabric.html", fabrics=fabrics)
     if request.method == "POST":
         data = request.json
+        is_valid, message = validate_fabric_input(data)
+        if not is_valid:
+            return json.dumps({"error": escape(message)}), 400
         result = ndfc_process_fabric_setting(data)
         if result:
             return json.dumps({"ok": "fabric setting configured"}), 200
@@ -1523,7 +1605,7 @@ def query_ndfc():
         result = fabric.get_network_detail(vrf_name=vrf_name)
         if result:
             for item in result:
-                subnet_v4 = str(ipaddress.IPv4Interface(item.gateway).network)
+                subnet_v4 = str(ipaddress.IPv4Interface(item.gateway).network) if item.gateway else ""
                 subnet_v6 = str(ipaddress.IPv6Interface(item.gateway_v6).network) if item.gateway_v6 else ""
                 net = {
                     "name": item.name,
@@ -1535,13 +1617,92 @@ def query_ndfc():
                 networks.append(net)
         return json.dumps(networks), 200
 
+def check_apic_user(apic):
+    '''Check if a certificate based APIC user already exists'''
+    logger.info('Check if certificate based APIC user already exists!')
+    method = 'GET'
+    path = '/api/node/class/infraCont.json'
+    payload = ""
+    try:
+        with open('../ansible/roles/aci/files/'+apic['nkt_user']+'-user.key') as f:
+            private_key_content = f.read()
+    except FileNotFoundError:
+        logger.info('Certificate based APIC user does not exits!')
+        return False
+    sig_key = load_privatekey(FILETYPE_PEM, private_key_content)
+    sig_request = method + path + payload
+    sig_signature = sign(sig_key, sig_request, "sha256")
+
+    sig_dn = 'uni/userext/user-'+apic['nkt_user']+'/usercert-'+apic['nkt_user']+''
+    headers = {}
+    headers["Cookie"] = (
+                "APIC-Certificate-Algorithm=v1.0; "
+                + "APIC-Certificate-DN=%s; " % sig_dn
+                + "APIC-Certificate-Fingerprint=fingerprint; "
+                + "APIC-Request-Signature=%s" % base64.b64encode(sig_signature).decode("utf-8")
+            )
+    url = apic['url'] + path
+    req = requests.get(url, headers=headers, data=payload, verify=False)
+    if req.status_code == 200:
+        logger.info('Certificate based APIC user already exists!')
+        return True
+    else:
+        logger.info('Certificate based APIC user does not exits!')
+        return False
+
+def create_apic_user(apic):
+    ''' Create Certificate based APIC user if is missing or not working'''
+    if check_apic_user(apic):
+        return 'OK'
+    
+    #In case we are accessing the create page directly a nkt_user is set but we need to gen generate a random pass
+    # For it or APIC won't let us add a new user
+    if 'nkt_user' in apic and 'nkt_pass' not in apic:
+        apic['nkt_pass'] = get_random_string(20)
+        setdotenv('apic', json.dumps(apic))
+    logger.info('Create APIC User')
+    ansible_output = ''
+    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
+    config = f"""apic: #You ACI Fabric Name
+    hosts:
+        {apic['url'].replace("https://",'')}:
+            validate_certs: no
+            # APIC HTTPs Port
+            port: 443
+            # APIC user with admin credential
+            admin_user: {apic['adminuser']}
+            admin_pass: {apic['adminpass']}
+            # APIC User that we create only for the duration of this playbook
+            # We also create certificates for this user name to use cert based authentication
+            aci_temp_username: {apic['nkt_user']}
+            aci_temp_pass: {apic['nkt_pass']}"""
+
+    with open('../ansible/inventory/apic.yaml', 'w') as f:
+        f.write(config)
+    # Generate temporary user and certificate
+    g = proc.Group()
+    g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
+    #Just wait for terraform to finish
+    for s in read_process(g):
+        ansible_output += str(s, 'utf-8')
+
+    # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
+    # This for some reason does not work on Alpine so I do a hacky thing:
+    #if g.get_exit_codes()[0][1] == 0 :
+    #    return redirect('/l3out')
+    # If something failed then the user creation failed.
+    if "failed=0" in ansible_output:
+        return 'OK'
+    else:
+        logger.info('Unable to create nkt user')
+        return Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype='text/event-stream')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     '''Login page to get details for ACI or NDFC'''
     apic = {}
     vc = create_vc_vars()
-    ansible_output = ''
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
@@ -1550,8 +1711,8 @@ def login():
         button = req.get("button")
         if button == "Login":
             apic['url'] = normalize_url(request.form['fabric'])
-            apic['username'] = request.form['username']
-            apic['password'] = request.form['password']
+            apic['adminuser'] = request.form['username']
+            apic['adminpass'] = request.form['password']
             apic['nkt_user'] = "nkt_user_" + get_random_string(6) #request.form['nkt_user']
             apic['nkt_pass'] = get_random_string(20)
             apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
@@ -1576,39 +1737,16 @@ def login():
             setdotenv('apic', json.dumps(apic))
             logger.info('login page: set vc variables')
             setdotenv('vc', json.dumps(vc))
-    ## Generate the inventory file for the APIC, this looks ugly might want to clean up
-            config = f"""apic: #You ACI Fabric Name
-  hosts:
-    {apic['url'].replace("https://",'')}:
-      validate_certs: no
-      # APIC HTTPs Port
-      port: 443
-      # APIC user with admin credential
-      admin_user: {apic['username']}
-      admin_pass: {apic['password']}
-      # APIC User that we create only for the duration of this playbook
-      # We also create certificates for this user name to use cert based authentication
-      aci_temp_username: {apic['nkt_user']}
-      aci_temp_pass: {apic['nkt_pass']}"""
-            with open('../ansible/inventory/apic.yaml', 'w') as f:
-                f.write(config)
-            # Generate temporary user and certificate
-            g = proc.Group()
-            g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
-            #Just wait for terraform to finish
-            for s in read_process(g):
-                ansible_output += str(s, 'utf-8')
+            ret = create_apic_user(apic)
+            if ret != 'OK':
+                return ret
+            return redirect('/l3out')
 
-            # Check the exit code of ansible playbook to create the user, if 0 all good, if not show the error.
-            # This for some reason does not work on Alpine so I do a hacky thing:
-            #if g.get_exit_codes()[0][1] == 0 :
-            #    return redirect('/l3out')
-            # If something failed then the user creation failed.
-            if "failed=0" in ansible_output:
-                return redirect('/l3out')
-            else:
-                return (Response("Unable to create the nkt user\n Ansible Output provided for debugging:\n" + ansible_output, mimetype= 'text/event-stream'))
+                
         if fabric_type == "vxlan_evpn":
+            
+            # NDC does not support yet selecting VM deployment option so settin it here to true
+            vc['vm_deploy'] = request.json["deploy_vm"]
             ndfc = {}
             ndfc["url"] = normalize_url(request.json["url"])
             ndfc["username"] = request.json["username"]
@@ -1617,8 +1755,9 @@ def login():
             inst_ndfc = NDFC(ndfc["url"], ndfc["username"], ndfc["password"])
             if not inst_ndfc.logon():
                 return json.dumps({"error": "login fail"}), 400
-            logger.info('login page: set ndfc variable')
+            logger.info('login page: set ndfc and vc variable')
             setdotenv('ndfc', json.dumps(ndfc))
+            setdotenv('vc', json.dumps(vc))
             return json.dumps({"ok": "login success"}), 200
         if button == "Previous":
             return redirect('/prereqaci')
@@ -1686,17 +1825,20 @@ def existing_cluster():
                 f = open("cluster.tfvars")
                 current_config =  f.read()
                 # Derive vkaci IP address:
-                master = hcl.loads(current_config)['calico_nodes'][0]
-                if master['natip'] != "":
-                    ext_ip = master['natip']
-                else:
-                    ext_ip = master['ip'].split("/")[0]
+                deployed_cluster = hcl2.loads(current_config)['vc']['vm_deploy']
+                ext_ip = ""
+                if deployed_cluster:
+                    master = hcl2.loads(current_config)['calico_nodes'][0]
+                    if master['natip'] != "":
+                        ext_ip = master['natip']
+                    else:
+                        ext_ip = master['ip'].split("/")[0]
 
                 vkaci_ui = "http://" + ext_ip + ":30000"
                 # Do something with the file
             except IOError:
-                return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
-            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui)
+                return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present", vm_deploy=deployed_cluster)
+            return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui, vm_deploy=deployed_cluster)
         elif fabric_type == "vxlan_evpn":
             ndfc_tfvars = "./ndfc/cluster.tfvars"
             if not os.path.exists(ndfc_tfvars):

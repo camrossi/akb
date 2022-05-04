@@ -110,7 +110,9 @@
             <input type="button" value="Apply" id="apply" class="btn" name="button" onclick="updateiFrame(this)">
             <input type="button" value="Reset" id="reset" class="btn" name="button" onclick="openModal('reset_modal')">
             <input type="button" value="Destroy" id="destroy" class="btn" onclick="openModal('destroy_modal')">
-            <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            <input type="button" {% if not vm_deploy %} style="display:none";{% endif %} value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            <input type="button" {% if vm_deploy %} style="display:none";{% endif %} value="Download Manifests" id="manifest" class="btn btn--wide" name="button" onclick="window.open('static/manifests/manifests.zip','_blank')">
+
             <div class="modal modal--small hide" id="reset_modal">
                <div class="modal__dialog">
                    <div class="modal__content">
@@ -214,7 +216,10 @@
                 data: JSON.stringify({ config: $("#config").val()}),
                 success: function (result, status, xhr) {
                     $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
-                },
+                    setTimeout(function(){
+                     window.location.reload(1);
+                  }, 500);                
+               },
                 error: function (xhr, status, error) {
                     $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
                 }

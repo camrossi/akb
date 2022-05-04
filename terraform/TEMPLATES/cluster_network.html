@@ -70,25 +70,23 @@
                
             </p>
          </div>
-
-    <!--
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="node_sub">Node Subnet:</label>
-                              <input type="text" id="node_sub" name="node_sub" value="{{ ipv4_cluster_subnet }}" readonly class="bg-gray-200" >
-            
-                           </div>
-                        </div>
-                     </div>
-   -->
-
-                     <div id="checkbox-unchecked" {% if  vm_deploy %} style="display:none";{% endif %}  >     
+         {% with messages = get_flashed_messages(with_categories=true) %}
+         {% if messages %}
+         {% for category, message in messages %}
+         <div class="alert alert-{{ category }} alert-dismissible fade show container" role="alert">
+            <span>{{ message }}</span>
+         </div>
+         {% endfor %}
+         {% endif %}
+         {% endwith %}
+                     <div id="checkbox-unchecked" {% if vm_deploy %} style="display:none";{% endif %}  >     
                         <div class="container">
                            <div class="form-group base-margin-bottom">
                               <div  class="form-group__text">
-                                 <label for="url">VLAN ID:</label>
-                                 <input type="text" id="vlan_id" name="vlan_id">
+                                 <label for="url">VLAN ID:
+                                    <span data-title="Insert the VLAN ID used for the K8s Nodes to communicated with the fabric">ⓘ</span>
+                                 </label>
+                                 <input type="number" id="vlan_id" name="vlan_id">
                               </div>
                            </div>       
                         </div>
@@ -128,18 +126,7 @@
             
                            </div>
                         </div>
-                     </div>
-<!--
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="node_sub_v6">Node Subnet v6:</label>
-                              <input type="text" id="node_sub_v6" name="node_sub_v6" value="{{ ipv6_cluster_subnet }}" readonly class="bg-gray-200" >
-            
-                           </div>
-                        </div>
-                     </div>
--->                     
+                     </div>   
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">

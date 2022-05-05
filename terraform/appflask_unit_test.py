@@ -1,21 +1,20 @@
 
 import pytest
-from appflask import (is_valid_hostname, get_random_string, k8s_versions, 
-                        normalize_url, get_fabric_type, create_vc_vars, 
-                        create_l3out_vars, normalize_apt_mirror, get_manage_cluster, validate_fabric_input)
+from appflask import is_valid_hostname, \
+    get_random_string, k8s_versions, normalize_url, \
+    get_fabric_type, create_vc_vars, create_l3out_vars, \
+    normalize_apt_mirror, validate_fabric_input
 
 
 class Expando(object):
     pass
 
 
-def get_request(fabric="", manage = None):
+def get_request(fabric: str):
     request = Expando()
     request.args = {
         "fabric_type": fabric
     }
-    if manage != None:
-        request.args["manage"] = manage
     return request
 
 
@@ -124,39 +123,12 @@ def test_create_l3outVars():
     assert result == expected
 
 
-def test_create_l3out_vars_invalid():
-    '''invalid l3outVars'''
-    expected = {'name': 'test', 'l3out_tenant': 'test', 'vrf_tenant': '', 'vrf_name': '',
-                'node_profile_name': 'node_profile_FL3out', 'int_prof_name': 'int_profile_FL3out',
-                'int_prof_name_v6': 'int_profile_v6_FL3out', 'physical_dom': 'test',
-                'floating_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:ffff/128',
-                'secondary_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:fffe/128',
-                'floating_ip': '255.255.254.255/32',
-                'secondary_ip': '255.255.254.254/32', 'def_ext_epg': 'test',
-                'def_ext_epg_scope': ['test', 'test', 'test'], 'local_as': 'test',
-                'mtu': 'test', 'bgp_pass': 'test', 'max_node_prefixes': '500', 'contract': '',
-                'contract_tenant': '', 'anchor_nodes': {}, 'ipv4_cluster_subnet': '255.255.255.0',
-                'ipv6_cluster_subnet': '2001:db8:abcd:12::/128', 'ipv6_enabled': True}
+def test_create_l3outVars_invalid():
+    expected = {'name': 'test', 'l3out_tenant': 'test', 'vrf_tenant': '', 'vrf_name': '', 'node_profile_name': 'node_profile_FL3out', 'int_prof_name': 'int_profile_FL3out', 'int_prof_name_v6': 'int_profile_v6_FL3out', 'physical_dom': 'test', 'floating_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:ffff/128', 'secondary_ipv6': '2001:db8:abcd:11:ffff:ffff:ffff:fffe/128', 'floating_ip': '255.255.254.255/32',
+                'secondary_ip': '255.255.254.254/32', 'def_ext_epg': 'test', 'def_ext_epg_scope': ['test', 'test', 'test'], 'local_as': 'test', 'mtu': 'test', 'bgp_pass': 'test', 'max_node_prefixes': '500', 'contract': '', 'contract_tenant': '', 'anchor_nodes': {}, 'ipv4_cluster_subnet': '255.255.255.0', 'ipv6_cluster_subnet': '2001:db8:abcd:12::/128', 'ipv6_enabled': True}
     result = create_l3out_vars(True, "test", "test", "t", "test",
-                "test", "255.255.255.0", "2001:db8:abcd:0012::0", "test", "test", "test",
-                "test", "test", "test", "c", "{}")
+                             "test", "255.255.255.0", "2001:db8:abcd:0012::0", "test", "test", "test", "test", "test", "test", "c", "{}")
     assert result == expected
-
-@pytest.mark.parametrize(
-    "input,expected",
-    [
-        (get_request("",True), True),
-        (get_request("","True"), True),
-        (get_request("","true"), True),
-        (get_request("", False), False),
-        (get_request("", "1234"), False),
-        (get_request("", 1234), False),
-        (get_request("", None), False),
-        (None, False),
-    ])
-def test_get_manage_cluster(input, expected):
-    '''testing manage clusters'''
-    assert get_manage_cluster(input) == expected
 
 
 pytest.main()

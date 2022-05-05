@@ -1,4 +1,0 @@
-- hosts: k8s_workers
-  gather_facts: false
-  roles:
-    - remove_k8s_node

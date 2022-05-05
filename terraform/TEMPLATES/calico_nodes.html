@@ -11,6 +11,32 @@
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
+   <style>
+      .chevron ul.tabs li.active a {
+         background-color: #017cad !important;
+         opacity: 1 !important;
+         color: #ffffff;
+         box-shadow: none !important;
+      }
+
+      .chevron ul.tabs li a {
+         height: 56px min-width: 90% !important;
+         padding: 10px 6px;
+         background-color: #ffffff;
+         opacity: 1 !important;
+         color: #58585d;
+         text-align: center;
+         position: relative;
+         line-height: 16px;
+         font-size: 12px;
+         cursor: pointer;
+         flex: 1 !important;
+         flex-shrink: 1 !important;
+         flex-wrap: wrap !important;
+         display: flex !important;
+         justify-content: center !important;
+      }
+   </style>
 </head>
 
 <form id="form_calio_node" name="tenantForm" method="post" action="/calico_nodes">
@@ -53,7 +79,7 @@
                <div class="col-md-6">
                   <div class="form-group base-margin-bottom">
                      <div class="form-group__text">
-                        <div class="form-group__text"><input type="text" name="hostname" id="hostname" list="hostname-list"><label>Hostname</label></div>
+                        <div class="form-group__text"><input type="text" name="hostname" id="hostname"><label>Hostname</label></div>
                      </div>
                   </div>
                   <div class="form-group base-margin-bottom">
@@ -72,13 +98,8 @@
                         </label>
                      </div>
                   </div>
-                  <datalist id="hostname-list">
-                     {%for h in hostnames %}
-                        <option>{{h}}</option>
-                     {%endfor%}
-                  </datalist>
                   <input id="add_node" type="submit" value="Add Node" class="btn btn--wide" name="button">
-                  <input id="remove_node" type="submit" value="Remove Node" class="btn btn--wide" name="button">
+     
             </div>
          </div>
       </div>
@@ -86,12 +107,8 @@
 
          <div class="container">
             <div class="navibox">
-               {% if manage_cluster %}
-                  <input type="submit" value="Apply Node Config Update" class="btn btn--wide" name="button" style="margin-left: 0px">
-               {% else %}
-                  <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-                  <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
-               {% endif %}
+               <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
          </div>
 
@@ -127,8 +144,10 @@
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
 <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
-
-<div id="canvas"></div>
+<script>
+   loadInput();
+</script>
+   <div id="canvas"></div>
 
 </body>
 
@@ -140,5 +159,11 @@
         $("#form_calio_node").submit();
     });
 
+    $("#add_node").on("click", function(){
+        var url = "{{ url_for("calico_nodes_view")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        console.log(url);
+        $("#form_calio_node").attr("action", url);
+        $("#form_calio_node").submit();
+    });
 </script>
 </html>

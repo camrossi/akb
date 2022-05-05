@@ -591,7 +591,7 @@ def create_tf_config(fabric_type):
     except Exception as e:
         print(e)
         config = []
-    return config, vkaci_ui
+    return config, vkaci_ui, vc['vm_deploy']
 
 @app.route('/create', methods=['GET', 'POST'])
 def create():
@@ -606,8 +606,8 @@ def create():
         vc = {}
         vc['vm_deploy'] = True
     if request.method == 'GET':
-        config, vkaci_ui = create_tf_config(fabric_type)
-        return render_template('create.html', config=config, vkaci_ui=vkaci_ui)
+        config, vkaci_ui, vm_deploy = create_tf_config(fabric_type)
+        return render_template('create.html', config=config, vkaci_ui=vkaci_ui, vm_deploy=vm_deploy)
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
@@ -803,22 +803,23 @@ def calico_nodes_view():
                 rack_id = "1"
                 calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                 i += 1
+        ipv4_cluster_subnet = None
+        ipv6_cluster_subnet = None
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
-            return render_template('calico_nodes.html', 
-                                    ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"], 
-                                    ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"], 
-                                    calico_nodes=json.dumps(calico_nodes, indent=4),
-                                    hostnames =  [d['hostname'] for d in calico_nodes],
-                                    manage_cluster=manage_cluster)
+            ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"]
+            ipv6_cluster_subnet=l3out["ipv6_cluster_subnet"]
         elif fabric_type == "vxlan_evpn":
             overlay = json.loads(getdotenv('overlay'))
-            return render_template('calico_nodes.html',
-                                   ipv4_cluster_subnet=overlay["node_sub"],
-                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
-                                   calico_nodes=json.dumps(calico_nodes, indent=4),
-                                   hostnames =  [d['hostname'] for d in calico_nodes],
-                                   manage_cluster=manage_cluster)
+            ipv4_cluster_subnet=overlay["node_sub"]
+            ipv6_cluster_subnet=overlay["node_sub_v6"]
+        return render_template('calico_nodes.html', 
+                                ipv4_cluster_subnet=ipv4_cluster_subnet, 
+                                ipv6_cluster_subnet=ipv6_cluster_subnet, 
+                                calico_nodes=json.dumps(calico_nodes, indent=4),
+                                hostnames =  [d['hostname'] for d in calico_nodes],
+                                manage_cluster=manage_cluster,
+                                fabric_type=fabric_type)
 
 
 def is_valid_hostname(hostname):
@@ -914,7 +915,7 @@ def cluster_view():
             elif fabric_type == "vxlan_evpn":
                 return redirect(f'/cluster_network?fabric_type={fabric_type}')
         elif button == "Previous":
-            return redirect('/calico_nodes')
+            return redirect(f'/calico_nodes?fabric_type={fabric_type}')
     if request.method == 'GET':
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
@@ -1245,7 +1246,7 @@ def vcenter():
             if fabric_type == "vxlan_evpn":
                 return redirect(f'/calico_nodes?fabric_type={fabric_type}')
             else:
-                return redirect('/calico_nodes')
+                return redirect(f'/calico_nodes?fabric_type={fabric_type}')
         elif button == "Previous":
             return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
 

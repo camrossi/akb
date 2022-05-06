@@ -980,8 +980,8 @@ def cluster_network():
                         logger.info('Invalid VLAN detected')
                         flash("Please Specify a valid VLAN ID (2-4094)")
                         return redirect('/cluster_network')
-                logger.info('save l3out variables')
-                setdotenv('l3out', json.dumps(l3out))
+                    logger.info('save l3out variable to update the VLAN ID in case of not VM Deployment')
+                    setdotenv('l3out', json.dumps(l3out))
             if ipv6_enabled: 
                 cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
                 cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")

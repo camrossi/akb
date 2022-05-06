@@ -545,10 +545,14 @@ def tf_apply():
 
 def create_tf_config(fabric_type):
     ''' Puts all the config pieces togehter and generate the TF config'''
+    vkaci_ui = ""
     try: 
+        try:
+            vc = json.loads(getdotenv('vc'))
+        except Exception as e:
+            vc = {}
+            vc['vm_deploy'] = True
         cluster = json.loads(getdotenv('cluster'))
-        vc = json.loads(getdotenv('vc'))
-        calico_nodes = json.loads(getdotenv('calico_nodes'))
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
             apic = json.loads(getdotenv('apic'))
@@ -578,7 +582,6 @@ def create_tf_config(fabric_type):
                 f.write(config)
 
         elif fabric_type == "vxlan_evpn":
-            vkaci_ui = None
             if vc['vm_deploy']:
                 calico_nodes = json.loads(getdotenv('calico_nodes'))
             else:

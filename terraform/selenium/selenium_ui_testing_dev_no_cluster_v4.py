@@ -49,7 +49,7 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://10.67.185.120:5001")
+driver.get("http://10.67.185.120:5007")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
@@ -78,10 +78,6 @@ elem.send_keys("calico_dev_v4")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
 elem.clear()
 elem.send_keys("192.168.39.0/24")
-elem = driver.find_element(By.NAME,"dns_servers")
-elem.send_keys("10.67.185.100")
-elem = driver.find_element(By.NAME,"dns_domain")
-elem.send_keys("cam.ciscolabs.com")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:

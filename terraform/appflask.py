@@ -69,7 +69,16 @@ def update_all_dotenv(config):
     logger.info('update_all_dotenv')
     config = hcl2.loads(config)
     if 'apic' in config:
-        setdotenv('apic', json.dumps(config['apic']))
+        # If the admin user is already present, save it.
+        existing_apic = json.loads(getdotenv('apic'))
+        if 'adminuser' in existing_apic and 'adminpass' in existing_apic and \
+        'adminuser' not in config['apic'] and 'adminpass' not in config['apic']:
+            logger.info('Detected per-existing APIC user and no new admin user credentials passed')
+            config['apic']['adminuser'] = existing_apic['adminuser']
+            config['apic']['adminpass'] = existing_apic['adminpass']
+        
+    setdotenv('apic', json.dumps(config['apic']))
+
     if 'calico_nodes' in config:
         setdotenv('calico_nodes', json.dumps(config['calico_nodes']))
     if 'k8s_cluster' in config:
@@ -568,6 +577,7 @@ def create_tf_config(fabric_type):
                 f.write(config)
 
         elif fabric_type == "vxlan_evpn":
+            vkaci_ui = None
             if vc['vm_deploy']:
                 calico_nodes = json.loads(getdotenv('calico_nodes'))
             else:

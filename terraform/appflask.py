@@ -1,5 +1,4 @@
 import json
-from logging import error
 import requests
 from OpenSSL.crypto import sign, load_privatekey, FILETYPE_PEM
 import base64
@@ -614,11 +613,6 @@ def create():
     fabric_type = get_fabric_type(request) 
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    try:
-        vc = json.loads(getdotenv('vc'))
-    except Exception as e:
-        vc = {}
-        vc['vm_deploy'] = True
     if request.method == 'GET':
         config, vkaci_ui, vm_deploy = create_tf_config(fabric_type)
         return render_template('create.html', config=config, vkaci_ui=vkaci_ui, vm_deploy=vm_deploy)

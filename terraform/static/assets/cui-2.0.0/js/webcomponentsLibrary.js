@@ -1,56 +1,3 @@
-// console.log("Hello Console");
-
-// // let btn = document.createElement("button");
-// // btn.innerText("Click here for new square");
-// // document.body.appendChild(btn);
-
-// let btn = document.createElement("button");
-// btn.innerHTML = "Click Me";
-// document.body.appendChild(btn);
-// let i = 0;
-// btn.onclick = function () {
-//   console.log("button was clicked " + i + " time(s)");
-//   btn.innerHTML = "Click Me " + i;
-
-//   // const newSquare =
-//   // 	document.createElement("user-node", { name: "hi1" });
-//   const newSquare = new Node(i);
-//   document.body.appendChild(newSquare);
-//   i++;
-// };
-
-// document.addEventListener("mousedown", (e) => {
-//   if (e.target) window.targetElement = e.target;
-// });
-// document.addEventListener("mousemove", (e) => {
-//   // Currently pressed down on some element
-//   const { targetElement } = window;
-//   if (
-//     targetElement &&
-//     (targetElement.classList.contains("square") ||
-//       targetElement.tagName === "USER-NODE")
-//   ) {
-//     console.dir(e, { depth: 100 });
-//     targetElement.style.position = "absolute";
-//     targetElement.style.left = `${e.x - 50}px`;
-//     targetElement.style.top = `${e.y - 50}px`;
-//   }
-// });
-// document.addEventListener("mouseup", (e) => {
-//   window.targetElement = null;
-// });
-
-// // document.addEventListener('onclick', e => {
-
-// //     // console.log('test')
-
-// //     // e.target.style.color = 'blue'
-// //     // if (!window.firstElement) return window.firstElement = e.target
-// //     // if (!window.secondElement) return window.secondElement = e.target
-
-// //     // TO-DO Draw a line between both
-
-// // })
 const pages = [
   ["", "required"],
   ["login", "required"],
@@ -106,10 +53,18 @@ class StatusBar extends HTMLElement {
       iconContainer.style = "display: flex; justify-content: space-around;";
       const childIcon = document.createElement("img");
       childIcon.style="margins: auto;"
-      if (currentPage > index) {
+      if (
+        currentPage > index &&
+        (parseInt(sessionStorage.getItem("skipToCreate")) === -1 ||
+          currentPage < parseInt(sessionStorage.getItem("skipToCreate")))
+      ) {
         child.style.color = "green";
         childIcon.src =
           "../../../../static/images/done_FILL0_wght400_GRAD0_opsz48.svg";
+      } else if (currentPage < index) {
+        child.style.color = "grey";
+        childIcon.src =
+          "../../../../static/images/minimize_FILL0_wght400_GRAD0_opsz48.svg";
       } else if (currentPage === index) {
         child.style.color = "orange";
         childIcon.src =
@@ -135,6 +90,8 @@ class StatusBar extends HTMLElement {
       
     // document.querySelector("status-bar-container")
     // console.log(containerDiv);
+    if (pageNumber <= parseInt(sessionStorage.getItem("skipToCreate")))
+      sessionStorage.setItem("skipToCreate", -1);
     template.content.removeChild(template.content.firstElementChild)
     template.content.appendChild(containerDiv);
     this.attachShadow({ mode: "open" });
@@ -166,6 +123,12 @@ function pageNumber(pageName) {
 function pageNumberToName(pageNumber) {
   return pages[pageNumber];
 }
+function skipToCreate() {
+  if (sessionStorage.getItem("skipToCreate") === null)
+    sessionStorage.setItem("skipToCreate", -1);
+}
+skipToCreate();
+
 
 function changePage(futurePage, currentPage) {
   if (currentPage === undefined)
@@ -181,14 +144,35 @@ function changePage(futurePage, currentPage) {
     // if the page user wants to switch to is before the current page, that is always allowed
     if (futurePage < currentPage) {
       // window.location.href = window.location.href
-      console.log("go to future page: " + futurePage)
-      window.location.href = window.location.origin + "/" + pages[futurePage][0];
-      return futurePage;
+      // User is on the create page
+      if (currentPage === pages.length - 1) {
+        if (futurePage <= parseInt(sessionStorage.getItem("skipToCreate"))) {
+          console.log("go to future page: " + futurePage);
+          window.location.href =
+            window.location.origin + "/" + pages[futurePage][0];
+          if (futurePage <= skipToCreate)
+            sessionStorage.setItem("skipToCreate", -1);
+          return futurePage;
+        }
+        else {
+          return currentPage;
+        }
+      }
+      // User is currently not on the create page
+      else {
+        console.log("go to future page: " + futurePage);
+        window.location.href =
+          window.location.origin + "/" + pages[futurePage][0];
+        if (futurePage <= skipToCreate)
+          sessionStorage.setItem("skipToCreate", -1);
+        return futurePage;
+      }
     }
 
     // this is if the page user wants to switch to is the create page, or the last page
     else if (futurePage === pages.length - 1) {
       console.log("go to create page: " + futurePage);
+      sessionStorage.setItem("skipToCreate", currentPage);
       window.location.href = window.location.origin + "/" + pages[futurePage][0];
       return futurePage;
     }

@@ -93,8 +93,7 @@
 
 - name: Labels Nodes with local-storage 
   shell: |
-    kubectl label node {{ item }} local-storage=yes --overwrite
-  loop: "{{groups['k8s_nodes']}}"
+    kubectl label node --all local-storage=yes --overwrite
   register: label_res
   retries: 5
   until: label_res is success
@@ -170,6 +169,12 @@
   when:
     - sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
+  tags:
+    - k8s_addons
+
+- name: Force Schedule Neo4j on second master node
+  shell: kubectl patch statefulset  my-neo4j -p '{"spec":{"template":{"spec":{"nodeName":"{{ groups['k8s_master_replicas'][0] }}"}}}}'
+  when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
 

@@ -472,9 +472,10 @@ def tf_plan():
             g.run(["bash", "-c", "terraform -chdir=ndfc plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     return Response(read_process(g), mimetype='text/event-stream')
 
-def node_delta():
+def node_delta(chdir):
     '''Calculte the new and removed k8s nodes'''
-    stream = os.popen('terraform show -json plan')
+    cmd = "terraform -chdir="+chdir+" show -json plan"
+    stream = os.popen(cmd)
     new_nodes = set()
     removed_nodes = set()
     changes = json.loads(stream.read())
@@ -493,20 +494,20 @@ def tf_apply():
     fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
-    if not os.path.exists('plan'):
-        return Response('Please run "Plan" before "Apply"')
-    g = proc.Group()
     if fabric_type == "aci":
         chdir ="."
     elif fabric_type == "vxlan_evpn":
         chdir ="ndfc"
-    new_nodes, removed_nodes = node_delta()
+    plan = chdir + "/plan"
+    if not os.path.exists(plan):
+        return Response('Please run "Plan" before "Apply"')
+    g = proc.Group()
     cluster_status = check_if_new_cluster()
     if cluster_status == 'new':
         logger.info("Creating new Cluster")
         g.run(["bash", "-c","terraform -chdir="+chdir+" apply -auto-approve -no-color plan"])
     else:
-       
+        new_nodes, removed_nodes = node_delta(chdir)
         rm_cmd = ""
         add_cmd = ""
         plan_cmd = ""

@@ -55,8 +55,8 @@ class StatusBar extends HTMLElement {
       childIcon.style="margins: auto;"
       if (
         currentPage > index &&
-        (parseInt(sessionStorage.getItem("skipToCreate")) === -1 ||
-          currentPage < parseInt(sessionStorage.getItem("skipToCreate")))
+        (sessionStorage.getItem("skipToCreate") === null || parseInt(sessionStorage.getItem("skipToCreate")) === -1 ||
+          index < parseInt(sessionStorage.getItem("skipToCreate")))
       ) {
         child.style.color = "green";
         childIcon.src =
@@ -140,7 +140,7 @@ function changePage(futurePage, currentPage) {
   console.log("current page: " + currentPage);
   console.log("future page: " + futurePage);
   
-  if (typeof (currentPage) === "number" && typeof (futurePage) === "number" && futurePage >= 0) {
+  if (typeof (currentPage) === "number" && typeof (futurePage) === "number" && futurePage >= 0 && futurePage !== currentPage) {
     // if the page user wants to switch to is before the current page, that is always allowed
     if (futurePage < currentPage) {
       // window.location.href = window.location.href

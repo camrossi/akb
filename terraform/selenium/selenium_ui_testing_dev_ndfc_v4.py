@@ -5,9 +5,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
 import random
 import argparse
 from time import sleep
+
+def check_exits_by_id(driver, id):
+    '''Test check html element exists by id'''
+    try:
+        driver.find_element(By.ID, id)
+    except NoSuchElementException:
+        return False
+    return True
 
 
 def add_calico_ndoe(driver, hostname, ip, rack_id):
@@ -192,7 +201,13 @@ def cluster_network_page(driver):
 
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
-
+def create_page(driver):
+    '''test create page'''
+    current_url = driver.current_url
+    assert "fabric_type=vxlan_evpn" in current_url
+    assert "Create" in driver.title
+    assert check_exits_by_id(driver, "vkaci") is False
+    
 def main():
     chrome_options = Options()
     run_id = "{:05d}".format(random.randint(1, 10000))
@@ -221,6 +236,7 @@ def main():
     calico_node_page(driver, run_id)
     cluster_page(driver)
     cluster_network_page(driver)
+    create_page(driver)
     sleep(5)
     driver.quit()
 

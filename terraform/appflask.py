@@ -610,12 +610,12 @@ def create_tf_config(fabric_type):
 def create():
     '''Page that creates the cluster'''
     vkaci_ui = ""
-    fabric_type = get_fabric_type(request) 
+    fabric_type = get_fabric_type(request)
     if fabric_type not in VALID_FABRIC_TYPE:
         return redirect('/')
     if request.method == 'GET':
         config, vkaci_ui, vm_deploy = create_tf_config(fabric_type)
-        return render_template('create.html', config=config, vkaci_ui=vkaci_ui, vm_deploy=vm_deploy)
+        return render_template('create.html', fabric_type=fabric_type, config=config, vkaci_ui=vkaci_ui, vm_deploy=vm_deploy)
     if request.method == 'POST':
         req = request.form
         button = req.get("button")
@@ -813,6 +813,9 @@ def calico_nodes_view():
                 i += 1
         ipv4_cluster_subnet = None
         ipv6_cluster_subnet = None
+        hostnames = []
+        if calico_nodes is not None:
+            hostnames = [d['hostname'] for d in calico_nodes]
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
             ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"]
@@ -821,11 +824,11 @@ def calico_nodes_view():
             overlay = json.loads(getdotenv('overlay'))
             ipv4_cluster_subnet=overlay["node_sub"]
             ipv6_cluster_subnet=overlay["node_sub_v6"]
-        return render_template('calico_nodes.html', 
-                                ipv4_cluster_subnet=ipv4_cluster_subnet, 
-                                ipv6_cluster_subnet=ipv6_cluster_subnet, 
+        return render_template('calico_nodes.html',
+                                ipv4_cluster_subnet=ipv4_cluster_subnet,
+                                ipv6_cluster_subnet=ipv6_cluster_subnet,
                                 calico_nodes=json.dumps(calico_nodes, indent=4),
-                                hostnames =  [d['hostname'] for d in calico_nodes],
+                                hostnames = hostnames,
                                 manage_cluster=manage_cluster,
                                 fabric_type=fabric_type)
 

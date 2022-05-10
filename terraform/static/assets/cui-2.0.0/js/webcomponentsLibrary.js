@@ -16,24 +16,14 @@ const template = document.createElement("template");
 template.innerHTML = `
         <div></div>
 `;
-	//     <div style="width: 95%; height: 150px; background-color: green; border-style: solid; margin: auto">
-    //     <div id="status-bar-container"></div>
-    //     <h3
-    //       style="justify-content: center; 
-	// 	font-family: Arial, Helvetica, sans-serif; 
-	// 	text-align: center;  
-	// 	padding: 20px 0;"
-    //     ></h3>
-    //   </div>;
 
 class StatusBar extends HTMLElement {
-  constructor(name) {
-      super();
+  constructor() {
+    super();
     
     const containerDiv = document.createElement("div");
-    // containerDiv.classList.add("pagination")
     containerDiv.style =
-        "width: 100%; height: 75px; font-size: 16px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
+      "width: 100%; height: 75px; font-size: 16px; background-color: white; border-style: solid; border-width: thin; margin: auto; display:flex; justify-content: space-evenly";
     
     const currentPage = pageNumber(getPageName());
     let index = 0;
@@ -55,7 +45,8 @@ class StatusBar extends HTMLElement {
       childIcon.style="margins: auto;"
       if (
         currentPage > index &&
-        (sessionStorage.getItem("skipToCreate") === null || parseInt(sessionStorage.getItem("skipToCreate")) === -1 ||
+        (sessionStorage.getItem("skipToCreate") === null ||
+          parseInt(sessionStorage.getItem("skipToCreate")) === -1 ||
           index < parseInt(sessionStorage.getItem("skipToCreate")))
       ) {
         child.style.color = "green";
@@ -85,20 +76,13 @@ class StatusBar extends HTMLElement {
       containerDiv.appendChild(nameAndIcon);
       index++;
     }
-    // console.log(containerDiv)
-    // const nameAndIcon = document.createElement("div");
-      
-    // document.querySelector("status-bar-container")
-    // console.log(containerDiv);
-    if (pageNumber <= parseInt(sessionStorage.getItem("skipToCreate")))
+    
+    if (currentPage <= parseInt(sessionStorage.getItem("skipToCreate")))
       sessionStorage.setItem("skipToCreate", -1);
     template.content.removeChild(template.content.firstElementChild)
     template.content.appendChild(containerDiv);
     this.attachShadow({ mode: "open" });
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-
-    // console.log(this.shadowRoot.querySelector("status-bar-container"));
-    // console.log(document.getElementById("status-bar-container"));
   }
 }
 
@@ -146,15 +130,17 @@ function changePage(futurePage, currentPage) {
       // window.location.href = window.location.href
       // User is on the create page
       if (currentPage === pages.length - 1) {
-        if (futurePage <= parseInt(sessionStorage.getItem("skipToCreate"))) {
+        if (
+          parseInt(sessionStorage.getItem("skipToCreate")) === -1 ||
+          futurePage <= parseInt(sessionStorage.getItem("skipToCreate"))
+        ) {
           console.log("go to future page: " + futurePage);
           window.location.href =
             window.location.origin + "/" + pages[futurePage][0];
           if (futurePage <= skipToCreate)
             sessionStorage.setItem("skipToCreate", -1);
           return futurePage;
-        }
-        else {
+        } else {
           return currentPage;
         }
       }

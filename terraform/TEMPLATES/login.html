@@ -74,7 +74,7 @@
             <div class="container">
                <div class="checkbox form-group form-group--inline c8041">
                   <label class="checkbox">
-                     <input type="checkbox" style="margin:0;" id="deploy_vm" name="deploy_vm" checked>
+                     <input type="checkbox" style="margin:0;" id="deploy_vm" name="deploy_vm" checked onchange="deployCheck()">
                      <span id='deploy_vm-checkbox' class="checkbox__input" ></span>
                      <span class="checkbox__label hidden-xs">Deploy K8s cluster</span>
                   </label>
@@ -117,7 +117,18 @@
             </table>
          </div>
          <table width="20%" bgcolor="0099CC" align="center">
-
+         <script>
+            function deployCheck() {
+               checkbox = document.getElementById("deploy_vm").checked;
+               if (!checkbox) {
+                  sessionStorage.setItem("deploy", "true");
+               }
+               else
+                  sessionStorage.setItem("deploy", "false");
+               console.log(sessionStorage.getItem("deploy"));
+            }
+            deployCheck();
+         </script>
 
 
          </table>

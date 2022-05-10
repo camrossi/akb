@@ -1,15 +1,31 @@
-const pages = [
-  ["", "required"],
-  ["login", "required"],
-  ["l3out", "required"],
-  ["vcenterlogin", "required"],
-  ["vctemplate", "not required"],
-  ["vcenter", "required"],
-  ["calico_nodes", "required"],
-  ["cluster", "required"],
-  ["cluster_network", "required"],
-  ["create", "required"],
-];
+let pages;
+
+function pagesInitialization() {
+  if (sessionStorage.getItem("deploy") === "true") {
+    pages = [
+      ["", "required"],
+      ["login", "required"],
+      ["l3out", "required"],
+      ["cluster_network", "required"],
+      ["create", "required"],
+    ];
+  }
+  else {
+    pages = [
+      ["", "required"],
+      ["login", "required"],
+      ["l3out", "required"],
+      ["vcenterlogin", "required"],
+      ["vctemplate", "not required"],
+      ["vcenter", "required"],
+      ["calico_nodes", "required"],
+      ["cluster", "required"],
+      ["cluster_network", "required"],
+      ["create", "required"],
+    ];
+  }
+}
+pagesInitialization();
 
 const template = document.createElement("template");
 // template.classList.add("square");

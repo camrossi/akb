@@ -1737,8 +1737,8 @@ def login():
             try:
                 r = requests.get(url, verify=False, allow_redirects=True, timeout=5)
             except Exception as e:
-                print(e)
-                flash("Unable to connect to APIC", error)
+                logger.error("Unable to connect to APIC")
+                flash("Unable to connect to APIC", e)
                 return render_template('login.html')
             home = os.path.expanduser("~")
             meta_path = home + '/.aci-meta'

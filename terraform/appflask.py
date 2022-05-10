@@ -761,9 +761,8 @@ def calico_nodes_view():
             calico_nodes.append({"hostname": hostname, "ip": ip,
                                 "ipv6": ipv6, "natip": natip, "rack_id": rack_id})
             if turbo.can_stream():
-                return turbo.stream(
-                    turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
-                                target='tf_calico_nodes'))
+                return stream_calico_nodes_update(calico_nodes)
+
         if button == "Remove Node":
             hostname = req.get("hostname")
             calico_nodes = json.loads(req.get("calico_nodes"))
@@ -774,9 +773,7 @@ def calico_nodes_view():
                 if hostname == node['hostname']:
                     calico_nodes.remove(node)
             if turbo.can_stream():
-                return turbo.stream(
-                    turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
-                                target='tf_calico_nodes'))
+                return stream_calico_nodes_update(calico_nodes)
 
             return calico_nodes_error(calico_nodes, "Error: Hostname not found")
         if button == "Apply Node Config Update":
@@ -813,9 +810,6 @@ def calico_nodes_view():
                 i += 1
         ipv4_cluster_subnet = None
         ipv6_cluster_subnet = None
-        hostnames = []
-        if calico_nodes is not None:
-            hostnames = [d['hostname'] for d in calico_nodes]
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
             ipv4_cluster_subnet=l3out["ipv4_cluster_subnet"]
@@ -828,13 +822,27 @@ def calico_nodes_view():
                                 ipv4_cluster_subnet=ipv4_cluster_subnet,
                                 ipv6_cluster_subnet=ipv6_cluster_subnet,
                                 calico_nodes=json.dumps(calico_nodes, indent=4),
-                                hostnames = hostnames,
+                                hostnames = get_hostnames(calico_nodes),
                                 manage_cluster=manage_cluster,
                                 fabric_type=fabric_type)
 
 
+def stream_calico_nodes_update(calico_nodes):
+    return turbo.stream([
+        turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
+                     target='tf_calico_nodes'),
+        turbo.update(render_template('_calico_hostnames.html', hostnames=get_hostnames(calico_nodes)),
+                     target='tf_calico_hostnames')])
+
+def get_hostnames(calico_nodes):
+    hostnames = []
+    if calico_nodes is not None:
+        hostnames = [d['hostname'] for d in calico_nodes]
+    return hostnames
+
+
 def is_valid_hostname(hostname):
-    '''Verify host name valifity'''
+    '''Verify host name validity'''
     if hostname == "":
         return False
     if len(hostname) > 255:

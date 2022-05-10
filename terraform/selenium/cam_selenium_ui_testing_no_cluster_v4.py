@@ -49,23 +49,23 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://10.67.185.120:5007")
+driver.get("http://10.67.185.120:5001/")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
 
 assert "Apic Login" in driver.title
-elem = driver.find_element(By.ID,"deploy_vm-checkbox")
-elem.click()
 elem = driver.find_element(By.NAME,"fabric")
 elem.clear()
-elem.send_keys("fab1-apic1.cam.ciscolabs.com")
+elem.send_keys("10.67.185.106")
 elem = driver.find_element(By.NAME,"username")
 elem.clear()
 elem.send_keys("admin")
 elem = driver.find_element(By.NAME,"password")
 elem.clear()
 elem.send_keys("123Cisco123")
+elem = driver.find_element(By.ID,"deploy_vm-checkbox")
+elem.click()
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
@@ -102,11 +102,9 @@ elem.click()
 
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-
-assert "NKT - Cluster Network" in driver.title
-elem = driver.find_element(By.ID,"vlan_id")
+assert "Cluster" in driver.title
+elem = driver.find_element(By.ID,'vlan_id')
 elem.send_keys("11")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-#driver.quit()

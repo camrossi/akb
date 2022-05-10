@@ -1,0 +1,32 @@
+---
+- name: Playbook
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: create static calico directory if it does not exist
+      file:
+        path: "../terraform/static/manifests/"
+        state: directory
+
+    - name: Copy Calico Manifests
+      template:
+        src: "roles/calico/templates/{{ item }}"
+        dest: "../terraform/static/manifests/{{ item }}"
+      with_items:
+        - BGPPassSecret.yaml
+        - IPPool.yaml
+        - BGPConfiguration.yaml
+        - BGPPeer.j2
+        - calico-typha.yaml
+        - calico-typha-v46.yaml   
+      tags:
+        - calico_manifests
+
+    - name: Archive Manifests
+      archive:
+        path: "../terraform/static/manifests/*"
+        dest: "../terraform/static/manifests/manifests.zip"
+        exclude_path:
+        - ../terraform/static/manifests/manifests.zip
+        format: zip

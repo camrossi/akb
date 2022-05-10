@@ -1,4 +1,4 @@
 route-map ${k8s_route_map} deny 10
   match tag ${route_tag}
-route-map k8s_route_map_out permit 1000
+route-map ${k8s_route_map} permit 1000
 

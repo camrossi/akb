@@ -16,32 +16,7 @@
     <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
     <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/styleguide.js') }}"></script>
 
-       <style>
-      .chevron ul.tabs li.active a {
-         background-color: #017cad !important;
-         opacity: 1 !important;
-         color: #ffffff;
-         box-shadow: none !important;
-      }
-
-      .chevron ul.tabs li a {
-         height: 56px min-width: 90% !important;
-         padding: 10px 6px;
-         background-color: #ffffff;
-         opacity: 1 !important;
-         color: #58585d;
-         text-align: center;
-         position: relative;
-         line-height: 16px;
-         font-size: 12px;
-         cursor: pointer;
-         flex: 1 !important;
-         flex-shrink: 1 !important;
-         flex-wrap: wrap !important;
-         display: flex !important;
-         justify-content: center !important;
-      }
-
+   <style>
       textarea {
           font-family: monospace;
       }
@@ -145,7 +120,13 @@
             <input type="button" value="Apply" id="apply" class="btn" name="button" onclick="updateiFrame(this)">
             <input type="button" value="Reset" id="reset" class="btn" name="button" onclick="openModal('reset_modal')">
             <input type="button" value="Destroy" id="destroy" class="btn" onclick="openModal('destroy_modal')">
-            <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            {% if vm_deploy and fabric_type != 'vxlan_evpn' %}
+               <input type="button" value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">
+            {% endif %}
+            {% if not vm_deploy %}
+               <input type="button" value="Download Manifests" id="manifest" class="btn btn--wide" name="button" onclick="window.open('static/manifests/manifests.zip','_blank')">
+            {% endif %}
+
             <div class="modal modal--small hide" id="reset_modal">
                <div class="modal__dialog">
                    <div class="modal__content">
@@ -228,10 +209,10 @@
 <script>
    function updateiFrame(button) {
        if (button.value === 'Plan') {
-           document.getElementById('iframe').src = "{{ url_for("tf_plan") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
+           document.getElementById('iframe').src = "{{ url_for("tf_plan") }}" + '?fabric_type=' + "{{ fabric_type }}"
        }
        if (button.value === 'Apply') {
-           document.getElementById('iframe').src = "{{ url_for("tf_apply") }}" + '?fabric_type=' + getUrlParameter('fabric_type')
+           document.getElementById('iframe').src = "{{ url_for("tf_apply") }}" + '?fabric_type=' + "{{ fabric_type }}"
        }
    }
    startAutoScroll();
@@ -247,7 +228,7 @@
 <script>
     $(document).ready(function () {
         $("#btn_update_config").click(function (e) {
-            var update_url = "{{ url_for("update_config")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+            var update_url = "{{ url_for("update_config")}}" + '?fabric_type=' + "{{ fabric_type }}";
             $.ajax({
                 url: update_url,  
                 dataType: 'json',
@@ -256,20 +237,23 @@
                 data: JSON.stringify({ config: $("#config").val()}),
                 success: function (result, status, xhr) {
                     $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
-                },
+                    setTimeout(function(){
+                     window.location.reload(1);
+                  }, 500);                
+               },
                 error: function (xhr, status, error) {
                     $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
                 }
             });
         });
         $("#btn_reset_confirm").click(function (e) {
-         var reset_url = "{{ url_for("reset")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+         var reset_url = "{{ url_for("reset")}}" + '?fabric_type=' + "{{ fabric_type }}";
          $("#reset_modal").addClass('hide');
          $("#iframe").attr('src',reset_url);
 
      });
           $("#btn_destroy_confirm").click(function (e) {
-              var update_url = "{{ url_for("destroy")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+              var update_url = "{{ url_for("destroy")}}" + '?fabric_type=' + "{{ fabric_type }}";
               $("#destroy_modal").addClass('hide');
               $("#iframe").attr('src',update_url);
           });

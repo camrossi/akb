@@ -128,6 +128,44 @@ jobs:
         run: | 
            curl -b cookie.txt -s http://10.67.185.120:5004/destroy
 
+  nkt-testing-no-cluster:
+    # The type of runner that the job will run on
+    runs-on: stld
+    defaults:
+      run:
+        working-directory: no-cluster/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: no-cluster
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5007 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://10.67.185.120:5007/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5007/tf_plan
+      - name: Terraform apply
+        run: | 
+           curl -b cookie.txt -s http://10.67.185.120:5007/tf_apply      
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+           curl -b cookie.txt -s http://10.67.185.120:5007/destroy
+
   # This workflow contains a single job called "build"
   nkt-testing-v4-nat-dom:
     # The type of runner that the job will run on

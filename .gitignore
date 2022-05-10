@@ -4,6 +4,7 @@
 *.swp
 .DS_Store
 terraform/cluster.tfvars
+terraform/ndfc/cluster.tfvars
 *.crt
 *.key
 *.csr 
@@ -15,3 +16,10 @@ __pycache__
 labs
 *.ova
 *.backup
+terraform/static/manifests/*
+ansible/inventory/group_vars/all.yml
+ansible/roles/primary_master/files/*
+terraform/ndfc/cluster.tfvars
+terraform/.terraform.tfstate.lock.info
+terraform/.env
+ansible/inventory/nodes.ini

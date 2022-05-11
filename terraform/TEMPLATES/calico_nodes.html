@@ -53,8 +53,7 @@
                <div class="col-md-6">
                   <div class="form-group base-margin-bottom">
                      <div class="form-group__text">
-                        <!-- This hostname is type search so it gets the cross button to clear it.  -->
-                        <div class="form-group__text"><input type="search" name="hostname" id="hostname" list="hostname-list" autocomplete="off"><label>Hostname</label></div>
+                        {% include "_calico_hostnames.html" %}
                      </div>
                   </div>
                   <div class="form-group base-margin-bottom">
@@ -73,7 +72,6 @@
                         </label>
                      </div>
                   </div>
-                  {% include "_calico_hostnames.html" %}
                   <input id="add_node" type="submit" value="Add Node" class="btn btn--wide" name="button">
                   <input id="remove_node" type="submit" value="Remove Node" class="btn btn--wide" name="button">
             </div>

@@ -760,8 +760,7 @@ def calico_nodes_view():
 
             calico_nodes.append({"hostname": hostname, "ip": ip,
                                 "ipv6": ipv6, "natip": natip, "rack_id": rack_id})
-            if turbo.can_stream():
-                return stream_calico_nodes_update(calico_nodes)
+            return stream_calico_nodes_update(calico_nodes)
 
         if button == "Remove Node":
             hostname = req.get("hostname")
@@ -772,8 +771,7 @@ def calico_nodes_view():
             for node in calico_nodes:
                 if hostname == node['hostname']:
                     calico_nodes.remove(node)
-            if turbo.can_stream():
-                return stream_calico_nodes_update(calico_nodes)
+            return stream_calico_nodes_update(calico_nodes)
 
             return calico_nodes_error(calico_nodes, "Error: Hostname not found")
         if button == "Apply Node Config Update":
@@ -828,11 +826,12 @@ def calico_nodes_view():
 
 
 def stream_calico_nodes_update(calico_nodes):
-    return turbo.stream([
-        turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
-                     target='tf_calico_nodes'),
-        turbo.update(render_template('_calico_hostnames.html', hostnames=get_hostnames(calico_nodes)),
-                     target='tf_calico_hostnames')])
+    if turbo.can_stream():
+        return turbo.stream([
+            turbo.update(render_template('_calico_nodes.html', calico_nodes=json.dumps(calico_nodes, indent=4)),
+                        target='tf_calico_nodes'),
+            turbo.update(render_template('_calico_hostnames.html', hostnames=get_hostnames(calico_nodes)),
+                        target='tf_calico_hostnames')])
 
 def get_hostnames(calico_nodes):
     hostnames = []

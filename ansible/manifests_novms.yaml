@@ -27,4 +27,6 @@
       archive:
         path: "../terraform/static/manifests/*"
         dest: "../terraform/static/manifests/manifests.zip"
+        exclude_path:
+        - ../terraform/static/manifests/manifests.zip
         format: zip

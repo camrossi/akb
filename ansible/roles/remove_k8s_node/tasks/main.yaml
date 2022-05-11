@@ -1,0 +1,6 @@
+---
+- name: Delete Node
+  shell: kubectl delete nodes  {{inventory_hostname}}
+  delegate_to: "{{groups['k8s_primary_master'][0]}}"
+  tags:
+    - remove_k8s_nodes

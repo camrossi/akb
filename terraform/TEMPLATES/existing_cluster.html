@@ -24,38 +24,13 @@
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
    <style>
-      .chevron ul.tabs li.active a {
-         background-color: #017cad !important;
-         opacity: 1 !important;
-         color: #ffffff;
-         box-shadow: none !important;
-      }
-
-      .chevron ul.tabs li a {
-         height: 56px min-width: 90% !important;
-         padding: 10px 6px;
-         background-color: #ffffff;
-         opacity: 1 !important;
-         color: #58585d;
-         text-align: center;
-         position: relative;
-         line-height: 16px;
-         font-size: 12px;
-         cursor: pointer;
-         flex: 1 !important;
-         flex-shrink: 1 !important;
-         flex-wrap: wrap !important;
-         display: flex !important;
-         justify-content: center !important;
-      }
-
       textarea {
           font-family: monospace;
       }
    </style>
 </head>
 
-<form name="tenantForm" method="post" action="/existing_cluster">
+<form name="existingCluster" method="post" action="/existing_cluster">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -129,6 +104,7 @@
             <p id="streaming_text"></p>
       </div>
         <div class="container base-margin-bottom">
+            <input type="submit" value="Manage Nodes" id="manage_nodes" class="btn btn--wide" name="button">
             <button type="button" id="destroy" class="btn" onclick="openModal('confirm_modal')">Destroy</button>
             <button id="reset" type="button" class="btn" onclick="openModal('reset_modal')">Reset</button>
             <input type="button" {% if not vm_deploy %} style="display:none";{% endif %} value="Visibility UI" id="vkaci" class="btn btn--wide" name="button" onclick="window.open('{{ vkaci_ui }}','_blank')">

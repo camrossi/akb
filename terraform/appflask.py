@@ -38,6 +38,10 @@ logger.setLevel(logging.INFO)
 VALID_FABRIC_TYPE = ['aci', 'vxlan_evpn']
 TF_STATE_ACI = "terraform.tfstate"
 TF_STATE_NDFC = "./ndfc/terraform.tfstate"
+TF_LOCK = ".terraform.tfstate.lock.info"
+ANSIBLE_LOCK = ".ansible.lock.info"
+ANSIBLE_LOCK_CMD = "touch " + ANSIBLE_LOCK
+ANSIBLE_UNLOCK_CMD = "rm " + ANSIBLE_LOCK
 TEMPLATE_NAME = "nkt_template"
 # app = Flask(__name__)
 app = Flask(__name__, template_folder='./TEMPLATES/')
@@ -411,6 +415,18 @@ def doc_ndfc():
     '''Return the NDFC Documentation '''
     return render_template('docs/ndfc.html')
 
+@app.route('/tf_running', methods=['GET', 'POST'])
+def tf_running():
+    if os.path.exists(TF_LOCK) or os.path.exists("./ndfc/" + TF_LOCK):
+        return Response( 'True', mimetype='text/plain')
+    return Response( 'False', mimetype='text/plain')
+
+@app.route('/ansible_running', methods=['GET', 'POST'])
+def ansible_running():
+    if os.path.exists(ANSIBLE_LOCK):
+        return Response( 'True', mimetype='text/plain')
+    return Response( 'False', mimetype='text/plain')
+
 @app.route('/tf_plan', methods=['GET', 'POST'])
 @require_api_token
 def tf_plan():    
@@ -531,13 +547,12 @@ def tf_apply():
         # If I am adding and removing I need to plan again in the middle
         if len(new_nodes) > 0 and len(removed_nodes) > 0:
             plan_cmd = "terraform -chdir="+chdir+" plan -no-color -var-file='cluster.tfvars' -out='plan'"
-        
         '''I don't particularly like runing all this with && but shellgob.Proc schedule the tasks in 
            parallel so it ends up running add and remove in parallel and bricks the cluster, need to evaluate changing
            to a diffrent library perhaps 
         '''
-        cmds = [rm_cmd, plan_cmd, add_cmd]
-        g.run(["bash", "-c", '&&'.join(filter(None, cmds))])
+        cmds = [ANSIBLE_LOCK_CMD, rm_cmd, plan_cmd, add_cmd, ANSIBLE_UNLOCK_CMD]
+        g.run(["bash", "-c", ';'.join(filter(None, cmds))])
 
 
     return Response( read_process(g), mimetype='text/event-stream' )
@@ -1700,6 +1715,7 @@ def create_apic_user(apic):
         f.write(config)
     # Generate temporary user and certificate
     g = proc.Group()
+
     g.run(["bash", "-c", "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user'"])
     #Just wait for terraform to finish
     for s in read_process(g):
@@ -1811,18 +1827,21 @@ def reset():
         return redirect('/')
     if request.method == "GET":
         try:
+            del_files = []
+            if os.path.exists(ANSIBLE_LOCK):
+                os.remove(ANSIBLE_LOCK)
+                del_files.append(ANSIBLE_LOCK)
             if fabric_type == "aci":
                 if os.path.exists(TF_STATE_ACI):
                     os.remove(TF_STATE_ACI)
-                    return Response("Deleted terraform state file " + TF_STATE_ACI)
-                else:
-                    return Response("terraform state file " + TF_STATE_ACI +" Not found")
+                    del_files.append(TF_STATE_ACI)
             if fabric_type == "vxlan_evpn":
                 if os.path.exists(TF_STATE_NDFC):
                     os.remove(TF_STATE_NDFC)
-                    return Response("Deleted terraform state file " + TF_STATE_NDFC)
-                else:
-                    return Response("terraform state file " + TF_STATE_NDFC +" Not found")
+                    del_files.append(TF_STATE_NDFC)
+            if len(del_files) > 0:
+                return Response("Deleted state files " + ', '.join(del_files))
+            return Response("State files not found")
         except Exception:
            return Response("Reset Failed")
 
@@ -1879,17 +1898,20 @@ def destroy():
     if request.method != "GET":
         return "unsupported method", 405
     g = proc.Group()
+    
     if fabric_type == "aci":
-        g.run(["bash", "-c", "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars' && \
-        ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"])
+        ansible_cmd = "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"
+        tf_cmd = "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars'"
+        cmds = [tf_cmd, ANSIBLE_LOCK_CMD, ansible_cmd, ANSIBLE_UNLOCK_CMD]
+        g.run(["bash", "-c", ';'.join(filter(None, cmds))])
     elif fabric_type == "vxlan_evpn":
         integ_reset = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/ndfc.yaml ../ansible/ndfc_integration.yaml -t reset"
         tf_destory = "terraform -chdir=ndfc destroy -auto-approve -no-color -var-file='cluster.tfvars'"
         if os.path.exists("../ansible/inventory/ndfc.yaml"):
-            cmd = f"{integ_reset} && {tf_destory}"
+            cmds = [ANSIBLE_LOCK_CMD, integ_reset, ANSIBLE_UNLOCK_CMD, tf_destory]
         else:
-            cmd = tf_destory
-        g.run(["bash", "-c", cmd])
+            cmds = [tf_destory]
+        g.run(["bash", "-c", ';'.join(filter(None, cmds))])
     #p = g.run("ls")
     return Response(read_process(g), mimetype='text/event-stream')
 def check_if_new_cluster():

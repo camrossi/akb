@@ -114,10 +114,13 @@ def require_api_token(func):
     return check_token
 
 
-def get_random_string(length):
+def get_random_string(length, password = False):
     '''choose from all lowercase letter, this is used to randomize the temporary user names'''
-    letters = string.ascii_lowercase
-    result_str = ''.join(random.choice(letters) for i in range(length))
+    letters = string.ascii_letters + string.digits
+    # I just add a ! as special char as using string.punctuation introduces also char that are not accepted by APIC or create issues with Ansible
+    result_str = ''.join(random.choice(letters) for i in range(length)) 
+    if password:
+        result_str = result_str + "!Aa1"
     return result_str
 
 
@@ -1709,7 +1712,8 @@ def create_apic_user(apic):
             # APIC User that we create only for the duration of this playbook
             # We also create certificates for this user name to use cert based authentication
             aci_temp_username: {apic['nkt_user']}
-            aci_temp_pass: {apic['nkt_pass']}"""
+            aci_temp_pass: "{apic['nkt_pass']}"
+            """
 
     with open('../ansible/inventory/apic.yaml', 'w') as f:
         f.write(config)
@@ -1749,7 +1753,7 @@ def login():
             apic['adminuser'] = request.form['username']
             apic['adminpass'] = request.form['password']
             apic['nkt_user'] = "nkt_user_" + get_random_string(6) #request.form['nkt_user']
-            apic['nkt_pass'] = get_random_string(20)
+            apic['nkt_pass'] = get_random_string(20, password=True)
             apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
             apic['oob_ips'] = ""
             vc['vm_deploy'] = True if req.get("deploy_vm") == "on" else False

@@ -1,0 +1,41 @@
+---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - kube-router
+- name: Copy kube-router manifests
+  template:
+    src: "{{ item }}"
+    dest: /tmp/{{ item }}
+    force: yes
+  with_items:
+    - kuberouter-all-features.yaml
+    - BGPPeers.yaml
+  tags:
+    - kube-router
+
+- name: Annotate Node with BGP Peers
+  shell: 
+    while read -r line; do kubectl annotate node $line ; done < /tmp/BGPPeers.yaml
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+  tags:
+    - kube-router
+
+- name: Apply kube-router
+  shell: kubectl apply -f /tmp/kuberouter-all-features.yaml
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+  tags:
+    - kube-router
+
+- name: Remove kube-proxy
+  shell: kubectl -n kube-system delete ds kube-proxy
+  ignore_errors: yes
+  tags:
+    - kube-router

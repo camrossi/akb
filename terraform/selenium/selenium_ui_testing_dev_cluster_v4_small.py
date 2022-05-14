@@ -137,7 +137,7 @@ except ValueError as e:
 select = Select(driver.find_element(By.ID,'cluster'))
 select.select_by_visible_text("Cluster")
 elem = driver.find_element(By.ID,'port_group')
-elem.send_keys("ACI/CalicoL3OUT_300/vlan-300")
+elem.send_keys("ACI/K8s_L3OUT_300/vlan-300")
 elem = driver.find_element(By.ID,'vm_templates')
 elem.send_keys("Ubuntu21SandBox")
 elem = driver.find_element(By.ID,'vm_folder')

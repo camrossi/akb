@@ -1,0 +1,11 @@
+{% for node in groups['k8s_nodes'] %}
+{%- set peers = [] -%}
+{%- for leaf in bgp_peers -%}
+{%- if leaf.rack_id | int == hostvars[node]['rack_id'] | int -%}
+{{ peers.append( leaf.primary_ip ) }}
+{%- endif -%}
+{%- endfor -%}
+{{ node }} kube-router.io/peer.ips={{ peers|join(',') }} --overwrite
+{{ node }} kube-router.io/peer.asns={{ aci_as }},{{ aci_as }} --overwrite
+{{ node }} kube-router.io/peer.passwords={{ bgp_pass | b64encode}},{{ bgp_pass | b64encode}}  --overwrite
+{% endfor %}

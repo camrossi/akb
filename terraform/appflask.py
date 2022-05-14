@@ -336,7 +336,7 @@ def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="
     return vc_vars
 
 def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
-                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain=""):
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", cni_plugin=""):
                         
     ''' Generate the configuration for the Kubernetes Cluster '''
     try:
@@ -386,7 +386,8 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
                 "sandbox_status" : True if sandbox_status == "on" else False,
                 "eBPF_status" : True if eBPF_status == "on" else False,
                 "dns_domain" : dns_domain,
-                "dns_servers" : dns_servers
+                "dns_servers" : dns_servers,
+                "cni_plugin": cni_plugin
                 } 
     return cluster
 
@@ -990,6 +991,7 @@ def cluster_network():
                 cluster['external_svc_subnet'] = external_svc_subnet
                 cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
                 cluster['local_as'] = req.get("k8s_local_as")
+                cluster['cni_plugin'] = req.get("cni_plugin")
                 cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
                 cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
                 cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
@@ -999,6 +1001,7 @@ def cluster_network():
                 cluster['external_svc_subnet'] = req.get("ipv4_ext_svc_sub")
                 cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
                 cluster['local_as'] = req.get("k8s_local_as")
+                cluster['cni_plugin'] = req.get("cni_plugin")
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
                     l3out['vlan_id'] = req.get("vlan_id")

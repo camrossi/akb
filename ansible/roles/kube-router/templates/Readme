@@ -1,0 +1,20 @@
+To deploy Kube Routers follow these steps:
+1) annotate the K8s nodes with the following annotations:
+{% for leaf1 in bgp_peers %}
+    {% set peers = [] %}
+    {% for leaf2 in bgp_peers %}
+        {% if leaf1.primary_ip != leaf2.primary_ip %}
+            {% if leaf1.rack_id | int == leaf2.rack_id | int %}
+                {{- peers.append( leaf1.primary_ip ) -}}
+                {{- peers.append( leaf2.primary_ip ) -}}
+                {{- bgp_peers.remove( leaf2 ) -}}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    For K8s nodes in rack {{ leaf1.rack_id }} add the following BGP peers as an annotation
+        kube-router.io/peer.ips={{ peers|join(',') }}
+{% endfor %}
+    For all the nodes ad also the following annotations
+    kube-router.io/peer.asns={{ aci_as }},{{ aci_as }}
+    kube-router.io/peer.passwords={{ bgp_pass | b64encode}},{{ bgp_pass | b64encode}}
+2) Apply the kuberouter-all-features.yaml.j2 file with the kubectl apply -f command.

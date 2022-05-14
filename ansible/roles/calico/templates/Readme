@@ -1,0 +1,4 @@
+To deploy Calico follow these steps:
+1) annotate the K8s nodes with the following annotations:
+    rack_id="<id>" This is the rack_id that you have allocated to your leaves. Nodes will peer with leaves with the same rack_id
+2) Apply all the .yaml files with the kubectl apply -f command.

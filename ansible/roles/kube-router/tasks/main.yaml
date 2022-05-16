@@ -34,6 +34,15 @@
   tags:
     - kube-router
 
+- name: Wait for all kube-system pod to be ready
+  shell:  kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=600s
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+  tags:
+    - kube-router
+
 - name: Remove kube-proxy
   shell: kubectl -n kube-system delete ds kube-proxy
   ignore_errors: yes

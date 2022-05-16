@@ -1,6 +1,30 @@
 let pages;
+let ndfc = false;
+
+var getUrlParameter = function getUrlParameter(sParam) {
+  var sPageURL = window.location.search.substring(1),
+    sURLVariables = sPageURL.split("&"),
+    sParameterName,
+    i;
+
+  for (i = 0; i < sURLVariables.length; i++) {
+    sParameterName = sURLVariables[i].split("=");
+
+    if (sParameterName[0] === sParam) {
+      return sParameterName[1] === undefined
+        ? true
+        : decodeURIComponent(sParameterName[1]);
+    }
+  }
+  return "";
+};
 
 function pagesInitialization() {
+  const fabric = getUrlParameter("fabric_type");
+  if (fabric === "")
+    ndfc = false;
+  else if (fabric === "vxlan_evpn")
+    ndfc = true;
   if (sessionStorage.getItem("deploy") === "true") {
     pages = [
       ["", "required"],
@@ -9,8 +33,20 @@ function pagesInitialization() {
       ["cluster_network", "required"],
       ["create", "required"],
     ];
-  }
-  else {
+  } else if (ndfc) {
+    pages = [
+      ["", "required"],
+      ["login", "required"],
+      ["fabric", "required"],
+      ["vcenterlogin", "required"],
+      ["vctemplate", "not required"],
+      ["vcenter", "required"],
+      ["calico_nodes", "required"],
+      ["cluster", "required"],
+      ["cluster_network", "required"],
+      ["create", "required"],
+    ];
+  } else {
     pages = [
       ["", "required"],
       ["login", "required"],
@@ -152,7 +188,10 @@ function changePage(futurePage, currentPage) {
         ) {
           console.log("go to future page: " + futurePage);
           window.location.href =
-            window.location.origin + "/" + pages[futurePage][0];
+            window.location.origin +
+            "/" +
+            pages[futurePage][0] +
+            "?fabric_type=vxlan_evpn";
           if (futurePage <= skipToCreate)
             sessionStorage.setItem("skipToCreate", -1);
           return futurePage;
@@ -163,8 +202,10 @@ function changePage(futurePage, currentPage) {
       // User is currently not on the create page
       else {
         console.log("go to future page: " + futurePage);
-        window.location.href =
-          window.location.origin + "/" + pages[futurePage][0];
+        if (futurePage === 0)
+          window.location.href = window.location.origin + "/" + pages[futurePage][0];
+        else
+          window.location.href = window.location.origin + "/" + pages[futurePage][0] + "?fabric_type=vxlan_evpn";
         if (futurePage <= skipToCreate)
           sessionStorage.setItem("skipToCreate", -1);
         return futurePage;
@@ -175,7 +216,7 @@ function changePage(futurePage, currentPage) {
     else if (futurePage === pages.length - 1) {
       console.log("go to create page: " + futurePage);
       sessionStorage.setItem("skipToCreate", currentPage);
-      window.location.href = window.location.origin + "/" + pages[futurePage][0];
+      window.location.href = window.location.origin + "/" + pages[futurePage][0] + "?fabric_type=vxlan_evpn";
       return futurePage;
     }
 

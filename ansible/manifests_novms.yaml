@@ -10,7 +10,12 @@
       tags:
       - cni_manifests
 
-    - name: create static calico directory if it does not exist
+    - name: Delete CNI Manifests directory
+      file:
+        state: absent
+        path: "../terraform/static/manifests/"
+
+    - name: Create CNI Manifests directory
       file:
         path: "../terraform/static/manifests/"
         state: directory
@@ -23,7 +28,7 @@
         - BGPPassSecret.yaml
         - IPPool.yaml
         - BGPConfiguration.yaml
-        - BGPPeer.j2
+        - BGPPeer.yaml
         - calico-typha.yaml
         - calico-typha-v46.yaml
       when: cni_plugin == "Calico"
@@ -36,7 +41,7 @@
         dest: "../terraform/static/manifests/{{ item }}"
         lstrip_blocks: yes
       with_items:
-        - kuberouter-all-features.yaml.j2
+        - kuberouter-all-features.yaml
         - Readme
       when: cni_plugin == "Kube-Router"
       tags:

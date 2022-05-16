@@ -23,3 +23,4 @@ terraform/ndfc/cluster.tfvars
 terraform/.terraform.tfstate.lock.info
 terraform/.env
 ansible/inventory/nodes.ini
+terraform/selenium/cam_*

@@ -63,7 +63,7 @@
                <div class="col-md-6">
                   <div class="form-group base-margin-bottom">
                      <div class="form-group__text">
-                        <div class="form-group__text"><input type="text" name="hostname" id="hostname" list="hostname-list"><label>Hostname</label></div>
+                        {% include "_calico_hostnames.html" %}
                      </div>
                   </div>
                   <div class="form-group base-margin-bottom">
@@ -82,11 +82,6 @@
                         </label>
                      </div>
                   </div>
-                  <datalist id="hostname-list">
-                     {%for h in hostnames %}
-                        <option>{{h}}</option>
-                     {%endfor%}
-                  </datalist>
                   <input id="add_node" type="submit" value="Add Node" class="btn btn--wide" name="button">
                   <input id="remove_node" type="submit" value="Remove Node" class="btn btn--wide" name="button">
             </div>

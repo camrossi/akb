@@ -79,8 +79,7 @@ def update_all_dotenv(config):
             logger.info('Detected per-existing APIC user and no new admin user credentials passed')
             config['apic']['adminuser'] = existing_apic['adminuser']
             config['apic']['adminpass'] = existing_apic['adminpass']
-        
-    setdotenv('apic', json.dumps(config['apic']))
+        setdotenv('apic', json.dumps(config['apic']))
 
     if 'calico_nodes' in config:
         setdotenv('calico_nodes', json.dumps(config['calico_nodes']))

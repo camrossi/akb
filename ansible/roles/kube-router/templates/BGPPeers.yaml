@@ -7,7 +7,7 @@
 {%- endfor -%}
 {{ node }} kube-router.io/peer.ips={{ peers|join(',') }} --overwrite
 {{ node }} kube-router.io/peer.asns={{ aci_as }},{{ aci_as }} --overwrite
-{%- if bgp_pass -%}
+{% if bgp_pass %}
 {{ node }} kube-router.io/peer.passwords={{ bgp_pass | b64encode}},{{ bgp_pass | b64encode}}  --overwrite
-{%- endif -%}
+{% endif %}
 {% endfor %}

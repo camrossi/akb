@@ -95,11 +95,11 @@
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="kube_version">CNI Plugin</label>
-                              <input list="kube_version_list" id="cni_plugin" name="cni_plugin" value="Calico">
-                              <select id="kube_version_list">
+                              <input list="kube_version_list" id="cni_plugin" name="cni_plugin" onfocus="this.value=''" value="Calico">
+                              <datalist id="kube_version_list">
                                  <option value=Calico>
                                  <option value=Kube-Router>
-                              </select>
+                              </datalist>
                            </div>
                         </div>
                      </div>

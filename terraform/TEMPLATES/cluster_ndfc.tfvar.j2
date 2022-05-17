@@ -31,8 +31,8 @@ overlay = {
   "route_tag" : {{overlay.route_tag}},
   "k8s_integ" : {{ overlay.k8s_integ | lower}}
   "ipv6_enabled" : {{overlay.ipv6_enabled | lower}},
-  "loopback_ipv4" : {{ overlay.loopback_ipv4 }},
-  "loopback_ipv6" : {{ overlay.loopback_ipv6 }},
+  "loopback_ipv4" : {{ overlay.loopback_ipv4 |tojson }},
+  "loopback_ipv6" : {{ overlay.loopback_ipv6 |tojson}},
   "gateway_v4" : "{{ overlay.gateway_v4 }}",
   "gateway_v6" : "{{ overlay.gateway_v6 }}",
   "vpc_peers" : [

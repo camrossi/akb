@@ -221,14 +221,14 @@ jobs:
     concurrency: v4_environment
     defaults:
       run:
-        working-directory: no-cluster/terraform
+        working-directory: no-cluster-kube-router/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: no-cluster
+          path: no-cluster-kube-router
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
@@ -359,7 +359,6 @@ jobs:
         run: | 
           curl -b cookie.txt -s  http://localhost:5005/destroy
   
-
   # This workflow contains a single job called "build"
   nkt-testing-v4-nat-chris:
     # The type of runner that the job will run on
@@ -467,14 +466,14 @@ jobs:
     concurrency: ndfc_environment
     defaults:
       run:
-        working-directory: no-cluster/terraform
+        working-directory: ndfc-no-cluster/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: no-cluster
+          path: ndfc-no-cluster
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
@@ -555,14 +554,14 @@ jobs:
     concurrency: ndfc_environment
     defaults:
       run:
-        working-directory: no-cluster/terraform
+        working-directory: ndfc-no-cluster-kube-router/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: no-cluster
+          path: ndfc-no-cluster-kube-router
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt

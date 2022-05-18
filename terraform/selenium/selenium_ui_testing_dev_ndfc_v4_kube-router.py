@@ -5,9 +5,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
 import random
 import argparse
 from time import sleep
+
+def check_exits_by_id(driver, id):
+    '''Test check html element exists by id'''
+    try:
+        driver.find_element(By.ID, id)
+    except NoSuchElementException:
+        return False
+    return True
 
 
 def add_calico_ndoe(driver, hostname, ip, rack_id):
@@ -186,13 +195,51 @@ def cluster_network_page(driver):
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     assert "Cluster Network" in driver.title
-    elem = driver.find_element(By.ID, "submit")
+    elem = driver.find_element(By.ID,'cni_plugin')
+    elem.clear()
+    elem.send_keys("Kube-Router")
+    elem = driver.find_element(By.ID,"submit")
     current_url = driver.current_url
     elem.click()
 
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
+def create_page(driver):
+    '''test create page'''
+    current_url = driver.current_url
+    assert "fabric_type=vxlan_evpn" in current_url
+    assert "Create" in driver.title
+    assert check_exits_by_id(driver, "vkaci") is False
 
+def assert_ndfc(driver, title) -> str:
+    '''Assert that vdfc fabric type is in the url with page title'''
+    current_url = driver.current_url
+    assert "fabric_type=vxlan_evpn" in current_url
+    assert title in driver.title
+    return current_url
+
+def click_previous(driver, url):
+    '''Click the previous button'''
+    elem = driver.find_element_by_xpath('//button[contains(text(),"Previous")]')
+    elem.click()
+    WebDriverWait(driver, 60).until(EC.url_changes(url))
+
+def previous_pages(driver):
+    '''test the previous buttons'''
+    pages = [
+        'Create',
+        'Cluster Network',
+        'Cluster',
+        'Calico Nodes',
+        'vCenter Details',
+        'vCenter Login',
+        'NDFC Fabric',
+        'NDFC Login',
+        'Day0'
+    ]
+    for page in pages:
+        click_previous(driver, assert_ndfc(driver, page))
+    
 def main():
     chrome_options = Options()
     run_id = "{:05d}".format(random.randint(1, 10000))
@@ -221,6 +268,8 @@ def main():
     calico_node_page(driver, run_id)
     cluster_page(driver)
     cluster_network_page(driver)
+    create_page(driver)
+    # previous_pages(driver)
     sleep(5)
     driver.quit()
 

@@ -184,7 +184,7 @@
 
           vrrp_instance VI_1 {
               state BACKUP
-              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0']) | first }}
+              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0', 'kube-bridge', 'kube-dummy-if']) | first }}
               virtual_router_id {{ keepalived_router_id }}
               priority 100
               authentication {

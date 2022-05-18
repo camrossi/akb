@@ -94,6 +94,18 @@
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
+                              <label for="kube_version">CNI Plugin</label>
+                              <input list="kube_version_list" id="cni_plugin" name="cni_plugin" onfocus="this.value=''" value="Calico">
+                              <datalist id="kube_version_list">
+                                 <option value=Calico>
+                                 <option value=Kube-Router>
+                              </datalist>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
                               <label for="ipv4_pod_sub">POD Subnet (Defaults Node Subnet + 1):</label>
                               <input type="text" id="ipv4_pod_sub" name="ipv4_pod_sub" value="{{ ipv4_pod_sub }}">
             

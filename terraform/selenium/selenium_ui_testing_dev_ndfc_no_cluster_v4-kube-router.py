@@ -186,7 +186,12 @@ def cluster_network_page(driver):
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     assert "Cluster Network" in driver.title
-    elem = driver.find_element(By.ID, "submit")
+    elem = driver.find_element(By.ID,"vlan_id")
+    elem.send_keys("210")
+    elem = driver.find_element(By.ID,'cni_plugin')
+    elem.clear()
+    elem.send_keys("Kube-Router")
+    elem = driver.find_element(By.ID,"submit")
     current_url = driver.current_url
     elem.click()
 
@@ -196,7 +201,7 @@ def cluster_network_page(driver):
 def main():
     chrome_options = Options()
     run_id = "{:05d}".format(random.randint(1, 10000))
-    url = "http://localhost:5010"
+    url = "http://10.67.185.120:5001"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
     parser.add_argument('--run_id', help='run_id')

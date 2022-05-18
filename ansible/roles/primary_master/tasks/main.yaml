@@ -125,7 +125,7 @@
 
           vrrp_instance VI_1 {
               state MASTER
-              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0']) | first }}
+              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0', 'kube-bridge', 'kube-dummy-if']) | first }}
               virtual_router_id {{ keepalived_router_id }}
               priority 101
               authentication {
@@ -202,68 +202,11 @@
   tags:
     - primary_master
 
-
-#- name: Install JQ
-#  apt: name=jq
-#  register: res
-#  retries: 10
-#  until: res is success
-#  any_errors_fatal: true
-#  tags:
-#    - primary_master
-#
-#- name: Install YQ
-#  shell: wget https://github.com/mikefarah/yq/releases/download/v4.18.1/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
-#  register: res
-#  retries: 10
-#  until: res is success
-#  any_errors_fatal: true
-#  tags:
-#    - primary_master
-#
-#- name: Delete Kustomize if installed
-#  ansible.builtin.file:
-#    path: kustomize
-#    state: absent
-#  tags:
-#    - primary_master
-#
-#- name: Install Kustomize
-#  shell: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
-#  register: res
-#  retries: 10
-#  until: res is success
-#  any_errors_fatal: true
-#  tags:
-#    - primary_master
-
 - name: Create Kubeadm config - v4
-  copy:
+  template:
+    src: kubeadm-v4.yaml
     dest: /tmp/kubeadm.yaml
     force: yes
-    content: |
-      apiVersion: kubeadm.k8s.io/v1beta2
-      kind: InitConfiguration
-      bootstrapTokens:
-      - groups:
-        - system:bootstrappers:kubeadm:default-node-token
-        token: {{ kubeadm_token }}
-      nodeRegistration:
-        criSocket: "unix:///var/run/crio/crio.sock"
-      ---
-      apiServer:
-        timeoutForControlPlane: 4m0s
-      kind: ClusterConfiguration
-      controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
-      kubernetesVersion: "{{ kube_version.split("-")[0] }}"
-      networking:
-        podSubnet: {{ pod_subnet }}
-        serviceSubnet: {{ cluster_svc_subnet }}
-      apiVersion: kubeadm.k8s.io/v1beta2
-      ---
-      apiVersion: kubelet.config.k8s.io/v1beta1
-      kind: KubeletConfiguration
-      cgroupDriver: systemd
   run_once: true
   when: pod_subnet and not pod_subnet_v6
   tags:
@@ -274,7 +217,7 @@
     dest: /tmp/kubeadm.yaml
     force: yes
     content: |
-      apiVersion: kubeadm.k8s.io/v1beta2
+      apiVersion: kubeadm.k8s.io/v1beta3
       kind: InitConfiguration
       bootstrapTokens:
       - groups:
@@ -291,7 +234,7 @@
       networking:
         podSubnet: {{ pod_subnet }},{{ pod_subnet_v6 }}
         serviceSubnet: {{ cluster_svc_subnet }},{{ cluster_svc_subnet_v6 }}
-      apiVersion: kubeadm.k8s.io/v1beta2
+      apiVersion: kubeadm.k8s.io/v1beta3
       ---
       apiVersion: kubelet.config.k8s.io/v1beta1
       kind: KubeletConfiguration

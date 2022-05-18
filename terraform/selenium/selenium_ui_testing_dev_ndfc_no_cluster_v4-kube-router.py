@@ -186,6 +186,8 @@ def cluster_network_page(driver):
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     assert "Cluster Network" in driver.title
+    elem = driver.find_element(By.ID,"vlan_id")
+    elem.send_keys("210")
     elem = driver.find_element(By.ID,'cni_plugin')
     elem.clear()
     elem.send_keys("Kube-Router")

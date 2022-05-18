@@ -232,7 +232,6 @@ def previous_pages(driver):
         'vCenter Login',
         'NDFC Fabric',
         'NDFC Login',
-        'Day0'
     ]
     for page in pages:
         click_previous(driver, assert_ndfc(driver, page))
@@ -266,7 +265,7 @@ def main():
     cluster_page(driver)
     cluster_network_page(driver)
     create_page(driver)
-    # previous_pages(driver)
+    previous_pages(driver)
     sleep(5)
     driver.quit()
 

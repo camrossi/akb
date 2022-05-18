@@ -217,7 +217,7 @@ def assert_ndfc(driver, title) -> str:
 
 def click_previous(driver, url):
     '''Click the previous button'''
-    elem = driver.find_element_by_xpath('//button[contains(text(),"Previous")]')
+    elem = driver.find_element_by_css_selector('[value="Previous"]')
     elem.click()
     WebDriverWait(driver, 60).until(EC.url_changes(url))
 
@@ -232,10 +232,10 @@ def previous_pages(driver):
         'vCenter Login',
         'NDFC Fabric',
         'NDFC Login',
-        'Day0'
     ]
     for page in pages:
         click_previous(driver, assert_ndfc(driver, page))
+    assert "Day0" in driver.title
     
 def main():
     chrome_options = Options()
@@ -266,7 +266,7 @@ def main():
     cluster_page(driver)
     cluster_network_page(driver)
     create_page(driver)
-    # previous_pages(driver)
+    previous_pages(driver)
     sleep(5)
     driver.quit()
 

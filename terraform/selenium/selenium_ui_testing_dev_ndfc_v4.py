@@ -266,7 +266,7 @@ def main():
     cluster_page(driver)
     cluster_network_page(driver)
     create_page(driver)
-    previous_pages(driver)
+    # previous_pages(driver)
     sleep(5)
     driver.quit()
 

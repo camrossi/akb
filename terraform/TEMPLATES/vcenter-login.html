@@ -11,7 +11,7 @@
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
 </head>
 
-<form id="form_vc_login" name="tenantForm" method="post" action="/vcenterlogin">
+<form id="form_vc_login" name="tenantForm" method="post" action="/vcenterlogin?fabric_type={{ fabric_type }}">
 
   <body class="cui cui--animated cui--compressed" data-theme="">
    <div id="oneui">
@@ -145,7 +145,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("vcenterlogin")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("vcenterlogin")}}" + '?fabric_type=' + "{{ fabric_type }}";
         $("#form_vc_login").attr("action", url);
         $("#form_vc_login").submit();
     })

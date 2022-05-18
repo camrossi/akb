@@ -29,7 +29,7 @@
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
 </head>
 
-<form id="form_cluster_network" name="tenantForm" method="post" action="/cluster_network">
+<form id="form_cluster_network" name="tenantForm" method="post" action="/cluster_network?fabric_type={{ fabric_type }}">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -219,7 +219,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("cluster_network")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("cluster_network")}}" + '?fabric_type=' + "{{ fabric_type }}";
         console.log(url);
         $("#form_cluster_network").attr("action", url);
         $("#form_cluster_network").submit();

@@ -680,7 +680,7 @@ def calico_nodes_view():
             setdotenv('calico_nodes', json.dumps(calico_nodes))     
             return redirect(f"/cluster?fabric_type={fabric_type}")
         if button == "Previous":
-            return redirect('/vcenter')
+            return redirect(f'/vcenter?fabric_type={fabric_type}')
         if button == "Add Node":
             if req.get("calico_nodes") != "":
                 try:
@@ -962,7 +962,7 @@ def cluster_view():
 
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
 
-        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions())
+        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions(), fabric_type=fabric_type)
 
 def calculate_k8s_as(fabric_as):
     '''Ensure the K8s AS number falls within 1 and 65534'''
@@ -1069,21 +1069,27 @@ def cluster_network():
             ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
             ipv6_svc_sub = next(ipv6_svc_sub_iterator)
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
-
+        
+        ipv4_cluster_subnet = None
+        ipv6_cluster_subnet = None
         if fabric_type == "aci":
-            return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
+            ipv4_cluster_subnet=l3out['ipv4_cluster_subnet']
+            ipv6_cluster_subnet=l3out['ipv6_cluster_subnet']
         elif fabric_type == "vxlan_evpn":
-            return render_template('cluster_network.html',
-                                   ipv4_cluster_subnet=overlay["node_sub"],
-                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
-                                   ipv4_pod_sub=ipv4_pod_sub,
-                                   ipv6_pod_sub=ipv6_pod_sub,
-                                   ipv4_svc_sub=ipv4_svc_sub,
-                                   ipv6_svc_sub=ipv6_svc_sub,
-                                   ipv4_ext_svc_sub=ipv4_ext_svc_sub,
-                                   ipv6_ext_svc_sub=ipv6_ext_svc_sub,
-                                   k8s_local_as=k8s_local_as,
-                                   vm_deploy=vc['vm_deploy'])
+            ipv4_cluster_subnet=overlay["node_sub"]
+            ipv6_cluster_subnet=overlay["node_sub_v6"]
+        return render_template('cluster_network.html',
+                                    ipv4_cluster_subnet=ipv4_cluster_subnet,
+                                    ipv6_cluster_subnet=ipv6_cluster_subnet,
+                                    ipv4_pod_sub=ipv4_pod_sub,
+                                    ipv6_pod_sub=ipv6_pod_sub,
+                                    ipv4_svc_sub=ipv4_svc_sub,
+                                    ipv6_svc_sub=ipv6_svc_sub,
+                                    ipv4_ext_svc_sub=ipv4_ext_svc_sub,
+                                    ipv6_ext_svc_sub=ipv6_ext_svc_sub,
+                                    k8s_local_as=k8s_local_as,
+                                    vm_deploy=vc['vm_deploy'],
+                                    fabric_type = fabric_type)
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
 def vcenterlogin():

@@ -32,7 +32,7 @@ jobs:
     runs-on: stld
     defaults:
       run:
-        working-directory: no-cluster-calico
+        working-directory: no-cluster-calico/terraform
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -41,13 +41,13 @@ jobs:
           path: no-cluster-calico
       - name: Install dependencies
         run: |
-          pip3 install -r requirements.txt
+          pip3 install -r ../requirements.txt
       - name: Start NKT
         run: | 
-          cd terraform && gunicorn -w 4 -k gevent -b 0.0.0.0:5001 appflask:app -D && sleep 5
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5001 appflask:app -D && sleep 5
       - name: Run headless chrome to generate the config
         run: | 
-          python3 testing/selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless
+          python3 ../testing/selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless
       - name: Terraform plan
         run: | 
           curl -c cookie.txt -s http://10.67.185.120:5001/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5001/tf_plan

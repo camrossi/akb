@@ -27,7 +27,6 @@ jobs:
             sh clean_stale_vms.sh
 
   nkt-no-cluster-calico:
-    concurrency: stld_calico_v4
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -67,8 +66,7 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5001/destroy
   
   nkt-calico-v4:
-    concurrency: stld_calico_v4
-    needs: cleanup_stale_vms
+    needs: [cleanup_stale_vms, nkt-no-cluster-calico]
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -166,7 +164,6 @@ jobs:
            curl -b cookie.txt -s http://10.67.185.120:5004/destroy
 
   nkt-no-cluster-kube-router:
-    concurrency: stld_kube_router
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -207,8 +204,7 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5001/destroy
 
   nkt-kube-router:
-    concurrency: stld_kube_router
-    needs: cleanup_stale_vms
+    needs: [cleanup_stale_vms, nkt-no-cluster-kube-router]
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -259,7 +255,6 @@ jobs:
   nkt-calico-v4-nat:
     # The type of runner that the job will run on
     runs-on: bxl
-    concurrency: ddastoli
     needs: cleanup_stale_vms
     defaults:
       run:
@@ -312,8 +307,7 @@ jobs:
   nkt-kube-router-nat:
     # The type of runner that the job will run on
     runs-on: bxl
-    concurrency: ddastoli
-    needs: cleanup_stale_vms
+    needs: [cleanup_stale_vms, nkt-calico-v4-nat]
     defaults:
       run:
         working-directory: v4-nat-dom/terraform
@@ -362,11 +356,93 @@ jobs:
         run: | 
           curl -b cookie.txt -s  http://localhost:5005/destroy
 
+  nkt-no-cluster-calico-ndfc:
+  # The type of runner that the job will run on
+    runs-on: ndfc
+    defaults:
+      run:
+        working-directory: ndfc-no-cluster/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: ndfc-no-cluster
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5007 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4.py --headless
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
+      - name: Terraform apply
+        run: | 
+            curl -b cookie.txt -s http://localhost:5010/tf_apply
+      - name: Download Manifest Files
+        run: | 
+          curl -b cookie.txt --fail http://ocalhost:5010/static/manifests/manifests.zip    
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+            curl -b cookie.txt -s http://localhost:5010/destroy
+
+  nkt-no-cluster-kube-router-ndfc:
+  # The type of runner that the job will run on
+    runs-on: stld
+    needs: nkt-no-cluster-calico-ndfc
+    defaults:
+      run:
+        working-directory: ndfc-no-cluster-kube-router/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: ndfc-no-cluster-kube-router
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5007 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4-kube-router.py --headless
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
+      - name: Terraform apply
+        run: | 
+            curl -b cookie.txt -s http://localhost:5010/tf_apply
+      - name: Download Manifest Files
+        run: | 
+          curl -b cookie.txt --fail http://ocalhost:5010/static/manifests/manifests.zip    
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+            curl -b cookie.txt -s http://localhost:5010/destroy
+
   nkt-calico-ndfc:
       # The type of runner that the job will run on
       runs-on: ndfc
-      needs: cleanup_stale_vms
-      concurrency: ndfc_environment
+      needs: [cleanup_stale_vms, nkt-no-cluster-kube-router-ndfc]
       defaults:
         run:
           working-directory: ndfc/terraform
@@ -412,53 +488,10 @@ jobs:
           run: | 
             curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
 
-  nkt-no-cluster-calico-ndfc:
-  # The type of runner that the job will run on
-    runs-on: stld
-    concurrency: ndfc_environment
-    defaults:
-      run:
-        working-directory: ndfc-no-cluster/terraform
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-        with:
-          path: ndfc-no-cluster
-      - name: Install dependencies
-        run: |
-          pip3 install -r ../requirements.txt
-      - name: Start NKT
-        run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5007 appflask:app -D ; sleep 5
-      - name: Run headless chrome to generate the config
-        run: | 
-          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4.py --headless
-      - name: Terraform plan
-        run: | 
-          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
-      - name: Terraform apply
-        run: | 
-            curl -b cookie.txt -s http://localhost:5010/tf_apply
-      - name: Download Manifest Files
-        run: | 
-          curl -b cookie.txt --fail http://ocalhost:5010/static/manifests/manifests.zip    
-      - name: Kill Terraform if workflow is cancelled manually
-        if: cancelled()
-        run: | 
-          killall terraform
-
-      - name: Terraform destroy and delete APIC user
-        if: always()
-        run: | 
-            curl -b cookie.txt -s http://localhost:5010/destroy
-
   nkt-kube-router-ndfc:
       # The type of runner that the job will run on
       runs-on: ndfc
-      needs: cleanup_stale_vms
-      concurrency: ndfc_environment
+      needs: [cleanup_stale_vms, nkt-calico-ndfc]
       defaults:
         run:
           working-directory: ndfc/terraform
@@ -503,48 +536,6 @@ jobs:
           if: always()
           run: | 
             curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
-
-  nkt-no-cluster-kube-router-ndfc:
-  # The type of runner that the job will run on
-    runs-on: stld
-    concurrency: ndfc_environment
-    defaults:
-      run:
-        working-directory: ndfc-no-cluster-kube-router/terraform
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-        with:
-          path: ndfc-no-cluster-kube-router
-      - name: Install dependencies
-        run: |
-          pip3 install -r ../requirements.txt
-      - name: Start NKT
-        run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5007 appflask:app -D ; sleep 5
-      - name: Run headless chrome to generate the config
-        run: | 
-          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4-kube-router.py --headless
-      - name: Terraform plan
-        run: | 
-          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
-      - name: Terraform apply
-        run: | 
-            curl -b cookie.txt -s http://localhost:5010/tf_apply
-      - name: Download Manifest Files
-        run: | 
-          curl -b cookie.txt --fail http://ocalhost:5010/static/manifests/manifests.zip    
-      - name: Kill Terraform if workflow is cancelled manually
-        if: cancelled()
-        run: | 
-          killall terraform
-
-      - name: Terraform destroy and delete APIC user
-        if: always()
-        run: | 
-            curl -b cookie.txt -s http://localhost:5010/destroy
 
   python_unit_tests:
       runs-on: ubuntu-latest

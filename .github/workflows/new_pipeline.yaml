@@ -18,7 +18,7 @@ jobs:
     runs-on: stld
     defaults:
       run:
-        working-directory: v4/.github/workflows
+        working-directory: v4/testing
     steps:
       - uses: actions/checkout@v2
         with:

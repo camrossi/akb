@@ -10,4 +10,4 @@ do
         govc vm.destroy $VM
     done
     
-done < /home/cisco/Coding/akb/.github/workflows/virtual_centers.inv
+done < /home/cisco/Coding/akb/testing/virtual_centers.inv

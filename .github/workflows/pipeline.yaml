@@ -27,7 +27,7 @@ jobs:
             sh clean_stale_vms.sh
 
   nkt-no-cluster-calico:
-    concurrency: stld_calico_v4
+    concurrency: stld
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -67,7 +67,7 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5001/destroy
   
   nkt-calico-v4:
-    concurrency: stld_calico_v4
+    concurrency: stld
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -116,7 +116,7 @@ jobs:
           curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
       
   nkt-no-cluster-kube-router:
-    concurrency: stld_kube_router
+    concurrency: stld
     # The type of runner that the job will run on
     runs-on: stld
     defaults:

@@ -48,6 +48,9 @@ jobs:
       - name: Run headless chrome to generate the config
         run: | 
           python3 ../testing/selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless
+      - name: ls
+        run: | 
+          pwd && ls
       - name: Terraform plan
         run: | 
           curl -c cookie.txt -s http://10.67.185.120:5001/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5001/tf_plan

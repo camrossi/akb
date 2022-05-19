@@ -30,7 +30,8 @@ jobs:
   nkt-no-cluster-calico:
     # The type of runner that the job will run on
     runs-on: stld
-    concurrency: v4_environment
+    concurrency: 
+      group: no-cluster
     defaults:
       run:
         working-directory: no-cluster/terraform
@@ -70,7 +71,8 @@ jobs:
   nkt-no-cluster-kube-router:
     # The type of runner that the job will run on
     runs-on: stld
-    concurrency: v4_environment
+    concurrency: 
+      group: no-cluster
     defaults:
       run:
         working-directory: no-cluster/terraform

@@ -30,7 +30,6 @@ jobs:
   nkt-testing-no-cluster:
     # The type of runner that the job will run on
     runs-on: stld
-    concurrency: v4_environment
     defaults:
       run:
         working-directory: no-cluster
@@ -72,7 +71,6 @@ jobs:
   nkt-testing-no-cluster-kube-router:
   # The type of runner that the job will run on
     runs-on: stld
-    concurrency: v4_environment
     defaults:
       run:
         working-directory: no-cluster-kube-router
@@ -88,19 +86,19 @@ jobs:
           pip3 install -r requirements.txt
       - name: Start NKT
         run: | 
-          gunicorn --chdir=terraform -w 4 -k gevent -b 0.0.0.0:5001 appflask:app -D ; sleep 5
+          gunicorn --chdir=terraform -w 4 -k gevent -b 0.0.0.0:5002 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 testing/selenium/selenium_ui_testing_dev_no_cluster_v4_kube-router.py --headless
       - name: Terraform plan
         run: | 
-          curl -c cookie.txt -s http://10.67.185.120:5001/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5001/tf_plan
+          curl -c cookie.txt -s http://10.67.185.120:5002/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5002/tf_plan
       - name: Terraform apply
         run: | 
-            curl -b cookie.txt -s http://10.67.185.120:5001/tf_apply      
+            curl -b cookie.txt -s http://10.67.185.120:5002/tf_apply      
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt -s http://10.67.185.120:5001/static/manifests/manifests.zip
+          curl -b cookie.txt -s http://10.67.185.120:5002/static/manifests/manifests.zip
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 
@@ -109,4 +107,4 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-            curl -b cookie.txt -s http://10.67.185.120:5001/destroy
+            curl -b cookie.txt -s http://10.67.185.120:5002/destroy

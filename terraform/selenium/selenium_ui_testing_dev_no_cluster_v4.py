@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
-import random
 from time import sleep
 def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem = driver.find_element(By.NAME,"pod_id")
@@ -25,29 +24,11 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.click()
     sleep(1)
 
-def add_calico_ndoe(hostname, ip, rack_id):
-    elem = driver.find_element(By.NAME,"hostname")
-    elem.clear()
-    elem.send_keys(hostname)
-    elem = driver.find_element(By.NAME,"ip")
-    elem.clear()
-    elem.send_keys(ip)
-    elem = driver.find_element(By.NAME,"rack_id")
-    elem.clear()
-    elem.send_keys(rack_id)
-    elem = driver.find_element(By.ID,"add_node")
-    elem.click()
-    sleep(1)
-
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
-
-run_id = "{:05d}".format(random.randint(1,10000))
-if len(sys.argv)>=3:
-    run_id = sys.argv[2]
 
 driver.get("http://10.67.185.120:5007")
 assert "NKT" in driver.title

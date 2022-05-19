@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
-import random
 from time import sleep
 def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem = driver.find_element(By.NAME,"pod_id")
@@ -50,10 +49,6 @@ if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
-
-run_id = "{:05d}".format(random.randint(1,10000))
-if len(sys.argv)>=3:
-    run_id = sys.argv[2]
 
 driver.get("http://10.67.185.120:5004")
 assert "NKT" in driver.title
@@ -158,10 +153,10 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('calico-{}-1'.format(run_id),'192.168.35.1/24','2001:db8:35::1/56', '1')
-add_calico_ndoe('calico-{}-2'.format(run_id),'192.168.35.2/24','2001:db8:35::2/56', '1')
-add_calico_ndoe('calico-{}-3'.format(run_id),'192.168.35.3/24','2001:db8:35::3/56', '1')
-add_calico_ndoe('calico-{}-4'.format(run_id),'192.168.35.4/24','2001:db8:35::4/56', '1')
+add_calico_ndoe('gitaction-nkt-master-1','192.168.35.1/24','2001:db8:35::1/56', '1')
+add_calico_ndoe('gitaction-nkt-master-2','192.168.35.2/24','2001:db8:35::2/56', '1')
+add_calico_ndoe('gitaction-nkt-master-3','192.168.35.3/24','2001:db8:35::3/56', '1')
+add_calico_ndoe('gitaction-nkt-worker-1','192.168.35.4/24','2001:db8:35::4/56', '1')
 
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url

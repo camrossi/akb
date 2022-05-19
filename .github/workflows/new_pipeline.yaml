@@ -16,6 +16,16 @@ jobs:
   # This job clean up all the VMs called gitaction-nkt found on the vcenters.
   # it uses a local script that is not in git as it contains sensitive credentials
     runs-on: stld
+    defaults:
+      run:
+        working-directory: v4/.github/workflows
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: v4
+      - name: Cleanup Stale VMs
+        run: | 
+            sh clean_stale_vms.sh
 
   # This workflow runs the python unit tests
   python_unit_tests:

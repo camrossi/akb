@@ -68,6 +68,7 @@ jobs:
   
   nkt-calico-v4:
     concurrency: stld_calico_v4
+    needs: cleanup_stale_vms
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -118,6 +119,7 @@ jobs:
   nkt-calico-v46:
     # The type of runner that the job will run on
     runs-on: stld
+    needs: cleanup_stale_vms
     defaults:
       run:
         working-directory: v46/terraform
@@ -206,6 +208,7 @@ jobs:
 
   nkt-kube-router:
     concurrency: stld_kube_router
+    needs: cleanup_stale_vms
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -257,6 +260,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: bxl
     concurrency: ddastoli
+    needs: cleanup_stale_vms
     defaults:
       run:
         working-directory: v4-nat-dom/terraform
@@ -309,6 +313,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: bxl
     concurrency: ddastoli
+    needs: cleanup_stale_vms
     defaults:
       run:
         working-directory: v4-nat-dom/terraform
@@ -360,6 +365,7 @@ jobs:
   nkt-calico-ndfc:
       # The type of runner that the job will run on
       runs-on: ndfc
+      needs: cleanup_stale_vms
       concurrency: ndfc_environment
       defaults:
         run:
@@ -451,6 +457,7 @@ jobs:
   nkt-kube-router-ndfc:
       # The type of runner that the job will run on
       runs-on: ndfc
+      needs: cleanup_stale_vms
       concurrency: ndfc_environment
       defaults:
         run:

@@ -55,7 +55,7 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5001/tf_apply      
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt --fail http://10.67.185.120:5001/static/manifests/manifests.zip
+          curl -b cookie.txt -s --fail http://10.67.185.120:5001/static/manifests/manifests.zip
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 
@@ -192,7 +192,7 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5002/tf_apply      
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt --fail http://10.67.185.120:5002/static/manifests/manifests.zip
+          curl -b cookie.txt -s --fail http://10.67.185.120:5002/static/manifests/manifests.zip
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 
@@ -386,7 +386,7 @@ jobs:
             curl -b cookie.txt -s http://localhost:5010/tf_apply
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt --fail http://ocalhost:5010/static/manifests/manifests.zip    
+          curl -b cookie.txt -s --fail http://ocalhost:5010/static/manifests/manifests.zip    
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 
@@ -428,7 +428,7 @@ jobs:
             curl -b cookie.txt -s http://localhost:5010/tf_apply
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt --fail http://ocalhost:5010/static/manifests/manifests.zip    
+          curl -b cookie.txt -s --fail http://ocalhost:5010/static/manifests/manifests.zip    
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 

@@ -115,6 +115,7 @@ variable "k8s_cluster" {
     ubuntu_apt_mirror      = string
     sandbox_status         = bool
     eBPF_status            = bool
+    cni_plugin             = string
 
   })
 }

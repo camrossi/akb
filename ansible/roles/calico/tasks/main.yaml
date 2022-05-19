@@ -8,7 +8,7 @@
   with_items:
     - IPPool.yaml
     - BGPConfiguration.yaml
-    - BGPPeer.j2
+    - BGPPeer.yaml
     - calico-typha.yaml
     - calico-typha-v46.yaml
     - kubernetes-services-endpoint.yaml
@@ -130,7 +130,7 @@
   with_items:
     - IPPool.yaml
     - BGPConfiguration.yaml
-    - BGPPeer.j2
+    - BGPPeer.yaml
   register: res
   retries: 100
   until: res is success

@@ -3,7 +3,7 @@ kind: BGPConfiguration
 metadata:
   name: default
 spec:
-  asNumber: {{ calico_as }}
+  asNumber: {{ k8s_cluster_as }}
   logSeverityScreen: Info
   nodeToNodeMeshEnabled: false
   serviceClusterIPs:

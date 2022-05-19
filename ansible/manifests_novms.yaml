@@ -4,7 +4,18 @@
   connection: local
   gather_facts: False
   tasks:
-    - name: create static calico directory if it does not exist
+    - name: Include containers_versions variables 
+      include_vars:
+        file: inventory/group_vars/containers_versions.yaml
+      tags:
+      - cni_manifests
+
+    - name: Delete CNI Manifests directory
+      file:
+        state: absent
+        path: "../terraform/static/manifests/"
+
+    - name: Create CNI Manifests directory
       file:
         path: "../terraform/static/manifests/"
         state: directory
@@ -17,11 +28,24 @@
         - BGPPassSecret.yaml
         - IPPool.yaml
         - BGPConfiguration.yaml
-        - BGPPeer.j2
+        - BGPPeer.yaml
         - calico-typha.yaml
-        - calico-typha-v46.yaml   
+        - calico-typha-v46.yaml
+      when: cni_plugin == "Calico"
       tags:
-        - calico_manifests
+        - cni_manifests
+
+    - name: Copy kube-router Manifests
+      template:
+        src: "roles/kube-router/templates/{{ item }}"
+        dest: "../terraform/static/manifests/{{ item }}"
+        lstrip_blocks: yes
+      with_items:
+        - kuberouter-all-features.yaml
+        - Readme
+      when: cni_plugin == "Kube-Router"
+      tags:
+        - cni_manifests
 
     - name: Archive Manifests
       archive:

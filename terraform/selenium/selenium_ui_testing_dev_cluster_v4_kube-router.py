@@ -42,7 +42,7 @@ chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(options=chrome_options)
 
 driver.get("http://10.67.185.120:5001")
 assert "NKT" in driver.title
@@ -67,14 +67,10 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
 assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
-elem.send_keys("calico1")
+elem.send_keys("kube-router")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
 elem.clear()
-elem.send_keys("192.168.2.0/24")
-elem = driver.find_element(By.NAME,"dns_servers")
-elem.send_keys("10.67.185.100")
-elem = driver.find_element(By.NAME,"dns_domain")
-elem.send_keys("cam.ciscolabs.com")
+elem.send_keys("192.168.43.0/24")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
@@ -83,16 +79,16 @@ except ValueError as e:
     print("Loading took too much time!")
 
 elem = driver.find_element(By.ID,'vrf_name')
-elem.send_keys("calico1/vrf")
+elem.send_keys("kube-router/k8s")
 elem = driver.find_element(By.ID,'contract')
-elem.send_keys("common/calico_dev")
+elem.send_keys("common/kube-router")
 elem = driver.find_element(By.ID,'physical_dom')
-elem.send_keys("Fab1")
+elem.send_keys("Fab2")
 
-add_anchor_node("1","1","201","1.1.1.201","192.168.2.201")
-add_anchor_node("1","1","202","1.1.1.202","192.168.2.202/24")
-add_anchor_node("1","2","203","1.1.1.204","192.168.2.203")
-add_anchor_node("1","2","204","1.1.1.205","192.168.2.204/24")
+add_anchor_node("1","1","201","1.1.1.101","192.168.43.101")
+add_anchor_node("1","1","202","1.1.1.102","192.168.43.102/24")
+add_anchor_node("1","2","203","1.1.1.103","192.168.43.103")
+add_anchor_node("1","2","204","1.1.1.104","192.168.43.104/24")
 
 current_url = driver.current_url
 
@@ -127,16 +123,14 @@ try:
 except ValueError as e:
     print("Loading took too much time!")
 
-#elem = driver.find_element(By.ID,'datastore')
-#elem.send_keys("esxi5-RAID5")
 select = Select(driver.find_element(By.ID,'cluster'))
 select.select_by_visible_text("Cluster")
 elem = driver.find_element(By.ID,'port_group')
-elem.send_keys("ACI/CalicoL3OUT_300/vlan-300")
+elem.send_keys("ACI/kube-router/vlan-103")
 elem = driver.find_element(By.ID,'vm_templates')
-elem.send_keys("Ubuntu21SandBox")
+elem.send_keys("nkt_template")
 elem = driver.find_element(By.ID,'vm_folder')
-elem.send_keys("Calico-Cluster1")
+elem.send_keys("kube-router")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
@@ -165,6 +159,10 @@ elem = driver.find_element(By.ID,'advanced')
 elem.click()
 elem = driver.find_element(By.ID,'timezone')
 elem.send_keys("Australia/Sydney")
+elem = driver.find_element(By.NAME,"dns_servers")
+elem.send_keys("10.67.185.100")
+elem = driver.find_element(By.NAME,"dns_domain")
+elem.send_keys("cam.ciscolabs.com")
 elem = driver.find_element(By.ID,'docker_mirror')
 elem.send_keys("10.67.185.120:5000")
 elem = driver.find_element(By.ID,'ntp_server')
@@ -178,6 +176,9 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Cluster Network" in driver.title
+elem = driver.find_element(By.ID,'cni_plugin')
+elem.clear()
+elem.send_keys("Kube-Router")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

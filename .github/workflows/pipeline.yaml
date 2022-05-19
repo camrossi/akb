@@ -26,3 +26,87 @@ jobs:
       - name: Cleanup Stale VMs
         run: | 
             sh clean_stale_vms.sh
+
+  nkt-testing-no-cluster:
+      # The type of runner that the job will run on
+      runs-on: stld
+      concurrency: v4_environment
+      defaults:
+        run:
+          working-directory: no-cluster
+
+      # Steps represent a sequence of tasks that will be executed as part of the job
+      steps:
+        # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+        - uses: actions/checkout@v2
+          with:
+            path: no-cluster
+        - name: Install dependencies
+          run: |
+            pip3 install -r requirements.txt
+        - name: Start NKT
+          run: | 
+            gunicorn --chdir=terraform -w 4 -k gevent -b 0.0.0.0:5001 appflask:app -D ; sleep 5
+        - name: Run headless chrome to generate the config
+          run: | 
+            python3 testing/selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless
+        - name: Terraform plan
+          run: | 
+            curl -c cookie.txt -s http://10.67.185.120:5001/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5001/tf_plan
+        - name: Terraform apply
+          run: | 
+            curl -b cookie.txt -s http://10.67.185.120:5001/tf_apply      
+        - name: Download Manifest Files
+          run: | 
+            curl -b cookie.txt -s http://10.67.185.120:5001/static/manifests/manifests.zip
+        - name: Kill Terraform if workflow is cancelled manually
+          if: cancelled()
+          run: | 
+            killall terraform
+
+        - name: Terraform destroy and delete APIC user
+          if: always()
+          run: | 
+            curl -b cookie.txt -s http://10.67.185.120:5001/destroy
+
+  nkt-testing-no-cluster-kube-router:
+  # The type of runner that the job will run on
+    runs-on: stld
+    concurrency: v4_environment
+    defaults:
+      run:
+        working-directory: no-cluster-kube-router
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: no-cluster-kube-router
+      - name: Install dependencies
+        run: |
+          pip3 install -r requirements.txt
+      - name: Start NKT
+        run: | 
+          gunicorn --chdir=terraform -w 4 -k gevent -b 0.0.0.0:5001 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 testing/selenium/selenium_ui_testing_dev_no_cluster_v4_kube-router.py --headless
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://10.67.185.120:5001/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5001/tf_plan
+      - name: Terraform apply
+        run: | 
+            curl -b cookie.txt -s http://10.67.185.120:5001/tf_apply      
+      - name: Download Manifest Files
+        run: | 
+          curl -b cookie.txt -s http://10.67.185.120:5001/static/manifests/manifests.zip
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+            curl -b cookie.txt -s http://10.67.185.120:5001/destroy

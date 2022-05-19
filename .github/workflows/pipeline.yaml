@@ -116,7 +116,7 @@ jobs:
           curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
       
   nkt-no-cluster-kube-router:
-    concurrency: stld-kube-router
+    concurrency: stld_kube_router
     # The type of runner that the job will run on
     runs-on: stld
     defaults:

@@ -47,7 +47,7 @@ jobs:
           python3 appflask.py -d -p 5001 &
       - name: Run headless chrome to generate the config
         run: | 
-          python3 ../testing/selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless
+          python3 ../testing/selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless && sleep 5
       - name: ls
         run: | 
           pwd && ls

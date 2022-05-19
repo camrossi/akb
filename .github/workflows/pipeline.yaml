@@ -30,12 +30,15 @@ jobs:
   nkt-testing-no-cluster:
     # The type of runner that the job will run on
     runs-on: stld
+    defaults:
+      run:
+        working-directory: no-cluster-calico
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: no-cluster
+          path: no-cluster-calico
       - name: Install dependencies
         run: |
           pip3 install -r requirements.txt

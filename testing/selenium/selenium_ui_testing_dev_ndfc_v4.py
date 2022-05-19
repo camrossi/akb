@@ -241,13 +241,10 @@ def main():
     url = "http://localhost:5010"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
-    parser.add_argument('--run_id', help='run_id')
 
     args, unknown = parser.parse_known_args()
     if args.url:
         url = args.url
-    if args.run_id:
-        run_id = args.run_id
     if unknown:
         chrome_driver_args = ' '.join(unknown)
         chrome_options.add_argument(chrome_driver_args)
@@ -260,7 +257,7 @@ def main():
     fabric_page(driver)
     vcenter_login_page(driver)
     vcenter_page(driver)
-    calico_node_page(driver, run_id)
+    calico_node_page(driver)
     cluster_page(driver)
     cluster_network_page(driver)
     create_page(driver)

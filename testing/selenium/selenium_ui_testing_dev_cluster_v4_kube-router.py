@@ -140,12 +140,12 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('gitaction-nkt-master-1','192.168.2.1/24', '1')
-add_calico_ndoe('gitaction-nkt-master-2','192.168.2.2/24', '1')
-add_calico_ndoe('gitaction-nkt-master-3','192.168.2.3/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-1','192.168.2.4/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-2','192.168.2.5/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-3','192.168.2.6/24', '1')
+add_calico_ndoe('gitaction-nkt-master-1','192.168.43.1/24', '1')
+add_calico_ndoe('gitaction-nkt-master-2','192.168.43.2/24', '1')
+add_calico_ndoe('gitaction-nkt-master-3','192.168.43.3/24', '1')
+add_calico_ndoe('gitaction-nkt-worker-1','192.168.43.4/24', '1')
+add_calico_ndoe('gitaction-nkt-worker-2','192.168.43.5/24', '1')
+add_calico_ndoe('gitaction-nkt-worker-3','192.168.43.6/24', '1')
 
 
 elem = driver.find_element(By.ID,"submit")

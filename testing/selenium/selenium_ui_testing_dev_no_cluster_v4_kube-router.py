@@ -45,10 +45,6 @@ if len(sys.argv)>=2:
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
 
-run_id = "{:05d}".format(random.randint(1,10000))
-if len(sys.argv)>=3:
-    run_id = sys.argv[2]
-
 driver.get("http://10.67.185.120:5002")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")

@@ -27,7 +27,7 @@ jobs:
             sh clean_stale_vms.sh
 
   nkt-no-cluster-calico:
-    concurrency: stld-calico-v4
+    concurrency: stld_calico_v4
     # The type of runner that the job will run on
     runs-on: stld
     defaults:
@@ -67,9 +67,9 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5001/destroy
   
   nkt-calico-v4:
+    concurrency: stld_calico_v4
     # The type of runner that the job will run on
     runs-on: stld
-    concurrency: stld-calico-v4
     defaults:
       run:
         working-directory: v4/terraform
@@ -91,7 +91,7 @@ jobs:
           gunicorn -w 4 -k gevent -b 0.0.0.0:5001 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
-          python3 selenium/selenium_ui_testing_dev_cluster_v4.py --headless
+          python3 ../testing/selenium/selenium_ui_testing_dev_cluster_v4.py --headless
       - name: Terraform plan
         run: | 
           curl -c cookie.txt -s http://10.67.185.120:5001/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5001/tf_plan

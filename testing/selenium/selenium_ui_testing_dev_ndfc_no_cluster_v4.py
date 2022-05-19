@@ -32,10 +32,11 @@ def login_page(driver):
     fill_by_id(driver, "url", "172.25.74.47")
     fill_by_id(driver, "username", "admin")
     fill_by_id(driver, "password", "ins3965!")
+    elem = driver.find_element(By.ID,"deploy_vm-checkbox")
+    elem.click()
     elem = driver.find_element(By.NAME, "button")
     elem.click()
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-
 
 def fabric_page(driver):
     current_url = driver.current_url
@@ -79,72 +80,6 @@ def fabric_page(driver):
     elem.click()
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
-
-def vcenter_login_page(driver):
-    current_url = driver.current_url
-    assert "fabric_type=vxlan_evpn" in current_url
-    fill_by_id(driver, "url", "172.25.74.45")
-    fill_by_id(driver, "username", "admin")
-    fill_by_id(driver, "pass", "ins3965!")
-    upload = driver.find_element(By.ID, "template_checkbox")
-    upload.click()
-    elem = driver.find_element(By.ID, "submit")
-    elem.click()
-    WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-
-
-def vcenter_page(driver):
-    current_url = driver.current_url
-    assert "fabric_type=vxlan_evpn" in current_url
-    select = Select(driver.find_element(By.ID, 'dc'))
-    select.select_by_visible_text("dc-cylon")
-
-    # Wait for vCenter API to populate the page
-    try:
-        WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
-    except ValueError as e:
-        print(e)
-        print("Loading took too much time!")
-
-    #elem = driver.find_element(By.ID, 'datastore')
-    #elem.send_keys("vsan_datastore")
-    select = Select(driver.find_element(By.ID, 'cluster'))
-    select.select_by_visible_text("cluster-cylon")
-    elem = driver.find_element(By.ID, 'port_group')
-    elem.send_keys("dvs-cylon/network_k8s_test/vlan-210")
-    elem = driver.find_element(By.ID, 'vm_templates')
-    elem.send_keys("ubuntu-20.04-k8s-template")
-    elem = driver.find_element(By.ID, 'vm_folder')
-    elem.send_keys("NKT_CI")
-    elem = driver.find_element(By.ID, "submit")
-    elem.click()
-    WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-
-
-def cluster_page(driver):
-    current_url = driver.current_url
-    assert "fabric_type=vxlan_evpn" in current_url
-    assert "Cluster" in driver.title
-    # elem = driver.find_element(By.XPATH, "//span[@id='sandbox_status']")
-    # elem.click()
-    elem = driver.find_element(By.ID, 'advanced')
-    elem.click()
-    # elem = driver.find_element(By.ID, 'http_proxy_checkbox')
-    # elem.click()
-    fill_by_id(driver, "timezone", "America/Los_Angeles")
-    fill_by_id(driver, "dns_servers", "10.195.200.67")
-    fill_by_id(driver, "dns_domain", "cisco.com")
-    fill_by_id(driver, "docker_mirror", "registry-shdu.cisco.com")
-    fill_by_id(driver, "ntp_server", "10.195.225.200")
-    # fill_by_id(driver, "http_proxy", "proxy.esl.cisco.com:80")
-    fill_by_id(driver, "ubuntu_apt_mirror", "dal.mirrors.clouvider.net/ubuntu/")
-
-    elem = driver.find_element(By.ID, "submit")
-    elem.click()
-
-    WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-
-
 def cluster_network_page(driver):
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
@@ -155,10 +90,9 @@ def cluster_network_page(driver):
 
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
-
 def main():
     chrome_options = Options()
-    url = "http://localhost:5010"
+    url = "http://172.25.74.99:5010"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
     parser.add_argument('--run_id', help='run_id')
@@ -178,12 +112,9 @@ def main():
     root_page(driver)
     login_page(driver)
     fabric_page(driver)
-    vcenter_login_page(driver)
-    vcenter_page(driver)
-    cluster_page(driver)
     cluster_network_page(driver)
     sleep(5)
-    driver.quit()
+    #driver.quit()
 
 
 if __name__ == "__main__":

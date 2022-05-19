@@ -42,9 +42,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r requirements.txt
-      - name: Start NKT
-        run: | 
-          gunicorn --chdir=./terraform -w 4 -k gevent -b 0.0.0.0:5001 appflask:app ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 testing/selenium/selenium_ui_testing_dev_no_cluster_v4.py --headless

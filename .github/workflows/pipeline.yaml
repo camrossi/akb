@@ -28,10 +28,9 @@ jobs:
             sh clean_stale_vms.sh
 
   nkt-no-cluster-calico:
+    concurrency: staging_environment
     # The type of runner that the job will run on
     runs-on: stld
-    concurrency: 
-      group: no-cluster
     defaults:
       run:
         working-directory: no-cluster/terraform
@@ -69,10 +68,9 @@ jobs:
           curl -b cookie.txt -s http://10.67.185.120:5001/destroy
       
   nkt-no-cluster-kube-router:
+    concurrency: staging_environment
     # The type of runner that the job will run on
     runs-on: stld
-    concurrency: 
-      group: no-cluster
     defaults:
       run:
         working-directory: no-cluster/terraform

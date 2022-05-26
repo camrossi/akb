@@ -3,4 +3,4 @@ ansible_httpapi_use_ssl: yes
 ansible_httpapi_validate_certs: no
 ansible_network_os: cisco.dcnm.dcnm
 ansible_user: admin
-ansible_password: "{{ dcnm_password }}"
+ansible_password: ins3965!

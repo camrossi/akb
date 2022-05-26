@@ -30,6 +30,7 @@ jobs:
   # This job clean up all the VMs called gitaction-nkt found on the vcenters.
   # it uses a local script that is not in git as it contains sensitive credentials
     runs-on: ndfc
+    continue-on-error: true
     defaults:
       run:
         working-directory: ndfc/testing

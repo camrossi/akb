@@ -6,6 +6,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
 from time import sleep
+
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
+
 def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem = driver.find_element(By.NAME,"pod_id")
     elem.send_keys(pod_id)
@@ -48,11 +52,10 @@ if len(sys.argv)>=2:
 driver = webdriver.Chrome(options=chrome_options)
 
 driver.get("http://localhost:5006")
-assert "NKT" in driver.title
+wait_for_title(driver, "NKT")
+
 elem = driver.find_element(By.NAME,"button")
-current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
 assert "Apic Login" in driver.title
 elem = driver.find_element(By.NAME,"fabric")
@@ -65,12 +68,9 @@ elem = driver.find_element(By.NAME,"password")
 elem.clear()
 elem.send_keys("ins3965!")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
-#Wait for the page to be loaded
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
+wait_for_title(driver, "L3OUT")
 
-assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
 elem.send_keys("kubernetes")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
@@ -93,15 +93,12 @@ elem.send_keys("kubernetes-nodes")
 add_anchor_node("1","1","101","1.1.1.1","192.168.10.101/24")
 add_anchor_node("1","1","102","1.1.1.2","192.168.10.102/24")
 
-current_url = driver.current_url
-
 elem = driver.find_element(By.ID,"submit")
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
+wait_for_title(driver, "vCenter Login")
 
-assert "vCenter Login" in driver.title
 elem = driver.find_element(By.NAME,"url")
 elem.send_keys("10.48.168.200")
 elem = driver.find_element(By.NAME,"username")
@@ -111,12 +108,9 @@ elem.send_keys("Ins3965!")
 elem = driver.find_element(By.ID,"template_checkbox")
 elem.click()
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
 
-#Wait for the page to be loaded
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-assert "vCenter Details" in driver.title
+wait_for_title(driver, "vCenter Details")
 select = Select(driver.find_element(By.ID,'dc'))
 select.select_by_visible_text("AKB")
 
@@ -136,12 +130,11 @@ elem.send_keys("nkt_template")
 elem = driver.find_element(By.ID,'vm_folder')
 elem.send_keys("Discovered virtual machine")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
+
 elem.click()
 
-#Wait for the page to be loaded
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-assert "Calico Nodes" in driver.title
+wait_for_title(driver, "Calico Nodes")
+
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
 add_calico_node('gitaction-nkt-master-1','192.168.10.1/24', "10.48.168.104",'1')
@@ -149,12 +142,11 @@ add_calico_node('gitaction-nkt-master-2','192.168.10.2/24', "10.48.168.105",'1')
 add_calico_node('gitaction-nkt-master-3','192.168.10.3/24', "10.48.168.106",'1')
 
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
+
 elem.click()
 
-#Wait for the page to be loaded
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-assert "Cluster" in driver.title
+wait_for_title(driver, "Cluster")
+
 elem = driver.find_element(By.ID,'advanced')
 elem.click()
 elem = driver.find_element(By.ID,'timezone')
@@ -166,15 +158,10 @@ elem.send_keys("k8s.cisco.com")
 elem = driver.find_element(By.ID,'ntp_server')
 elem.send_keys("72.163.32.44")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-#Wait for the page to be loaded
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-assert "Cluster Network" in driver.title
+wait_for_title(driver, "Cluster Network")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
+
 elem.click()
-WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-assert "Create" in driver.title
+wait_for_title(driver, "Create")
 driver.quit()

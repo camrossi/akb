@@ -39,6 +39,9 @@ def add_calico_ndoe(hostname, ip, rack_id):
     elem.click()
     sleep(1)
 
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
+    
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
@@ -50,9 +53,8 @@ assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+wait_for_title(driver, "Apic Login")
 
-assert "Apic Login" in driver.title
 elem = driver.find_element(By.ID,"deploy_vm-checkbox")
 elem.click()
 elem = driver.find_element(By.NAME,"fabric")
@@ -68,9 +70,7 @@ elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-
-assert "L3OUT" in driver.title
+wait_for_title(driver, "L3OUT")
 elem = driver.find_element(By.ID,'l3out_tenant')
 elem.send_keys("calico_dev_v4")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
@@ -94,14 +94,11 @@ add_anchor_node("1","1","101","1.1.1.101","192.168.39.101")
 add_anchor_node("1","1","102","1.1.1.102","192.168.39.102/24")
 
 current_url = driver.current_url
-
 elem = driver.find_element(By.ID,"submit")
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-
-assert "Cluster Network" in driver.title
+wait_for_title(driver, "Cluster Network")
 elem = driver.find_element(By.ID,"vlan_id")
 elem.send_keys("11")
 elem = driver.find_element(By.ID,'cni_plugin')

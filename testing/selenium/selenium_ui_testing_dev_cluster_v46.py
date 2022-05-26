@@ -6,6 +6,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
 from time import sleep
+
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
+
 def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem = driver.find_element(By.NAME,"pod_id")
     elem.send_keys(pod_id)
@@ -51,13 +55,12 @@ if len(sys.argv)>=2:
 driver = webdriver.Chrome(options=chrome_options)
 
 driver.get("http://10.67.185.120:5004")
-assert "NKT" in driver.title
+wait_for_title(driver, "NKT")
 elem = driver.find_element(By.NAME,"button")
-current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
-assert "Apic Login" in driver.title
+wait_for_title(driver, "Apic Login")
+
 elem = driver.find_element(By.NAME,"fabric")
 elem.send_keys("fab1-apic1.cam.ciscolabs.com")
 elem = driver.find_element(By.NAME,"username")
@@ -66,12 +69,9 @@ elem.send_keys("admin")
 elem = driver.find_element(By.NAME,"password")
 elem.send_keys("123Cisco123")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
-#Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+wait_for_title(driver, "L3OUT")
 
-assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
 elem.send_keys("calico_dev_v46")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
@@ -103,15 +103,13 @@ elem.send_keys("2001:db8:35::/56")
 add_anchor_ndoe("1","1","101","1.1.1.101","192.168.35.201","2001:db8:35::201/56")
 add_anchor_ndoe("1","1","102","1.1.1.102","192.168.35.202","2001:db8:35::202/56")
 
-current_url = driver.current_url
-
 elem = driver.find_element(By.ID,"submit")
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+wait_for_title(driver, "vCenter Login")
 
-assert "vCenter Login" in driver.title
+
 elem = driver.find_element(By.NAME,"url")
 elem.send_keys("vc1.cam.ciscolabs.com")
 elem = driver.find_element(By.NAME,"username")
@@ -121,12 +119,11 @@ elem.send_keys("123Cisco123!")
 elem = driver.find_element(By.ID,"template_checkbox")
 elem.click()
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "vCenter Details" in driver.title
+wait_for_title(driver, "vCenter Details")
+
 select = Select(driver.find_element(By.ID,'dc'))
 select.select_by_visible_text("STLD")
 
@@ -147,12 +144,11 @@ elem.send_keys("nkt_template")
 elem = driver.find_element(By.ID,'vm_folder')
 elem.send_keys("CalicoDev_v46")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Calico Nodes" in driver.title
+wait_for_title(driver, "Calico Nodes")
+
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
 add_calico_node('gitaction-nkt-master-1','192.168.35.1/24','2001:db8:35::1/56', '1')
@@ -161,12 +157,11 @@ add_calico_node('gitaction-nkt-master-3','192.168.35.3/24','2001:db8:35::3/56', 
 add_calico_node('gitaction-nkt-worker-1','192.168.35.4/24','2001:db8:35::4/56', '1')
 
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Cluster" in driver.title
+wait_for_title(driver, "Cluster")
+
 elem = driver.find_element(By.ID,'advanced')
 elem.click()
 elem = driver.find_element(By.ID,'timezone')
@@ -186,8 +181,7 @@ current_url = driver.current_url
 elem.click()
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Create" in driver.title
+wait_for_title(driver, "Create")
+
 driver.quit()

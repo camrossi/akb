@@ -9,6 +9,8 @@ import random
 import argparse
 from time import sleep
 
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
 
 def add_calico_ndoe(driver, hostname, ip, rack_id):
     elem = driver.find_element(By.NAME, "hostname")
@@ -35,7 +37,7 @@ def fill_by_id(driver, id, value):
 
 
 def root_page(driver):
-    assert "NKT" in driver.title
+    wait_for_title(driver, "NKT")
     select = Select(driver.find_element(By.ID, 'fabric_type'))
     select.select_by_visible_text("NDFC/VXLAN_EVPN")
     elem = driver.find_element(By.NAME, "button")
@@ -100,9 +102,9 @@ def fabric_page(driver):
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
 def cluster_network_page(driver):
+    wait_for_title(driver, "Cluster Network")
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
-    assert "Cluster Network" in driver.title
     elem = driver.find_element(By.ID,"vlan_id")
     elem.send_keys("210")
     elem = driver.find_element(By.ID,'cni_plugin')
@@ -117,7 +119,6 @@ def cluster_network_page(driver):
 
 def main():
     chrome_options = Options()
-    run_id = "{:05d}".format(random.randint(1, 10000))
     url = "http://localhost:5010"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')

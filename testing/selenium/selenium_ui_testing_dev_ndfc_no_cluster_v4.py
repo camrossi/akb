@@ -8,6 +8,8 @@ from selenium.webdriver.chrome.options import Options
 import argparse
 from time import sleep
 
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
 
 def fill_by_id(driver, id, value):
     elem = driver.find_element(By.ID, id)
@@ -17,7 +19,7 @@ def fill_by_id(driver, id, value):
 
 
 def root_page(driver):
-    assert "NKT" in driver.title
+    wait_for_title(driver, "NKT")
     select = Select(driver.find_element(By.ID, 'fabric_type'))
     select.select_by_visible_text("NDFC/VXLAN_EVPN")
     elem = driver.find_element(By.NAME, "button")
@@ -81,9 +83,9 @@ def fabric_page(driver):
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
 def cluster_network_page(driver):
+    wait_for_title(driver, "Cluster Network")
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
-    assert "Cluster Network" in driver.title
     elem = driver.find_element(By.ID, "submit")
     current_url = driver.current_url
     elem.click()

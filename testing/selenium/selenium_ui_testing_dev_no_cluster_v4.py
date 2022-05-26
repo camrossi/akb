@@ -24,6 +24,9 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.click()
     sleep(1)
 
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
+
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
@@ -35,8 +38,7 @@ assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Apic Login" in driver.title
+wait_for_title(driver, "Apic Login")
 elem = driver.find_element(By.ID,"deploy_vm-checkbox")
 elem.click()
 elem = driver.find_element(By.NAME,"fabric")
@@ -52,9 +54,8 @@ elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+wait_for_title(driver, "L3OUT")
 
-assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
 elem.send_keys("calico_dev_v4")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
@@ -83,9 +84,8 @@ elem = driver.find_element(By.ID,"submit")
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+wait_for_title(driver, "NKT - Cluster Network")
 
-assert "NKT - Cluster Network" in driver.title
 elem = driver.find_element(By.ID,"vlan_id")
 elem.send_keys("11")
 elem = driver.find_element(By.ID,"submit")

@@ -12,8 +12,7 @@ from time import sleep
 def check_exits_by_id(driver, id):
     '''Test check html element exists by id'''
     try:
-      wait_for_title(driver,"Cluster")  
-      driver.find_element(By.ID, id)
+        driver.find_element(By.ID, id)
     except NoSuchElementException:
         return False
     return True

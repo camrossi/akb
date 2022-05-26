@@ -26,6 +26,21 @@ jobs:
         run: | 
             sh clean_stale_vms.sh
 
+  cleanup_stale_ndfc_objects:
+  # This job clean up all the VMs called gitaction-nkt found on the vcenters.
+  # it uses a local script that is not in git as it contains sensitive credentials
+    runs-on: ndfc
+    defaults:
+      run:
+        working-directory: ndfc/testing
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: ndfc
+      - name: Cleanup Stale NDFC objects
+        run: | 
+          ansible-playbook -i inventoy.ini reset_ndfc_ci_env.yaml
+
   nkt-no-cluster-calico:
     # The type of runner that the job will run on
     runs-on: stld
@@ -442,7 +457,7 @@ jobs:
   nkt-calico-ndfc:
       # The type of runner that the job will run on
       runs-on: ndfc
-      needs: [cleanup_stale_vms]
+      needs: [cleanup_stale_vms, cleanup_stale_ndfc_objects]
       defaults:
         run:
           working-directory: ndfc/terraform

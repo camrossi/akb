@@ -220,8 +220,8 @@ def assert_ndfc(driver, title) -> str:
 
 def click_previous(driver, url):
     '''Click the previous button'''
-    elem = driver.find_element_by_xpath('//button[contains(text(),"Previous")]')
-    elem.click()
+    elem = driver.find_element(By.XPATH,'//button[contains(text(),"Previous")]')
+π    elem.click()
     WebDriverWait(driver, 60).until(EC.url_changes(url))
 
 def previous_pages(driver):

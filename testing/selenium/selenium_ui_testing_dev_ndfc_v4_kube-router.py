@@ -171,18 +171,13 @@ def cluster_page(driver):
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     assert "Cluster" in driver.title
-    # elem = driver.find_element(By.XPATH, "//span[@id='sandbox_status']")
-    # elem.click()
     elem = driver.find_element(By.ID, 'advanced')
     elem.click()
-    # elem = driver.find_element(By.ID, 'http_proxy_checkbox')
-    # elem.click()
     fill_by_id(driver, "timezone", "America/Los_Angeles")
     fill_by_id(driver, "dns_servers", "10.195.200.67")
     fill_by_id(driver, "dns_domain", "cisco.com")
     fill_by_id(driver, "docker_mirror", "registry-shdu.cisco.com")
     fill_by_id(driver, "ntp_server", "10.195.225.200")
-    # fill_by_id(driver, "http_proxy", "proxy.esl.cisco.com:80")
     fill_by_id(driver, "ubuntu_apt_mirror", "dal.mirrors.clouvider.net/ubuntu/")
 
     elem = driver.find_element(By.ID, "submit")
@@ -221,7 +216,7 @@ def assert_ndfc(driver, title) -> str:
 def click_previous(driver, url):
     '''Click the previous button'''
     elem = driver.find_element(By.XPATH,'//button[contains(text(),"Previous")]')
-π    elem.click()
+    elem.click()
     WebDriverWait(driver, 60).until(EC.url_changes(url))
 
 def previous_pages(driver):

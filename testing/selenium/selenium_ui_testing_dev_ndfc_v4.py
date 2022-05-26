@@ -216,7 +216,7 @@ def assert_ndfc(driver, title) -> str:
 
 def click_previous(driver, url):
     '''Click the previous button'''
-    elem = driver.find_element_by_css_selector('[value="Previous"]')
+    elem = driver.find_element(by=By.CSS_SELECTOR,value="Previous")
     elem.click()
     WebDriverWait(driver, 60).until(EC.url_changes(url))
 

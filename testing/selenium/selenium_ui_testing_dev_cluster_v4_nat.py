@@ -50,7 +50,9 @@ driver = webdriver.Chrome(options=chrome_options)
 driver.get("http://localhost:5005")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
+current_url = driver.current_url
 elem.click()
+WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
 assert "Apic Login" in driver.title
 elem = driver.find_element(By.NAME,"fabric")

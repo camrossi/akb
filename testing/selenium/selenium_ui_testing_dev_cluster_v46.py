@@ -27,7 +27,7 @@ def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem.click()
     sleep(1)
 
-def add_calico_ndoe(hostname, ip, ipv6, rack_id):
+def add_calico_node(hostname, ip, ipv6, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
     elem.clear()
     elem.send_keys(hostname)
@@ -53,7 +53,9 @@ driver = webdriver.Chrome(options=chrome_options)
 driver.get("http://10.67.185.120:5004")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
+current_url = driver.current_url
 elem.click()
+WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
 assert "Apic Login" in driver.title
 elem = driver.find_element(By.NAME,"fabric")
@@ -153,10 +155,10 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('gitaction-nkt-master-1','192.168.35.1/24','2001:db8:35::1/56', '1')
-add_calico_ndoe('gitaction-nkt-master-2','192.168.35.2/24','2001:db8:35::2/56', '1')
-add_calico_ndoe('gitaction-nkt-master-3','192.168.35.3/24','2001:db8:35::3/56', '1')
-add_calico_ndoe('gitaction-nkt-worker-1','192.168.35.4/24','2001:db8:35::4/56', '1')
+add_calico_node('gitaction-nkt-master-1','192.168.35.1/24','2001:db8:35::1/56', '1')
+add_calico_node('gitaction-nkt-master-2','192.168.35.2/24','2001:db8:35::2/56', '1')
+add_calico_node('gitaction-nkt-master-3','192.168.35.3/24','2001:db8:35::3/56', '1')
+add_calico_node('gitaction-nkt-worker-1','192.168.35.4/24','2001:db8:35::4/56', '1')
 
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url

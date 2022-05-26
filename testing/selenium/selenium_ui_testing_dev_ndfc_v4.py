@@ -214,29 +214,6 @@ def assert_ndfc(driver, title) -> str:
     assert title in driver.title
     return current_url
 
-def click_previous(driver, url):
-    '''Click the previous button'''
-    elem = driver.find_element(By.ID,'Previous')
-    elem.click()
-    WebDriverWait(driver, 60).until(EC.url_changes(url))
-
-def previous_pages(driver):
-    '''test the previous buttons'''
-    pages = [
-        'Create',
-        'Cluster Network',
-        'Cluster',
-        'Calico Nodes',
-        'vCenter Details',
-        'vCenter Login',
-        'NDFC Fabric',
-        'NDFC Login',
-    ]
-    for page in pages:
-        print(page)
-        click_previous(driver, assert_ndfc(driver, page))
-    assert "Day0" in driver.title
-    
 def main():
     chrome_options = Options()
     url = "http://localhost:5010"
@@ -262,7 +239,6 @@ def main():
     cluster_page(driver)
     cluster_network_page(driver)
     create_page(driver)
-    previous_pages(driver)
     sleep(5)
     driver.quit()
 

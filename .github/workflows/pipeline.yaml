@@ -345,7 +345,7 @@ jobs:
           gunicorn -w 4 -k gevent -b 0.0.0.0:5005 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
-          python3 ../testing/selenium/selenium_ui_testing_dev_cluster_v4_nat.py --headless
+          python3 ../testing/selenium/selenium_ui_testing_dev_cluster_v4_nat_kube-router.py --headless
       - name: Terraform plan
         run: | 
           curl -c cookie.txt -s http://localhost:5005/ -o /dev/null && curl -b cookie.txt -s http://localhost:5005/tf_plan

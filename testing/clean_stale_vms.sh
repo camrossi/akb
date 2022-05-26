@@ -8,6 +8,6 @@ do
     do
         echo -n "Deleting VM:"
         echo $VM
-        govc -v=true vm.destroy $VM
+        govc vm.destroy $VM
     done
 done < /home/cisco/Coding/akb/testing/virtual_centers.inv

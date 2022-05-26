@@ -52,10 +52,6 @@ if len(sys.argv)>=2:
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
 
-run_id = "{:05d}".format(random.randint(1,10000))
-if len(sys.argv)>=3:
-    run_id = sys.argv[2]
-
 driver.get("http://localhost:5002")
 wait_for_title(driver, "NKT")
 
@@ -141,9 +137,9 @@ wait_for_title(driver, "Calico Nodes")
 
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('nkt-master-{}-1'.format(run_id),'192.168.20.1/24', "10.48.170.130",'1')
-add_calico_ndoe('nkt-master-{}-2'.format(run_id),'192.168.20.2/24', "10.48.170.131",'1')
-add_calico_ndoe('nkt-master-{}-3'.format(run_id),'192.168.20.3/24', "10.48.170.132",'1')
+add_calico_ndoe('gitaction-nkt-master-1','192.168.20.1/24', "10.48.170.130",'1')
+add_calico_ndoe('gitaction-nkt-master-2','192.168.20.2/24', "10.48.170.131",'1')
+add_calico_ndoe('gitaction-nkt-master-3','192.168.20.3/24', "10.48.170.132",'1')
 
 
 

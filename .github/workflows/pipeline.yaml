@@ -112,7 +112,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
+          curl -b cookie.txt -s  http://10.67.185.120:5001/destroy
 
   nkt-calico-v46:
     # The type of runner that the job will run on
@@ -201,7 +201,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-          curl -b cookie.txt -s http://10.67.185.120:5001/destroy
+          curl -b cookie.txt -s http://10.67.185.120:5002/destroy
 
   nkt-kube-router:
     needs: [cleanup_stale_vms, nkt-no-cluster-kube-router]

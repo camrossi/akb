@@ -233,12 +233,13 @@ def previous_pages(driver):
         'NDFC Login',
     ]
     for page in pages:
+        print(page)
         click_previous(driver, assert_ndfc(driver, page))
     assert "Day0" in driver.title
     
 def main():
     chrome_options = Options()
-    url = "http://localhost:5010"
+    url = "http://10.67.185.120:5001"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
 

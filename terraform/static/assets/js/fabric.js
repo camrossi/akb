@@ -298,7 +298,7 @@ $(document).ready(function() {
         peer.data("secondary_ipv4", $("#secondary_ipv4").val());
     });
 
-    $("#previous").on("click", function(e){
+    $("#Previous").on("click", function(e){
         $(location).attr('href',"/login?fabric_type=vxlan_evpn");
     });
 

@@ -56,7 +56,7 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://localhost:5005")
+driver.get("http://localhost:5002")
 wait_for_title(driver, "NKT")
 
 elem = driver.find_element(By.NAME,"button")

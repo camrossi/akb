@@ -326,14 +326,14 @@ jobs:
     needs: [cleanup_stale_vms, nkt-calico-v4-nat]
     defaults:
       run:
-        working-directory: v4-nat-dom/terraform
+        working-directory: v4-nat-dom-kube-router/terraform
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: v4-nat-dom
+          path: v4-nat-dom-kube-router
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt

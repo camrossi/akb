@@ -45,7 +45,7 @@ def fill_by_id(driver, id, value):
 
 
 def root_page(driver):
-    wait_for_title(driver,"NKT")
+    wait_for_title(driver, "NKT")
     select = Select(driver.find_element(By.ID, 'fabric_type'))
     select.select_by_visible_text("NDFC/VXLAN_EVPN")
     elem = driver.find_element(By.NAME, "button")
@@ -169,21 +169,17 @@ def calico_node_page(driver):
 
 
 def cluster_page(driver):
+    wait_for_title(driver, "Cluster")
     current_url = driver.current_url
-    wait_for_title(driver,"Cluster")
     assert "fabric_type=vxlan_evpn" in current_url
-    # elem = driver.find_element(By.XPATH, "//span[@id='sandbox_status']")
-    # elem.click()
     elem = driver.find_element(By.ID, 'advanced')
     elem.click()
-    # elem = driver.find_element(By.ID, 'http_proxy_checkbox')
-    # elem.click()
+
     fill_by_id(driver, "timezone", "America/Los_Angeles")
     fill_by_id(driver, "dns_servers", "10.195.200.67")
     fill_by_id(driver, "dns_domain", "cisco.com")
     fill_by_id(driver, "docker_mirror", "registry-shdu.cisco.com")
     fill_by_id(driver, "ntp_server", "10.195.225.200")
-    # fill_by_id(driver, "http_proxy", "proxy.esl.cisco.com:80")
     fill_by_id(driver, "ubuntu_apt_mirror", "dal.mirrors.clouvider.net/ubuntu/")
 
     elem = driver.find_element(By.ID, "submit")
@@ -193,8 +189,8 @@ def cluster_page(driver):
 
 
 def cluster_network_page(driver):
+    wait_for_title(driver, "Cluster Network")
     current_url = driver.current_url
-    wait_for_title(driver,"Cluster Network")
     assert "fabric_type=vxlan_evpn" in current_url
     elem = driver.find_element(By.ID, "submit")
     current_url = driver.current_url
@@ -205,8 +201,8 @@ def cluster_network_page(driver):
 def create_page(driver):
     '''test create page'''
     current_url = driver.current_url
+    wait_for_title(driver, "Create")
     assert "fabric_type=vxlan_evpn" in current_url
-    assert "Create" in driver.title
     assert check_exits_by_id(driver, "vkaci") is False
 
 def assert_ndfc(driver, title) -> str:

@@ -6,14 +6,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
-import random
 import argparse
 from time import sleep
 
 def check_exits_by_id(driver, id):
     '''Test check html element exists by id'''
     try:
-        driver.find_element(By.ID, id)
+      wait_for_title(driver,"Cluster")  
+      driver.find_element(By.ID, id)
     except NoSuchElementException:
         return False
     return True
@@ -150,18 +150,18 @@ def vcenter_page(driver):
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
 
-def calico_node_page(driver, run_id):
+def calico_node_page(driver):
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     elem = driver.find_element(By.ID, 'calico_nodes')
     elem.clear()
 
-    add_calico_ndoe(driver, 'nkt-master-{}-1'.format(run_id), '10.15.0.1/24', '1')
-    add_calico_ndoe(driver, 'nkt-master-{}-2'.format(run_id), '10.15.0.2/24', '1')
-    add_calico_ndoe(driver, 'nkt-master-{}-3'.format(run_id), '10.15.0.3/24', '1')
-    add_calico_ndoe(driver, 'nkt-worker-{}-1'.format(run_id), '10.15.0.4/24', '1')
-    add_calico_ndoe(driver, 'nkt-worker-{}-2'.format(run_id), '10.15.0.5/24', '1')
-    add_calico_ndoe(driver, 'nkt-worker-{}-3'.format(run_id), '10.15.0.6/24', '1')
+    add_calico_ndoe(driver, 'gitaction-nkt-master-1', '10.15.0.1/24', '1')
+    add_calico_ndoe(driver, 'gitaction-nkt-master-2', '10.15.0.2/24', '1')
+    add_calico_ndoe(driver, 'gitaction-nkt-master-3', '10.15.0.3/24', '1')
+    add_calico_ndoe(driver, 'gitaction-nkt-worker-1', '10.15.0.4/24', '1')
+    add_calico_ndoe(driver, 'gitaction-nkt-worker-2', '10.15.0.5/24', '1')
+    add_calico_ndoe(driver, 'gitaction-nkt-worker-3', '10.15.0.6/24', '1')
     elem = driver.find_element(By.ID, "submit")
     current_url = driver.current_url
     elem.click()
@@ -203,8 +203,8 @@ def cluster_network_page(driver):
 
 def create_page(driver):
     '''test create page'''
-
     current_url = driver.current_url
+    wait_for_title(driver, "Create")
     assert "fabric_type=vxlan_evpn" in current_url
     assert check_exits_by_id(driver, "vkaci") is False
 
@@ -239,17 +239,14 @@ def previous_pages(driver):
     
 def main():
     chrome_options = Options()
-    run_id = "{:05d}".format(random.randint(1, 10000))
     url = "http://localhost:5010"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
-    parser.add_argument('--run_id', help='run_id')
 
     args, unknown = parser.parse_known_args()
     if args.url:
         url = args.url
-    if args.run_id:
-        run_id = args.run_id
+
     if unknown:
         chrome_driver_args = ' '.join(unknown)
         chrome_options.add_argument(chrome_driver_args)
@@ -262,7 +259,7 @@ def main():
     fabric_page(driver)
     vcenter_login_page(driver)
     vcenter_page(driver)
-    calico_node_page(driver, run_id)
+    calico_node_page(driver)
     cluster_page(driver)
     cluster_network_page(driver)
     create_page(driver)

@@ -24,3 +24,4 @@ terraform/.terraform.tfstate.lock.info
 terraform/.env
 ansible/inventory/nodes.ini
 terraform/selenium/cam_*
+testing/virtual_centers.inv

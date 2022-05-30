@@ -1,0 +1,14 @@
+---
+switch_username: admin
+fabric4:
+  name: fabric-cylon
+  leaf:
+    - ip_address: 172.25.74.70
+    - ip_address: 172.25.74.61
+    - ip_address: 172.25.74.87
+    - ip_address: 172.25.74.88
+  border:
+    - ip_address: 172.25.74.163
+  spine:
+    - ip: 172.25.74.62
+    - ip: 172.25.74.60

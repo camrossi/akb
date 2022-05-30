@@ -39,40 +39,38 @@ def add_calico_ndoe(hostname, ip, rack_id):
     elem.click()
     sleep(1)
 
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
+    
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
 
-run_id = "{:05d}".format(random.randint(1,10000))
-if len(sys.argv)>=3:
-    run_id = sys.argv[2]
-
-driver.get("http://10.67.185.120:5001/")
+driver.get("http://10.67.185.120:5002")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
+current_url = driver.current_url
 elem.click()
+wait_for_title(driver, "Apic Login")
 
-assert "Apic Login" in driver.title
+elem = driver.find_element(By.ID,"deploy_vm-checkbox")
+elem.click()
 elem = driver.find_element(By.NAME,"fabric")
 elem.clear()
-elem.send_keys("10.67.185.106")
+elem.send_keys("fab1-apic1.cam.ciscolabs.com")
 elem = driver.find_element(By.NAME,"username")
 elem.clear()
 elem.send_keys("admin")
 elem = driver.find_element(By.NAME,"password")
 elem.clear()
 elem.send_keys("123Cisco123")
-elem = driver.find_element(By.ID,"deploy_vm-checkbox")
-elem.click()
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-
-assert "L3OUT" in driver.title
+wait_for_title(driver, "L3OUT")
 elem = driver.find_element(By.ID,'l3out_tenant')
 elem.send_keys("calico_dev_v4")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
@@ -81,7 +79,7 @@ elem.send_keys("192.168.39.0/24")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
 except ValueError as e:
     print("Loading took too much time!")
 
@@ -96,15 +94,16 @@ add_anchor_node("1","1","101","1.1.1.101","192.168.39.101")
 add_anchor_node("1","1","102","1.1.1.102","192.168.39.102/24")
 
 current_url = driver.current_url
-
 elem = driver.find_element(By.ID,"submit")
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Cluster" in driver.title
-elem = driver.find_element(By.ID,'vlan_id')
+wait_for_title(driver, "Cluster Network")
+elem = driver.find_element(By.ID,"vlan_id")
 elem.send_keys("11")
+elem = driver.find_element(By.ID,'cni_plugin')
+elem.clear()
+elem.send_keys("Kube-Router")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

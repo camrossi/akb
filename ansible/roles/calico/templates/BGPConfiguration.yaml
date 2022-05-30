@@ -7,13 +7,13 @@ spec:
   logSeverityScreen: Info
   nodeToNodeMeshEnabled: false
   serviceClusterIPs:
-  - cidr: {{ cluster_svc_subnet | ipaddr('network') }}/{{ cluster_svc_subnet | ipaddr('prefix') }}
+  - cidr: {{ cluster_svc_subnet | ansible.utils.ipaddr('network') }}/{{ cluster_svc_subnet | ansible.utils.ipaddr('prefix') }}
 {% if cluster_svc_subnet_v6 %}
-  - cidr: {{ cluster_svc_subnet_v6 | ipaddr('network') }}/{{ cluster_svc_subnet_v6 | ipaddr('prefix') }}
+  - cidr: {{ cluster_svc_subnet_v6 | ansible.utils.ipaddr('network') }}/{{ cluster_svc_subnet_v6 | ansible.utils.ipaddr('prefix') }}
 {% endif %}
   serviceExternalIPs:
-  - cidr: {{ external_svc_subnet | ipaddr('network') }}/{{ external_svc_subnet | ipaddr('prefix') }}
+  - cidr: {{ external_svc_subnet | ansible.utils.ipaddr('network') }}/{{ external_svc_subnet | ansible.utils.ipaddr('prefix') }}
 {% if external_svc_subnet_v6 %}
-  - cidr: {{ external_svc_subnet_v6 | ipaddr('network') }}/{{ external_svc_subnet_v6 | ipaddr('prefix') }}
+  - cidr: {{ external_svc_subnet_v6 | ansible.utils.ipaddr('network') }}/{{ external_svc_subnet_v6 | ansible.utils.ipaddr('prefix') }}
 {% endif %}
   listenPort: 179

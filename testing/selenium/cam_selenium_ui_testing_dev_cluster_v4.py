@@ -49,7 +49,7 @@ run_id = "{:05d}".format(random.randint(1,10000))
 if len(sys.argv)>=3:
     run_id = sys.argv[2]
 
-driver.get("http://10.67.185.120:5003")
+driver.get("http://10.67.185.120:5001/")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
@@ -57,7 +57,7 @@ elem.click()
 assert "Apic Login" in driver.title
 elem = driver.find_element(By.NAME,"fabric")
 elem.clear()
-elem.send_keys("fab1-apic1.cam.ciscolabs.com")
+elem.send_keys("10.67.185.106")
 elem = driver.find_element(By.NAME,"username")
 elem.clear()
 elem.send_keys("admin")
@@ -79,7 +79,7 @@ elem.send_keys("192.168.39.0/24")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vrf_name_list"]/option[2]')))
 except ValueError as e:
     print("Loading took too much time!")
 
@@ -103,7 +103,7 @@ WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 
 assert "vCenter Login" in driver.title
 elem = driver.find_element(By.NAME,"url")
-elem.send_keys("vc1.cam.ciscolabs.com")
+elem.send_keys("10.67.185.101")
 elem = driver.find_element(By.NAME,"username")
 elem.send_keys("administrator@vsphere.local")
 elem = driver.find_element(By.NAME,"pass")
@@ -122,10 +122,9 @@ select.select_by_visible_text("STLD")
 
 #Wait for vCenter API to populate the page
 try:
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
 except ValueError as e:
     print("Loading took too much time!")
-
 #elem = driver.find_element(By.ID,'datastore')
 #elem.send_keys("ESXi3_SSD")
 select = Select(driver.find_element(By.ID,'cluster'))
@@ -178,12 +177,10 @@ elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-
 #Wait for the page to be loaded
+WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Cluster Network" in driver.title
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Create" in driver.title
-driver.quit()
+#driver.quit()

@@ -1,0 +1,6 @@
+ansible_connection: httpapi
+ansible_httpapi_use_ssl: yes
+ansible_httpapi_validate_certs: no
+ansible_network_os: cisco.dcnm.dcnm
+ansible_user: admin
+ansible_password: ins3965!

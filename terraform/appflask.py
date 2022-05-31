@@ -60,6 +60,14 @@ def getdotenv(env):
         logger.error('getdotenv failed to load %s', env)
         return None
 
+def getdotenvjson(env):
+    '''Load dotenv as json'''
+    try:
+        val = getdotenv(env)
+        return json.loads(val)
+    except:
+        return None
+
 def setdotenv(key, value):
     '''Set dotenv'''
     if key :
@@ -1007,7 +1015,7 @@ def cluster_network():
                     if l3out['vlan_id'] == "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
                         logger.info('Invalid VLAN detected')
                         flash("Please Specify a valid VLAN ID (2-4094)")
-                        return redirect('/cluster_network')
+                        return redirect(f'/cluster_network?fabric_type={fabric_type}')
                     logger.info('save l3out variable to update the VLAN ID in case of not VM Deployment')
                     setdotenv('l3out', json.dumps(l3out))
             if ipv6_enabled: 
@@ -1029,7 +1037,7 @@ def cluster_network():
             if fabric_type == "aci":
                 return redirect('/l3out')
             if fabric_type == "vxlan_evpn":
-                return redirect('/fabric')
+                return redirect(f'/fabric?fabric_type={fabric_type}')
     if request.method == 'GET':
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
@@ -1299,10 +1307,10 @@ def vcenter():
                 si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
             except gaierror as e:
                 flash("Unable to connect to VC", 'error')
-                return redirect('/vcenterlogin')
+                return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
             except Exception as e:
                 flash(e.msg, 'error')
-                return redirect('/vcenterlogin')                     
+                return redirect(f'/vcenterlogin?fabric_type={fabric_type}')                   
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
@@ -1344,10 +1352,10 @@ def vcenter():
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
         except gaierror as e:
             flash("Unable to connect to VC", 'error')
-            return redirect('/vcenterlogin')
+            return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
         except Exception as e:
             flash(e.msg, 'error')
-            return redirect('/vcenterlogin')
+            return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
 
         dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
@@ -1583,6 +1591,11 @@ def fabric():
         return redirect('/')
     if not getdotenv("ndfc"):
         return redirect(f"/login?fabric_type={fabric_type}")
+    vc = getdotenvjson("vc")
+    if not vc:
+        vm_deploy = True
+    else:
+        vm_deploy = vc.get('vm_deploy')
     if request.method == "GET":
         if fabric_type == "vxlan_evpn":
             fabrics = []
@@ -1605,7 +1618,7 @@ def fabric():
             return json.dumps({"error": escape(message)}), 400
         result = ndfc_process_fabric_setting(data)
         if result:
-            return json.dumps({"ok": "fabric setting configured"}), 200
+            return json.dumps({"ok": "fabric setting configured", "vm_deploy":vm_deploy}), 200
         else:
             return json.dumps({"error": "invalid settings"}), 400
 

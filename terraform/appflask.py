@@ -60,6 +60,12 @@ def getdotenv(env):
         logger.error('getdotenv failed to load %s', env)
         return None
 
+def unsetdotenv(key):
+    '''UnSet dotenv'''
+    cmd = 'dotenv unset ' + key
+    os.system(cmd)
+    return None
+
 def setdotenv(key, value):
     '''Set dotenv'''
     if key :
@@ -227,6 +233,8 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
         setdotenv('overlay', json.dumps(overlay))
         if overlay["ipv6_enabled"]:
             setdotenv('ipv6_enabled', "")
+        else:
+            unsetdotenv('ipv6_enabled')
     except KeyError as e:
         print(e)
         return False
@@ -808,20 +816,27 @@ def calico_nodes_view():
         except TypeError:
             pass
         if calico_nodes == []:
+            ipv6_enabled = getdotenv('ipv6_enabled')
+            print("ipv6_enabled: ", ipv6_enabled)
             i = 1
             while i <= 3:
                 hostname = 'nkt-master-' + str(i)
+                ipv6 = ""
+                natip = ""
+                rack_id = "1"
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
                     ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                    if ipv6_enabled:
+                        ipv6 = str(ipaddress.IPv6Interface(l3out['ipv6_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]).prefixlen)
                 elif fabric_type == "vxlan_evpn":
                     overlay = json.loads(getdotenv('overlay'))
                     host = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
                     prefixlen = str(ipaddress.IPv4Network(overlay['node_sub']).prefixlen)
                     ip = f"{host}/{prefixlen}"
-                ipv6 = ""
-                natip = ""
-                rack_id = "1"
+                    if ipv6_enabled:
+                        ipv6 = str(ipaddress.IPv6Interface(overlay['node_sub_v6']).ip + i) + "/" + str(ipaddress.IPv6Network(overlay["node_sub_v6"]).prefixlen)
+
                 calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                 i += 1
         ipv4_cluster_subnet = None
@@ -1196,14 +1211,21 @@ def vctemplate():
             ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
             ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
-            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
+            
+            # Passing the first host connected to the datastore ensure we pick one of the host that will run the VM to validate the OVA
+            #If we do not do this we pic a random host in the  resource pool
+            if len(datastore.host) == 0:
+                flash("No hosts connected to datastore ", req.get('datastore'))
+                return redirect('/vctemplate')
+            host = datastore.host[0].key
+            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin',host=host)
+            
+            cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(),resource_pool, datastore, cisp)
 
-            cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(), resource_pool, datastore, cisp)
             if cisr.error:
-                print("The following errors will prevent import of this OVA:")
                 for error in cisr.error:
-                    print("%s" % error)
-
+                    flash("The following errors will prevent import of this OVA: {}".format(error.msg), 'error')
+                    return redirect('/vctemplate')
             ovf_handle.set_spec(cisr)
 
             # Run the update_load function in a new thread
@@ -1223,7 +1245,7 @@ def vctemplate():
                 task = vm.Destroy_Task()
                 vc_utils.wait_for_tasks(si, [task])
             upload = concurrent.futures.ThreadPoolExecutor()
-            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
+            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle, host)
             # Wait for upload to complete UI freeze here
             upload.shutdown(wait=True)
             vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)
@@ -1386,6 +1408,13 @@ def l3out_view():
         req = request.form
         button = req.get("button")
         if button == "Next":
+            if req.get("ipv6_cluster_subnet") == "":
+                ipv6_enabled = False
+                unsetdotenv('ipv6_enabled')
+            else:
+                logger.info('save ipv6_enabled variable')
+                ipv6_enabled = True
+                setdotenv('ipv6_enabled', "")
             mtu = int(req.get("mtu"))
             if mtu < 1280 or mtu > 9000:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
@@ -1451,13 +1480,6 @@ def l3out_view():
                     anchor_nodes = json.loads(req.get("anchor_nodes"))
                 except ValueError as e:
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Invalid JSON:" + str(e))
-            if req.get("ipv6_cluster_subnet") == "":
-                ipv6_enabled = False
-
-            else:
-                logger.info('save ipv6_enabled variable')
-                ipv6_enabled = True
-                setdotenv('ipv6_enabled', "")
             
             rack_id = req.get("rack_id")
             rtr_id = req.get("rtr_id")

@@ -139,11 +139,8 @@ def wait_for_tasks(service_instance, tasks):
         if pcfilter:
             pcfilter.Destroy()
 
-def get_vm(si, name):
-    vm = si.content.searchIndex.FindByUuid(None, args.uuid, True, instance_search)
-
-def import_spec_params(entityName,diskProvisioning):
-    return vim.OvfManager.CreateImportSpecParams(entityName=entityName, diskProvisioning=diskProvisioning)
+def import_spec_params(entityName,diskProvisioning, hostSystem):
+    return vim.OvfManager.CreateImportSpecParams(entityName=entityName, diskProvisioning=diskProvisioning, hostSystem=hostSystem)
 
 def get_largest_free_rp(si, datacenter):
     """
@@ -164,8 +161,8 @@ def get_largest_free_rp(si, datacenter):
         raise Exception("Failed to find a resource pool in datacenter %s" % datacenter.name)
     return largest_rp
 
-def start_upload(url, resource_pool,cisr, folder, ovf_handle):
-    lease = resource_pool.ImportVApp(cisr.importSpec, folder)
+def start_upload(url, resource_pool,cisr, folder, ovf_handle, host):
+    lease = resource_pool.ImportVApp(cisr.importSpec, folder, host)
     while lease.state == vim.HttpNfcLease.State.initializing:
         print("Waiting for lease to be ready...")
         time.sleep(1)

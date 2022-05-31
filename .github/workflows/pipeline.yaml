@@ -491,6 +491,7 @@ jobs:
   nkt-no-cluster-calico-ndfc:
   # The type of runner that the job will run on
     runs-on: ndfc
+    needs: [nkt-kube-router-ndfc]
     defaults:
       run:
         working-directory: ndfc-no-cluster/terraform

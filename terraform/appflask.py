@@ -449,7 +449,10 @@ def tf_plan():
     
     # Get the current dir
     cwd = os.getcwd()
-    with open("cluster.tfvars", 'r') as fp:
+    config_file = "cluster.tfvars"
+    if fabric_type == "vxlan_evpn":
+        config_file = "ndfc/" + config_file 
+    with open(config_file, 'r') as fp:
         current_config = hcl2.load(fp)
     if not current_config['vc']['vm_deploy']:
         logger.info('K8s Cluster deployment disabled')

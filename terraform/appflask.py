@@ -449,44 +449,44 @@ def tf_plan():
     
     # Get the current dir
     cwd = os.getcwd()
+    with open("cluster.tfvars", 'r') as fp:
+        current_config = hcl2.load(fp)
+    if not current_config['vc']['vm_deploy']:
+        logger.info('K8s Cluster deployment disabled')
+        #Change to the VM module directory
+        os.chdir("modules/k8s_node")
+        if os.path.exists("vms.tf"):
+            logger.info('Disable VM Deployment')
+            os.rename("vms.tf","vms.tf.ignore")
+        if os.path.exists("outputs.tf"):
+            logger.info('Enable Config Only outputs')
+            os.rename("outputs.tf","outputs.tf.ignore")
+            os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
+        if os.path.exists("group_var_template.tmpl"):
+            logger.info('Enable Config Only Templates')
+            os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
+            os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
+        os.chdir(cwd)
+    if current_config['vc']['vm_deploy']:
+        logger.info('K8s Cluster enbaled, enable vms and output tf files')
+        os.chdir("modules/k8s_node")
+        if os.path.exists("vms.tf.ignore"):
+            logger.info('Enable VM Deployment')
+            os.rename("vms.tf.ignore","vms.tf")
+        if os.path.exists("outputs.tf.ignore"):
+            logger.info('Enable Cluster Deployment outputs')
+            os.rename("outputs.tf.ignore","outputs.tf")
+            os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
+        if os.path.exists("group_var_template.tmpl.ignore"):
+            logger.info('Enable Cluster Templates')
+            os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
+            os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
+        os.chdir(cwd)
     if fabric_type == "aci":
         apic = json.loads(getdotenv('apic'))
         ret = create_apic_user(apic)
         if ret != 'OK':
             return ret
-        with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl2.load(fp)
-        if not current_config['vc']['vm_deploy']:
-            logger.info('K8s Cluster deployment disabled')
-            #Change to the VM module directory
-            os.chdir("modules/k8s_node")
-            if os.path.exists("vms.tf"):
-                logger.info('Disable VM Deployment')
-                os.rename("vms.tf","vms.tf.ignore")
-            if os.path.exists("outputs.tf"):
-                logger.info('Enable Config Only outputs')
-                os.rename("outputs.tf","outputs.tf.ignore")
-                os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
-            if os.path.exists("group_var_template.tmpl"):
-                logger.info('Enable Config Only Templates')
-                os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
-                os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
-            os.chdir(cwd)
-        if current_config['vc']['vm_deploy']:
-            logger.info('K8s Cluster enbaled, enable vms and output tf files')
-            os.chdir("modules/k8s_node")
-            if os.path.exists("vms.tf.ignore"):
-                logger.info('Enable VM Deployment')
-                os.rename("vms.tf.ignore","vms.tf")
-            if os.path.exists("outputs.tf.ignore"):
-                logger.info('Enable Cluster Deployment outputs')
-                os.rename("outputs.tf.ignore","outputs.tf")
-                os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
-            if os.path.exists("group_var_template.tmpl.ignore"):
-                logger.info('Enable Cluster Templates')
-                os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
-                os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
-            os.chdir(cwd)
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:

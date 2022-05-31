@@ -119,7 +119,7 @@ def cluster_network_page(driver):
 
 def main():
     chrome_options = Options()
-    url = "http://localhost:5010"
+    url = "http://localhost:5013"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
     parser.add_argument('--run_id', help='run_id')

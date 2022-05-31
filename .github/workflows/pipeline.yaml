@@ -443,16 +443,16 @@ jobs:
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
-            gunicorn -w 4 -k gevent -b 0.0.0.0:5010 appflask:app -D ; sleep 5
+            gunicorn -w 4 -k gevent -b 0.0.0.0:5011 appflask:app -D ; sleep 5
         - name: Run headless chrome to generate the config
           run: | 
-            python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_v4_kube-router.py --url http://localhost:5010 --headless && sleep 2
+            python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_v4_kube-router.py --url http://localhost:5011 --headless && sleep 2
         - name: Terraform plan
           run: | 
-            curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan?fabric_type=vxlan_evpn
+            curl -c cookie.txt -s http://localhost:5011 -o /dev/null && curl -b cookie.txt -s http://localhost:5011/tf_plan?fabric_type=vxlan_evpn
         - name: Terraform apply
           run: | 
-            curl -b cookie.txt -s http://localhost:5010/tf_apply?fabric_type=vxlan_evpn
+            curl -b cookie.txt -s http://localhost:5011/tf_apply?fabric_type=vxlan_evpn
         - name: Check if all the nodes are ready
           run: | 
             kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
@@ -468,7 +468,7 @@ jobs:
         - name: Terraform destroy
           if: always()
           run: | 
-            curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
+            curl -b cookie.txt -s http://localhost:5011/destroy?fabric_type=vxlan_evpn
 
   python_unit_tests:
       runs-on: ubuntu-latest
@@ -507,19 +507,19 @@ jobs:
           pip3 install -r ../requirements.txt
       - name: Start NKT
         run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5010 appflask:app -D ; sleep 5
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5012 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4.py --headless && sleep 2
       - name: Terraform plan
         run: | 
-          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
+          curl -c cookie.txt -s http://localhost:5012 -o /dev/null && curl -b cookie.txt -s http://localhost:5012/tf_plan
       - name: Terraform apply
         run: | 
-            curl -b cookie.txt -s http://localhost:5010/tf_apply
+            curl -b cookie.txt -s http://localhost:5012/tf_apply
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt -s --fail http://ocalhost:5010/static/manifests/manifests.zip    
+          curl -b cookie.txt -s --fail http://ocalhost:5012/static/manifests/manifests.zip    
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 
@@ -528,7 +528,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-            curl -b cookie.txt -s http://localhost:5010/destroy
+            curl -b cookie.txt -s http://localhost:5012/destroy
 
   nkt-no-cluster-kube-router-ndfc:
   # The type of runner that the job will run on
@@ -549,19 +549,19 @@ jobs:
           pip3 install -r ../requirements.txt
       - name: Start NKT
         run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5010 appflask:app -D ; sleep 5
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5013 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4-kube-router.py --headless && sleep 2
       - name: Terraform plan
         run: | 
-          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
+          curl -c cookie.txt -s http://localhost:5013 -o /dev/null && curl -b cookie.txt -s http://localhost:5013/tf_plan
       - name: Terraform apply
         run: | 
-            curl -b cookie.txt -s http://localhost:5010/tf_apply
+            curl -b cookie.txt -s http://localhost:5013/tf_apply
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt -s --fail http://ocalhost:5010/static/manifests/manifests.zip    
+          curl -b cookie.txt -s --fail http://ocalhost:5013/static/manifests/manifests.zip    
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 
@@ -570,4 +570,4 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-            curl -b cookie.txt -s http://localhost:5010/destroy
+            curl -b cookie.txt -s http://localhost:5013/destroy

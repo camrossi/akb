@@ -119,16 +119,13 @@ def previous_pages(driver):
 
 def main():
     chrome_options = Options()
-    url = "http://172.25.74.99:5010"
+    url = "http://localhost:5012"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
-    parser.add_argument('--run_id', help='run_id')
 
     args, unknown = parser.parse_known_args()
     if args.url:
         url = args.url
-    if args.run_id:
-        run_id = args.run_id
     if unknown:
         chrome_driver_args = ' '.join(unknown)
         chrome_options.add_argument(chrome_driver_args)

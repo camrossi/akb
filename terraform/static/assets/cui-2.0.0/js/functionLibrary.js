@@ -53,8 +53,115 @@ function saveInput() {
       }
     }
   }
+  saveLoopBackAddresses();
   // console.log("Saved inputs locally.");
 }
+function saveLoopBackAddresses() {
+  if (page !== "fabric") return;
+  const saved = [];
+  const page = getPageName();
+  const loopBacksToSave = ["loopback_ipv4", "loopback_ipv6"];
+  for (const loopBack of loopBacksToSave) {
+      const grandParentElem = document.getElementById(loopBack);
+      if (grandParentElem !== null && grandParentElem !== undefined) {
+        for (const child of grandParentElem.children) {
+          saved.push(child.children[0].innerText);
+        }
+        sessionStorage.setItem(
+          page + " " + grandParentElem.id,
+          JSON.stringify(saved)
+        );
+    }
+  }
+}
+
+function loadLoopBackAddresses() {
+  const page = getPageName();
+  if (page !== "fabric")
+    return;
+  const loopBacksToSave = ["loopback_ipv4", "loopback_ipv6"];
+
+  for (const loopBack of loopBacksToSave) {
+    const grandParentElem = document.getElementById(loopBack);
+    if (grandParentElem !== null && grandParentElem !== undefined) {
+      console.log(sessionStorage.getItem(page + " " + grandParentElem.id));
+      const addressArr = JSON.parse(sessionStorage.getItem(page + " " + grandParentElem.id));
+      // console.log(addressArr);
+      for (const address of addressArr) {
+        // saved.push(child.children[0].innerText);
+        let elem = undefined;
+        if (loopBack === "loopback_ipv4") {
+          elem = document.getElementById("input_lo_ipv4");
+          elem.value = address;
+          input_lo_ipv4_enter();
+        }
+        else {
+          elem = document.getElementById("input_lo_ipv6");
+          elem.value = address;
+          input_lo_ipv6_enter();
+        }
+        elem.value = "";
+      }
+    }
+  }
+}
+
+  function input_lo_ipv4_enter() {
+    var count_lo = $("#loopback_ipv4").children().length;
+    if (count_lo >= 2) {
+      $("#form_loopback_alert").show();
+      $("#form_loopback").addClass("form-group--error");
+      return false;
+    }
+
+    var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
+    if (lo_ipv4_addrs == null) {
+      lo_ipv4_addrs = [];
+      $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+    }
+
+    var ipv4_addr = $("#input_lo_ipv4").val();
+    var lo_label = $(
+      '<span class="label label--info label--raised base-margin-left"></span>'
+    );
+    lo_label.append($("<span><span>").text(ipv4_addr));
+    lo_label.append('<span class="icon-close"></span>');
+
+    console.log(lo_label);
+    var label_ipv4 = $(lo_label).appendTo("#loopback_ipv4");
+    label_ipv4.data("ipv4", ipv4_addr);
+    lo_ipv4_addrs.push(ipv4_addr);
+    $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+    $(this).val("");
+  }
+  
+  function input_lo_ipv6_enter() {
+      var count_lo = $("#loopback_ipv6").children().length;
+      if (count_lo >= 2) {
+        $("#form_loopbackv6_alert").show();
+        $("#form_loopbackv6").addClass("form-group--error");
+        return false;
+      }
+
+      var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
+      if (lo_ipv6_addrs == null) {
+        lo_ipv6_addrs = [];
+        $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+      }
+
+      var ipv6_addr = $("#input_lo_ipv6").val();
+      var lo_label = $(
+        '<span class="label label--info label--raised base-margin-left"></span>'
+      );
+      lo_label.append($("<span></span>").text(ipv6_addr));
+      lo_label.append($('<span class="icon-close"></span>'));
+      var label_ipv6 = $(lo_label).appendTo("#loopback_ipv6");
+      label_ipv6.data("ipv6", ipv6_addr);
+      lo_ipv6_addrs.push(ipv6_addr);
+      $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+      $(this).val("");
+  }
+
 function loadInput() {
   var inputs, index;
   // console.log(JSON.stringify(sessionStorage, null, 2));
@@ -95,6 +202,7 @@ function loadInput() {
       }
     }
   }
+  loadLoopBackAddresses();
   // console.log("Loaded saved inputs from local storage.");
 }
 

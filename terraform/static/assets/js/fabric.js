@@ -170,33 +170,37 @@ $(document).ready(function() {
     });
 
     $("#input_lo_ipv4").on("keyup", function(e){
-        if (e.key == "Enter") {
-            var count_lo = $("#loopback_ipv4").children().length;
-            if ( count_lo >= 2 ) {
-                $("#form_loopback_alert").show();
-                $("#form_loopback").addClass("form-group--error");
-                return false
-            };
-
-            var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
-            if (lo_ipv4_addrs == null) {
-                lo_ipv4_addrs = []
-                $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
-            };
-
-            var ipv4_addr = $("#input_lo_ipv4").val();
-            var lo_label = $('<span class="label label--info label--raised base-margin-left"></span>');
-            lo_label.append($("<span><span>").text(ipv4_addr))
-            lo_label.append('<span class="icon-close"></span>')
-
-            console.log(lo_label)
-            var label_ipv4 = $(lo_label).appendTo("#loopback_ipv4");
-            label_ipv4.data("ipv4", ipv4_addr);
-            lo_ipv4_addrs.push(ipv4_addr);
-            $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
-            $(this).val("");
-        }
+        if (e.key == "Enter") input_lo_ipv4_enter();
     });
+
+    function input_lo_ipv4_enter() {
+        var count_lo = $("#loopback_ipv4").children().length;
+        if (count_lo >= 2) {
+        $("#form_loopback_alert").show();
+        $("#form_loopback").addClass("form-group--error");
+        return false;
+        }
+
+        var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
+        if (lo_ipv4_addrs == null) {
+        lo_ipv4_addrs = [];
+        $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+        }
+
+        var ipv4_addr = $("#input_lo_ipv4").val();
+        var lo_label = $(
+        '<span class="label label--info label--raised base-margin-left"></span>'
+        );
+        lo_label.append($("<span><span>").text(ipv4_addr));
+        lo_label.append('<span class="icon-close"></span>');
+
+        console.log(lo_label);
+        var label_ipv4 = $(lo_label).appendTo("#loopback_ipv4");
+        label_ipv4.data("ipv4", ipv4_addr);
+        lo_ipv4_addrs.push(ipv4_addr);
+        $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+        $(this).val("");
+    }
 
     $("#loopback_ipv4").on("click", ".icon-close", function(){
         var ipv4  = $(this).parent().data("ipv4");
@@ -214,32 +218,36 @@ $(document).ready(function() {
         };
     });
 
-    $("#input_lo_ipv6").on("keyup", function(e){
-        if (e.key == "Enter") {
-            var count_lo = $("#loopback_ipv6").children().length;
-            if ( count_lo >= 2 ) {
-                $("#form_loopbackv6_alert").show();
-                $("#form_loopbackv6").addClass("form-group--error");
-                return false
-            };
-
-            var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
-            if (lo_ipv6_addrs == null) {
-                lo_ipv6_addrs = []
-                $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
-            };
-
-            var ipv6_addr = $("#input_lo_ipv6").val();
-            var lo_label = $('<span class="label label--info label--raised base-margin-left"></span>');
-            lo_label.append($("<span></span>").text(ipv6_addr));
-            lo_label.append($('<span class="icon-close"></span>'))
-            var label_ipv6 = $(lo_label).appendTo("#loopback_ipv6");
-            label_ipv6.data("ipv6", ipv6_addr);
-            lo_ipv6_addrs.push(ipv6_addr);
-            $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
-            $(this).val("");
-        }
+    $("#input_lo_ipv6").on("keyup", function (e) {
+        if (e.key == "Enter") input_lo_ipv6_enter();
     });
+
+    function input_lo_ipv6_enter() {
+        var count_lo = $("#loopback_ipv6").children().length;
+        if (count_lo >= 2) {
+        $("#form_loopbackv6_alert").show();
+        $("#form_loopbackv6").addClass("form-group--error");
+        return false;
+        }
+
+        var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
+        if (lo_ipv6_addrs == null) {
+        lo_ipv6_addrs = [];
+        $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+        }
+
+        var ipv6_addr = $("#input_lo_ipv6").val();
+        var lo_label = $(
+        '<span class="label label--info label--raised base-margin-left"></span>'
+        );
+        lo_label.append($("<span></span>").text(ipv6_addr));
+        lo_label.append($('<span class="icon-close"></span>'));
+        var label_ipv6 = $(lo_label).appendTo("#loopback_ipv6");
+        label_ipv6.data("ipv6", ipv6_addr);
+        lo_ipv6_addrs.push(ipv6_addr);
+        $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+        $(this).val("");
+    }
 
     $("#loopback_ipv6").on("click", ".icon-close", function(){
         var ipv6  = $(this).parent().data("ipv6");

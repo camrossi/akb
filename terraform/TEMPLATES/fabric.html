@@ -12,6 +12,7 @@
         <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/jquery-3.0.0.min.js') }}"></script>
         <script src="{{ url_for('static',filename='assets/js/utils.js') }}"></script>
         <script src="{{ url_for('static',filename='assets/js/fabric.js') }}"></script>
+        <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/functionLibrary.js') }}"></script>
     </head>
 
     <body class="cui cui--animated cui--compressed" data-theme="">
@@ -304,10 +305,12 @@
                 <p/><p/>
 
             </form>
-            <div class="container">
-                <input id="Previous" type="button" value="Previous" class="btn btn--wide" name="button">
-                <input id="next" type="button" value="Next" class="btn btn--wide" name="button">
+        <div class="container">
+            <div class="navibox">
+               <input id="next" type="button" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
+               <input type="button" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
+         </div>
     </body>
     <div class="container">
         <footer class="footer footer--tertiary" id="_uidca388897">
@@ -335,5 +338,8 @@
     <div class="form-group base-margin-bottom"></div>
     <!-- End Main Content -->
     <script>
+    </script>
+    <script>
+        loadInput();
     </script>
 </html>

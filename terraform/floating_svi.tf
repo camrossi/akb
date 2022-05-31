@@ -42,7 +42,7 @@ resource "aci_l3out_path_attachment_secondary_ip" "floating_svi_sec_ip" {
 #                    node_id = v[0].node_id
 #                    pod_id = v[0].pod_id
 #                    calico_ip = split("/",v[1].ip)[0]
-#                    calico_as = v[1].local_as
+#                    k8s_cluster_as = v[1].local_as
 #                    index_key = join("_",[v[0].node_id, split("/",v[1].ip)[0]])
 #            } if v[0].rack_id == v[1].rack_id 
 #  ]
@@ -71,7 +71,7 @@ resource "aci_l3out_path_attachment_secondary_ip" "floating_svi_sec_ip" {
 #  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/lifp-${var.l3out.int_prof_name}/vlifp-[topology/pod-${each.value.pod_id}/node-${each.value.node_id}]-[vlan-${var.l3out.vlan_id}]/peerP-[${each.value.calico_ip}]/as.json"
 #  class_name = "bgpAsP"
 #      content = {
-#        "asn" = each.value.calico_as
+#        "asn" = each.value.k8s_cluster_as
 #
 #  }
 #}

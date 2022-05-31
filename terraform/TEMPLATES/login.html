@@ -108,8 +108,9 @@
                   -->
                   <tr>
                       <td>
-                          <div class="container">
-                              <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
+                          <div class="navibox">
+                              <input type="submit" value="Login" class="btn btn--wide" name="button" style="margin-left: 10px;" id="submit">
+                              <input id="Previous" type="button" value="Previous" class="btn btn--wide" name="button">
                           </div>
                       </td>
                   </tr>
@@ -200,6 +201,11 @@
             });
          });
          sessionStorage.clear();
+
+         $("#Previous").on("click", function(e){
+            $(location).attr('href',"/");
+         });
+
       </script>
    </body>
 

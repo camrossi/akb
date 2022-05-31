@@ -2,4 +2,3 @@
   gather_facts: false
   roles:
     - k8s_reset
-

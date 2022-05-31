@@ -29,7 +29,7 @@
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
 </head>
 
-<form id="form_cluster_network" name="tenantForm" method="post" action="/cluster_network">
+<form id="form_cluster_network" name="tenantForm" method="post" action="/cluster_network?fabric_type={{ fabric_type }}">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -104,6 +104,18 @@
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
+                              <label for="kube_version">CNI Plugin</label>
+                              <input list="kube_version_list" id="cni_plugin" name="cni_plugin" onfocus="this.value=''" value="Calico">
+                              <datalist id="kube_version_list">
+                                 <option value=Calico>
+                                 <option value=Kube-Router>
+                              </datalist>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="container">
+                        <div class="form-group base-margin-bottom">
+                           <div class="form-group__text">
                               <label for="ipv4_pod_sub">POD Subnet (Defaults Node Subnet + 1):</label>
                               <input type="text" id="ipv4_pod_sub" name="ipv4_pod_sub" value="{{ ipv4_pod_sub }}">
             
@@ -167,7 +179,7 @@
          <div class="container">
             <div class="navibox">
                <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+               <input type="submit" id="Previous" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
          </div>
 
@@ -217,7 +229,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("cluster_network")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("cluster_network")}}" + '?fabric_type=' + "{{ fabric_type }}";
         console.log(url);
         $("#form_cluster_network").attr("action", url);
         $("#form_cluster_network").submit();

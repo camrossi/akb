@@ -15,7 +15,7 @@
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
 </head>
 
-<form id="form_vcenter" name="tenantForm" method="post" action="/vcenter">
+<form id="form_vcenter" name="tenantForm" method="post" action="/vcenter?fabric_type={{ fabric_type }}">
 <script>
    const loadListener = document.addEventListener('turbo:load', loadListenerCreator);
 </script>
@@ -81,7 +81,7 @@
          <div class="container">
             <div class="navibox">
                <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+               <input type="submit" id="Previous" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
          </div>
    </form>
@@ -118,7 +118,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("vcenter")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("vcenter")}}" + '?fabric_type=' + "{{ fabric_type }}";
         $("#form_vcenter").attr("action", url);
         $("#form_vcenter").submit();
     })

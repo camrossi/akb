@@ -79,8 +79,7 @@ def update_all_dotenv(config):
             logger.info('Detected per-existing APIC user and no new admin user credentials passed')
             config['apic']['adminuser'] = existing_apic['adminuser']
             config['apic']['adminpass'] = existing_apic['adminpass']
-        
-    setdotenv('apic', json.dumps(config['apic']))
+        setdotenv('apic', json.dumps(config['apic']))
 
     if 'calico_nodes' in config:
         setdotenv('calico_nodes', json.dumps(config['calico_nodes']))
@@ -336,7 +335,7 @@ def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="
     return vc_vars
 
 def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
-                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain=""):
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", cni_plugin=""):
                         
     ''' Generate the configuration for the Kubernetes Cluster '''
     try:
@@ -386,7 +385,8 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
                 "sandbox_status" : True if sandbox_status == "on" else False,
                 "eBPF_status" : True if eBPF_status == "on" else False,
                 "dns_domain" : dns_domain,
-                "dns_servers" : dns_servers
+                "dns_servers" : dns_servers,
+                "cni_plugin": cni_plugin
                 } 
     return cluster
 
@@ -680,7 +680,7 @@ def calico_nodes_view():
             setdotenv('calico_nodes', json.dumps(calico_nodes))     
             return redirect(f"/cluster?fabric_type={fabric_type}")
         if button == "Previous":
-            return redirect('/vcenter')
+            return redirect(f'/vcenter?fabric_type={fabric_type}')
         if button == "Add Node":
             if req.get("calico_nodes") != "":
                 try:
@@ -962,7 +962,7 @@ def cluster_view():
 
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
 
-        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions())
+        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions(), fabric_type=fabric_type)
 
 def calculate_k8s_as(fabric_as):
     '''Ensure the K8s AS number falls within 1 and 65534'''
@@ -990,6 +990,7 @@ def cluster_network():
                 cluster['external_svc_subnet'] = external_svc_subnet
                 cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
                 cluster['local_as'] = req.get("k8s_local_as")
+                cluster['cni_plugin'] = req.get("cni_plugin")
                 cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
                 cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
                 cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
@@ -999,6 +1000,7 @@ def cluster_network():
                 cluster['external_svc_subnet'] = req.get("ipv4_ext_svc_sub")
                 cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
                 cluster['local_as'] = req.get("k8s_local_as")
+                cluster['cni_plugin'] = req.get("cni_plugin")
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
                     l3out['vlan_id'] = req.get("vlan_id")
@@ -1067,21 +1069,27 @@ def cluster_network():
             ipv6_svc_sub_iterator = (ipv6_cluster_subnet + 2 * ipv6_cluster_subnet.size()).subnets(new_prefix=108)
             ipv6_svc_sub = next(ipv6_svc_sub_iterator)
             ipv6_ext_svc_sub = next(ipv6_svc_sub_iterator)
-
+        
+        ipv4_cluster_subnet = None
+        ipv6_cluster_subnet = None
         if fabric_type == "aci":
-            return render_template('cluster_network.html', ipv4_cluster_subnet=l3out['ipv4_cluster_subnet'], ipv6_cluster_subnet=l3out['ipv6_cluster_subnet'], ipv4_pod_sub=ipv4_pod_sub, ipv6_pod_sub=ipv6_pod_sub,ipv4_svc_sub=ipv4_svc_sub, ipv6_svc_sub=ipv6_svc_sub, ipv4_ext_svc_sub=ipv4_ext_svc_sub, ipv6_ext_svc_sub=ipv6_ext_svc_sub, k8s_local_as=k8s_local_as, vm_deploy=vc['vm_deploy'])
+            ipv4_cluster_subnet=l3out['ipv4_cluster_subnet']
+            ipv6_cluster_subnet=l3out['ipv6_cluster_subnet']
         elif fabric_type == "vxlan_evpn":
-            return render_template('cluster_network.html',
-                                   ipv4_cluster_subnet=overlay["node_sub"],
-                                   ipv6_cluster_subnet=overlay["node_sub_v6"],
-                                   ipv4_pod_sub=ipv4_pod_sub,
-                                   ipv6_pod_sub=ipv6_pod_sub,
-                                   ipv4_svc_sub=ipv4_svc_sub,
-                                   ipv6_svc_sub=ipv6_svc_sub,
-                                   ipv4_ext_svc_sub=ipv4_ext_svc_sub,
-                                   ipv6_ext_svc_sub=ipv6_ext_svc_sub,
-                                   k8s_local_as=k8s_local_as,
-                                   vm_deploy=vc['vm_deploy'])
+            ipv4_cluster_subnet=overlay["node_sub"]
+            ipv6_cluster_subnet=overlay["node_sub_v6"]
+        return render_template('cluster_network.html',
+                                    ipv4_cluster_subnet=ipv4_cluster_subnet,
+                                    ipv6_cluster_subnet=ipv6_cluster_subnet,
+                                    ipv4_pod_sub=ipv4_pod_sub,
+                                    ipv6_pod_sub=ipv6_pod_sub,
+                                    ipv4_svc_sub=ipv4_svc_sub,
+                                    ipv6_svc_sub=ipv6_svc_sub,
+                                    ipv4_ext_svc_sub=ipv4_ext_svc_sub,
+                                    ipv6_ext_svc_sub=ipv6_ext_svc_sub,
+                                    k8s_local_as=k8s_local_as,
+                                    vm_deploy=vc['vm_deploy'],
+                                    fabric_type = fabric_type)
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
 def vcenterlogin():

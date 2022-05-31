@@ -8,7 +8,7 @@
   with_items:
     - IPPool.yaml
     - BGPConfiguration.yaml
-    - BGPPeer.j2
+    - BGPPeer.yaml
     - calico-typha.yaml
     - calico-typha-v46.yaml
     - kubernetes-services-endpoint.yaml
@@ -33,7 +33,9 @@
     dest: ./roles/calico/files/calicoctl
     force: no
   environment: "{{ proxy_env }}"
-  ignore_errors: yes 
+  ignore_errors: yes
+  when: 
+    - not sandbox_status
   tags:
     - calico
 
@@ -48,6 +50,8 @@
   retries: 10
   until: res is success
   any_errors_fatal: true
+  when: 
+    - not sandbox_status
   tags:
     - calico
 
@@ -130,7 +134,7 @@
   with_items:
     - IPPool.yaml
     - BGPConfiguration.yaml
-    - BGPPeer.j2
+    - BGPPeer.yaml
   register: res
   retries: 100
   until: res is success

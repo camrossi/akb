@@ -1,0 +1,25 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: {{ kubeadm_token }}
+nodeRegistration:
+  criSocket: "unix:///var/run/crio/crio.sock"
+---
+apiServer:
+  timeoutForControlPlane: 4m0s
+kind: ClusterConfiguration
+controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
+kubernetesVersion: "{{ kube_version.split("-")[0] }}"
+networking:
+  podSubnet: {{ pod_subnet }}
+  serviceSubnet: {{ cluster_svc_subnet }}
+controllerManager:
+  extraArgs:
+    "node-cidr-mask-size": "28"
+apiVersion: kubeadm.k8s.io/v1beta3
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd

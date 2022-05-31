@@ -1,0 +1,43 @@
+---
+- name: reset CI env of NKT
+  hosts: ndfc
+  gather_facts: false
+  vars:
+    fabric: "{{ fabric4 }}"
+  collections:
+    - cisco.dcnm
+  tasks:
+    - name: delete loopback 90
+      dcnm_interface:
+        fabric: "{{ fabric.name }}"
+        state: deleted
+        config:
+          - name: loopback90
+            switch: 
+              - "{{ item.ip_address }}"
+      loop: "{{ fabric.leaf }}"
+      ignore_errors: yes
+
+    - name: query existed policy contains subnet
+      dcnm_rest:
+        method: GET
+        path: "/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/policies/pagination?filter=description~10.15.0.0&fabricName={{ fabric.name }}"
+      register: result
+      ignore_errors: yes
+
+    - name: delete policies generated
+      dcnm_policy:
+        fabric: "{{ fabric.name }}"
+        state: deleted
+        config:
+          - name: "{{ item.policyId }}"
+          - switch:  
+            - ip:  "{{ item.ipAddress }}"
+      loop: "{{ result.response.DATA }}"
+      ignore_errors: yes
+
+    - name: re-deploy fabric
+      dcnm_rest:
+        path: "/appcenter/cisco/ndfc/api/v1/lan-fabric/rest/control/fabrics/{{fabric.name}}/config-deploy?forceShowRun=false"
+        method: POST
+      ignore_errors: yes

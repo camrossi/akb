@@ -67,6 +67,7 @@ variable "k8s_cluster" {
     eBPF_status         = bool
     dns_servers       = list(string)
     dns_domain        = string
+    cni_plugin        = string
      })
 }
 

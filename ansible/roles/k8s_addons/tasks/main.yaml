@@ -186,6 +186,9 @@
 
 - name: Wait for Neo4j to be Scheduled
   shell: kubectl wait --for=condition=PodScheduled pod -l app=my-neo4j
+  register: label_res
+  retries: 5
+  until: label_res is success
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons

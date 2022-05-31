@@ -89,8 +89,9 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="container">
-                                        <input type="Button" value="Login" class="btn btn--wide" name="button" id="login">
+                                    <div class="navibox">
+                                        <input type="Button" value="Login" class="btn btn--wide" name="button" id="login" style="margin-left: 10px;">
+                                        <input id="Previous" type="button" value="Previous" class="btn btn--wide" name="button">
                                     </div>
                                 </td>
                             </tr>
@@ -189,6 +190,11 @@
                 });
                 $("#login").on("click", login);
             });
+
+            $("#Previous").on("click", function(e){
+                $(location).attr('href',"/");
+            });
+
         </script>
 
 </html>

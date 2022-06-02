@@ -1397,6 +1397,14 @@ def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):
 
 @app.route('/l3out', methods=['GET', 'POST'])
 def l3out_view():
+    def ipv6_status(req):
+        if req.get("ipv6_cluster_subnet") == "":
+            unsetdotenv('ipv6_enabled')
+            return False
+        else:
+            logger.info('save ipv6_enabled variable')
+            setdotenv('ipv6_enabled', "")
+            return True
     ''' l3out page view '''
     apic = json.loads(getdotenv('apic'))
     phys_dom = []
@@ -1419,13 +1427,7 @@ def l3out_view():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            if req.get("ipv6_cluster_subnet") == "":
-                ipv6_enabled = False
-                unsetdotenv('ipv6_enabled')
-            else:
-                logger.info('save ipv6_enabled variable')
-                ipv6_enabled = True
-                setdotenv('ipv6_enabled', "")
+            ipv6_enabled = ipv6_status(req)
             mtu = int(req.get("mtu"))
             if mtu < 1280 or mtu > 9000:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
@@ -1495,8 +1497,7 @@ def l3out_view():
             rack_id = req.get("rack_id")
             rtr_id = req.get("rtr_id")
             primary_ip = req.get("node_ipv4")
-
-            # I check here also the other parameters
+            ipv6_enabled = ipv6_status(req)
 
             try:
                 # Use the Netwrok to ensure that the mask is always present
@@ -1524,7 +1525,7 @@ def l3out_view():
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv4 is equal to the subnet address")
 
             if ipv6_enabled:
-                print("Adding leaf v6")
+                logger.info("Adding leaf v6")
                 primary_ipv6 = req.get("node_ipv6")
                 try:
                     # Use the Netwrok to ensure that the mask is always present
@@ -1542,7 +1543,7 @@ def l3out_view():
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
 
                 node_ipv6 = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
-                print(node_ipv6)
+                logger.info(node_ipv6)
             else:
                 node_ipv6 = ""
             node_ipv4 = str(ipaddress.IPv4Interface(primary_ip).ip) + "/" + str(ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).prefixlen)

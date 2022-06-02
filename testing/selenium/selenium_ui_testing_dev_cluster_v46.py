@@ -98,7 +98,7 @@ elem.click()
 elem = driver.find_element(By.NAME,"ipv6_cluster_subnet")
 elem.clear()
 elem.send_keys("2001:db8:35::/56")
-
+sleep(0.5)
 
 add_anchor_node("1","1","101","1.1.1.101","192.168.35.201","2001:db8:35::201/56")
 add_anchor_node("1","1","102","1.1.1.102","192.168.35.202","2001:db8:35::202/56")

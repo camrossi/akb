@@ -1524,6 +1524,7 @@ def l3out_view():
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv4 is equal to the subnet address")
 
             if ipv6_enabled:
+                print("Adding leaf v6")
                 primary_ipv6 = req.get("node_ipv6")
                 try:
                     # Use the Netwrok to ensure that the mask is always present
@@ -1541,6 +1542,7 @@ def l3out_view():
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
 
                 node_ipv6 = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
+                print(node_ipv6)
             else:
                 node_ipv6 = ""
             node_ipv4 = str(ipaddress.IPv4Interface(primary_ip).ip) + "/" + str(ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).prefixlen)

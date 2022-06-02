@@ -10,7 +10,7 @@ from time import sleep
 def wait_for_title(driver, title):
     WebDriverWait(driver, 30).until(lambda x: title in x.title )
 
-def add_anchor_ndoe(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
+def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem = driver.find_element(By.NAME,"pod_id")
     elem.send_keys(pod_id)
     elem = driver.find_element(By.NAME,"rack_id")
@@ -100,8 +100,8 @@ elem.clear()
 elem.send_keys("2001:db8:35::/56")
 
 
-add_anchor_ndoe("1","1","101","1.1.1.101","192.168.35.201","2001:db8:35::201/56")
-add_anchor_ndoe("1","1","102","1.1.1.102","192.168.35.202","2001:db8:35::202/56")
+add_anchor_node("1","1","101","1.1.1.101","192.168.35.201","2001:db8:35::201/56")
+add_anchor_node("1","1","102","1.1.1.102","192.168.35.202","2001:db8:35::202/56")
 
 elem = driver.find_element(By.ID,"submit")
 elem.click()

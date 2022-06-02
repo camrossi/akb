@@ -28,7 +28,7 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.click()
     sleep(1)
 
-def add_calico_ndoe(hostname, ip, rack_id):
+def add_calico_node(hostname, ip, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
     elem.clear()
     elem.send_keys(hostname)
@@ -135,12 +135,12 @@ wait_for_title(driver, "Calico Nodes")
 
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('gitaction-nkt-master-1','192.168.39.1/24', '1')
-add_calico_ndoe('gitaction-nkt-master-2','192.168.39.2/24', '1')
-add_calico_ndoe('gitaction-nkt-master-3','192.168.39.3/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-1','192.168.39.4/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-2','192.168.39.5/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-3','192.168.39.6/24', '1')
+add_calico_node('gitaction-nkt-master-1','192.168.39.1/24', '1')
+add_calico_node('gitaction-nkt-master-2','192.168.39.2/24', '1')
+add_calico_node('gitaction-nkt-master-3','192.168.39.3/24', '1')
+add_calico_node('gitaction-nkt-worker-1','192.168.39.4/24', '1')
+add_calico_node('gitaction-nkt-worker-2','192.168.39.5/24', '1')
+add_calico_node('gitaction-nkt-worker-3','192.168.39.6/24', '1')
 
 
 elem = driver.find_element(By.ID,"submit")

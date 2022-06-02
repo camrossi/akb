@@ -122,13 +122,10 @@ def main():
     url = "http://localhost:5013"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
-    parser.add_argument('--run_id', help='run_id')
 
     args, unknown = parser.parse_known_args()
     if args.url:
         url = args.url
-    if args.run_id:
-        run_id = args.run_id
     if unknown:
         chrome_driver_args = ' '.join(unknown)
         chrome_options.add_argument(chrome_driver_args)

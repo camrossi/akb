@@ -103,7 +103,6 @@ def click_previous(driver, url):
     '''Click the previous button'''
     elem = driver.find_element(By.ID,'Previous')
     elem.click()
-    WebDriverWait(driver, 60).until(EC.url_changes(url))
 
 def previous_pages(driver):
     '''test the previous buttons'''
@@ -111,11 +110,9 @@ def previous_pages(driver):
         'Create',
         'Cluster Network',
         'NDFC Fabric',
-        'NDFC Login',
     ]
     for page in pages:
         click_previous(driver, assert_ndfc(driver, page))
-    wait_for_title(driver,"Day0")
 
 def main():
     chrome_options = Options()

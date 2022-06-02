@@ -454,6 +454,7 @@ def tf_plan():
         config_file = "ndfc/" + config_file 
     with open(config_file, 'r') as fp:
         current_config = hcl2.load(fp)
+        print(current_config)
     if not current_config['vc']['vm_deploy']:
         logger.info('K8s Cluster deployment disabled')
         #Change to the VM module directory
@@ -533,7 +534,7 @@ def tf_apply():
     g = proc.Group()
     cluster_status = check_if_new_cluster()
     if cluster_status == 'new':
-        logger.info("Creating new Cluster")
+        logger.info("Deploy")
         g.run(["bash", "-c","terraform -chdir="+chdir+" apply -auto-approve -no-color plan"])
     else:
         new_nodes, removed_nodes = node_delta(chdir)

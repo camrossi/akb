@@ -16,6 +16,8 @@ variable "overlay" {
     ibgp_peer_vlan = number
     k8s_route_map  = string
     route_tag      = number
+    gateway_v4     = string
+    gateway_v6     = string
     ipv6_enabled   = bool
     k8s_integ      = bool
     vpc_peers = list(

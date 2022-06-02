@@ -16,8 +16,8 @@ module "k8s_node" {
   }
   fabric = {
     type         = var.fabric_type
-    ip           = "${var.calico_nodes[0].ip_gateway}"
-    ipv6         = "${var.calico_nodes[0].ipv6_gateway}"
+    ip           = var.overlay.gateway_v4
+    ipv6         = var.overlay.gateway_v6
     ipv6_enabled = var.overlay.ipv6_enabled
     as           = var.overlay.asn
     bgp_pass     = var.overlay.bgp_passwd

@@ -46,6 +46,8 @@ variable "overlay" {
     route_tag      = number
     k8s_integ      = bool
     ipv6_enabled   = bool
+    gateway_v4     = string
+    gateway_v6     = string
     vpc_peers = list(
       list(object({
         hostname       = string

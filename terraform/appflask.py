@@ -1229,7 +1229,7 @@ def vctemplate():
                 flash("No hosts connected to datastore ", req.get('datastore'))
                 return redirect('/vctemplate')
             host = datastore.host[0].key
-            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin',host=host)
+            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin',hostSystem=host)
             
             cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(),resource_pool, datastore, cisp)
 
@@ -1256,7 +1256,7 @@ def vctemplate():
                 task = vm.Destroy_Task()
                 vc_utils.wait_for_tasks(si, [task])
             upload = concurrent.futures.ThreadPoolExecutor()
-            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle, host)
+            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle,host)
             # Wait for upload to complete UI freeze here
             upload.shutdown(wait=True)
             vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)

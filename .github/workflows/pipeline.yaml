@@ -73,7 +73,7 @@ jobs:
             curl -b cookie.txt -s http://localhost:5012/tf_apply?fabric_type=vxlan_evpn
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt -s --fail http://ocalhost:5012/static/manifests/manifests.zip    
+          curl -b cookie.txt -s --fail http://localhost:5012/static/manifests/manifests.zip    
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 

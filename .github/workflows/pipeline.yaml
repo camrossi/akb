@@ -59,18 +59,18 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
-      #- name: Start NKT
-      #  run: | 
-      #    gunicorn -w 4 -k gevent -b 0.0.0.0:5012 appflask:app -D ; sleep 5
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5012 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4.py --headless && sleep 2
       - name: Terraform plan
         run: | 
-          curl -c cookie.txt -s http://localhost:5012 -o /dev/null && curl -b cookie.txt -s http://localhost:5012/tf_plan
+          curl -c cookie.txt -s http://localhost:5012 -o /dev/null && curl -b cookie.txt -s http://localhost:5012/tf_plan?fabric_type=vxlan_evpn
       - name: Terraform apply
         run: | 
-            curl -b cookie.txt -s http://localhost:5012/tf_apply
+            curl -b cookie.txt -s http://localhost:5012/tf_apply?fabric_type=vxlan_evpn
       - name: Download Manifest Files
         run: | 
           curl -b cookie.txt -s --fail http://ocalhost:5012/static/manifests/manifests.zip    
@@ -82,7 +82,7 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-            curl -b cookie.txt -s http://localhost:5012/destroy
+            curl -b cookie.txt -s http://localhost:5012/destroy?fabric_type=vxlan_evpn
 
   nkt-no-cluster-kube-router-ndfc:
   # The type of runner that the job will run on
@@ -101,18 +101,18 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
-      #- name: Start NKT
-      #  run: | 
-      #    gunicorn -w 4 -k gevent -b 0.0.0.0:5013 appflask:app -D ; sleep 5
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5013 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4-kube-router.py --headless && sleep 2
       - name: Terraform plan
         run: | 
-          curl -c cookie.txt -s http://localhost:5013 -o /dev/null && curl -b cookie.txt -s http://localhost:5013/tf_plan
+          curl -c cookie.txt -s http://localhost:5013 -o /dev/null && curl -b cookie.txt -s http://localhost:5013/tf_plan?fabric_type=vxlan_evpn
       - name: Terraform apply
         run: | 
-            curl -b cookie.txt -s http://localhost:5013/tf_apply
+            curl -b cookie.txt -s http://localhost:5013/tf_apply?fabric_type=vxlan_evpn
       - name: Download Manifest Files
         run: | 
           curl -b cookie.txt -s --fail http://localhost:5013/static/manifests/manifests.zip    
@@ -124,4 +124,4 @@ jobs:
       - name: Terraform destroy and delete APIC user
         if: always()
         run: | 
-            curl -b cookie.txt -s http://localhost:5013/destroy
+            curl -b cookie.txt -s http://localhost:5013/destroy?fabric_type=vxlan_evpn

@@ -92,18 +92,37 @@ def cluster_network_page(driver):
 
     WebDriverWait(driver, 60).until(EC.url_changes(current_url))
 
+def assert_ndfc(driver, title) -> str:
+    '''Assert that ndfc fabric type is in the url with page title'''
+    current_url = driver.current_url
+    assert "fabric_type=vxlan_evpn" in current_url
+    wait_for_title(driver,title)
+    return current_url
+
+def click_previous(driver, url):
+    '''Click the previous button'''
+    elem = driver.find_element(By.ID,'Previous')
+    elem.click()
+
+def previous_pages(driver):
+    '''test the previous buttons'''
+    pages = [
+        'Create',
+        'Cluster Network',
+        'NDFC Fabric',
+    ]
+    for page in pages:
+        click_previous(driver, assert_ndfc(driver, page))
+
 def main():
     chrome_options = Options()
-    url = "http://172.25.74.99:5010"
+    url = "http://localhost:5012"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
-    parser.add_argument('--run_id', help='run_id')
 
     args, unknown = parser.parse_known_args()
     if args.url:
         url = args.url
-    if args.run_id:
-        run_id = args.run_id
     if unknown:
         chrome_driver_args = ' '.join(unknown)
         chrome_options.add_argument(chrome_driver_args)
@@ -115,6 +134,7 @@ def main():
     login_page(driver)
     fabric_page(driver)
     cluster_network_page(driver)
+    previous_pages(driver)
     sleep(5)
     #driver.quit()
 

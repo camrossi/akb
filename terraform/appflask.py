@@ -60,6 +60,14 @@ def getdotenv(env):
         logger.error('getdotenv failed to load %s', env)
         return None
 
+def getdotenvjson(env):
+    '''Load dotenv as json'''
+    try:
+        val = getdotenv(env)
+        return json.loads(val)
+    except:
+        return None
+
 def setdotenv(key, value):
     '''Set dotenv'''
     if key :
@@ -441,44 +449,48 @@ def tf_plan():
     
     # Get the current dir
     cwd = os.getcwd()
+    config_file = "cluster.tfvars"
+    if fabric_type == "vxlan_evpn":
+        config_file = "ndfc/" + config_file 
+    with open(config_file, 'r') as fp:
+        current_config = hcl2.load(fp)
+        print(current_config)
+    if not current_config['vc']['vm_deploy']:
+        logger.info('K8s Cluster deployment disabled')
+        #Change to the VM module directory
+        os.chdir("modules/k8s_node")
+        if os.path.exists("vms.tf"):
+            logger.info('Disable VM Deployment')
+            os.rename("vms.tf","vms.tf.ignore")
+        if os.path.exists("outputs.tf"):
+            logger.info('Enable Config Only outputs')
+            os.rename("outputs.tf","outputs.tf.ignore")
+            os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
+        if os.path.exists("group_var_template.tmpl"):
+            logger.info('Enable Config Only Templates')
+            os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
+            os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
+        os.chdir(cwd)
+    if current_config['vc']['vm_deploy']:
+        logger.info('K8s Cluster enbaled, enable vms and output tf files')
+        os.chdir("modules/k8s_node")
+        if os.path.exists("vms.tf.ignore"):
+            logger.info('Enable VM Deployment')
+            os.rename("vms.tf.ignore","vms.tf")
+        if os.path.exists("outputs.tf.ignore"):
+            logger.info('Enable Cluster Deployment outputs')
+            os.rename("outputs.tf.ignore","outputs.tf")
+            os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
+        if os.path.exists("group_var_template.tmpl.ignore"):
+            logger.info('Enable Cluster Templates')
+            os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
+            os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
+        os.chdir(cwd)
     if fabric_type == "aci":
         apic = json.loads(getdotenv('apic'))
         ret = create_apic_user(apic)
         if ret != 'OK':
             return ret
-        with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl2.load(fp)
-        if not current_config['vc']['vm_deploy']:
-            logger.info('K8s Cluster deployment disabled')
-            #Change to the VM module directory
-            os.chdir("modules/k8s_node")
-            if os.path.exists("vms.tf"):
-                logger.info('Disable VM Deployment')
-                os.rename("vms.tf","vms.tf.ignore")
-            if os.path.exists("outputs.tf"):
-                logger.info('Enable Config Only outputs')
-                os.rename("outputs.tf","outputs.tf.ignore")
-                os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
-            if os.path.exists("group_var_template.tmpl"):
-                logger.info('Enable Config Only Templates')
-                os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
-                os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
-            os.chdir(cwd)
-        if current_config['vc']['vm_deploy']:
-            logger.info('K8s Cluster enbaled, enable vms and output tf files')
-            os.chdir("modules/k8s_node")
-            if os.path.exists("vms.tf.ignore"):
-                logger.info('Enable VM Deployment')
-                os.rename("vms.tf.ignore","vms.tf")
-            if os.path.exists("outputs.tf.ignore"):
-                logger.info('Enable Cluster Deployment outputs')
-                os.rename("outputs.tf.ignore","outputs.tf")
-                os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
-            if os.path.exists("group_var_template.tmpl.ignore"):
-                logger.info('Enable Cluster Templates')
-                os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
-                os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
-            os.chdir(cwd)
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
@@ -522,7 +534,7 @@ def tf_apply():
     g = proc.Group()
     cluster_status = check_if_new_cluster()
     if cluster_status == 'new':
-        logger.info("Creating new Cluster")
+        logger.info("Deploy")
         g.run(["bash", "-c","terraform -chdir="+chdir+" apply -auto-approve -no-color plan"])
     else:
         new_nodes, removed_nodes = node_delta(chdir)
@@ -1007,7 +1019,7 @@ def cluster_network():
                     if l3out['vlan_id'] == "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
                         logger.info('Invalid VLAN detected')
                         flash("Please Specify a valid VLAN ID (2-4094)")
-                        return redirect('/cluster_network')
+                        return redirect(f'/cluster_network?fabric_type={fabric_type}')
                     logger.info('save l3out variable to update the VLAN ID in case of not VM Deployment')
                     setdotenv('l3out', json.dumps(l3out))
             if ipv6_enabled: 
@@ -1029,7 +1041,7 @@ def cluster_network():
             if fabric_type == "aci":
                 return redirect('/l3out')
             if fabric_type == "vxlan_evpn":
-                return redirect('/fabric')
+                return redirect(f'/fabric?fabric_type={fabric_type}')
     if request.method == 'GET':
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
@@ -1299,10 +1311,10 @@ def vcenter():
                 si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
             except gaierror as e:
                 flash("Unable to connect to VC", 'error')
-                return redirect('/vcenterlogin')
+                return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
             except Exception as e:
                 flash(e.msg, 'error')
-                return redirect('/vcenterlogin')                     
+                return redirect(f'/vcenterlogin?fabric_type={fabric_type}')                   
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
@@ -1344,10 +1356,10 @@ def vcenter():
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
         except gaierror as e:
             flash("Unable to connect to VC", 'error')
-            return redirect('/vcenterlogin')
+            return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
         except Exception as e:
             flash(e.msg, 'error')
-            return redirect('/vcenterlogin')
+            return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
 
         dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
@@ -1583,6 +1595,11 @@ def fabric():
         return redirect('/')
     if not getdotenv("ndfc"):
         return redirect(f"/login?fabric_type={fabric_type}")
+    vc = getdotenvjson("vc")
+    if not vc:
+        vm_deploy = True
+    else:
+        vm_deploy = vc.get('vm_deploy')
     if request.method == "GET":
         if fabric_type == "vxlan_evpn":
             fabrics = []
@@ -1605,7 +1622,7 @@ def fabric():
             return json.dumps({"error": escape(message)}), 400
         result = ndfc_process_fabric_setting(data)
         if result:
-            return json.dumps({"ok": "fabric setting configured"}), 200
+            return json.dumps({"ok": "fabric setting configured", "vm_deploy":vm_deploy}), 200
         else:
             return json.dumps({"error": "invalid settings"}), 400
 

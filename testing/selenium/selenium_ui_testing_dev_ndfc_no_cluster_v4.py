@@ -99,21 +99,6 @@ def assert_ndfc(driver, title) -> str:
     wait_for_title(driver,title)
     return current_url
 
-def click_previous(driver, url):
-    '''Click the previous button'''
-    elem = driver.find_element(By.ID,'Previous')
-    elem.click()
-
-def previous_pages(driver):
-    '''test the previous buttons'''
-    pages = [
-        'Create',
-        'Cluster Network',
-        'NDFC Fabric',
-    ]
-    for page in pages:
-        click_previous(driver, assert_ndfc(driver, page))
-
 def main():
     chrome_options = Options()
     url = "http://localhost:5012"
@@ -134,7 +119,6 @@ def main():
     login_page(driver)
     fabric_page(driver)
     cluster_network_page(driver)
-    previous_pages(driver)
     sleep(5)
     #driver.quit()
 

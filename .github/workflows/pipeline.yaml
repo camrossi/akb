@@ -59,9 +59,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
-      - name: Start NKT
-        run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5012 appflask:app -D ; sleep 5
+      #- name: Start NKT
+      #  run: | 
+      #    gunicorn -w 4 -k gevent -b 0.0.0.0:5012 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4.py --headless && sleep 2
@@ -101,9 +101,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
-      - name: Start NKT
-        run: | 
-          gunicorn -w 4 -k gevent -b 0.0.0.0:5013 appflask:app -D ; sleep 5
+      #- name: Start NKT
+      #  run: | 
+      #    gunicorn -w 4 -k gevent -b 0.0.0.0:5013 appflask:app -D ; sleep 5
       - name: Run headless chrome to generate the config
         run: | 
           python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4-kube-router.py --headless && sleep 2
@@ -115,7 +115,7 @@ jobs:
             curl -b cookie.txt -s http://localhost:5013/tf_apply
       - name: Download Manifest Files
         run: | 
-          curl -b cookie.txt -s --fail http://ocalhost:5013/static/manifests/manifests.zip    
+          curl -b cookie.txt -s --fail http://localhost:5013/static/manifests/manifests.zip    
       - name: Kill Terraform if workflow is cancelled manually
         if: cancelled()
         run: | 

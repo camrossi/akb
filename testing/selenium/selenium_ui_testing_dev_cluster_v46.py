@@ -28,6 +28,7 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4,node_ipv6):
     elem.send_keys(node_ipv6)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID,"add_node")))
     WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 def add_calico_node(hostname, ip, ipv6, rack_id):
@@ -45,6 +46,7 @@ def add_calico_node(hostname, ip, ipv6, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID,"add_node")))
     WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 chrome_options = Options()

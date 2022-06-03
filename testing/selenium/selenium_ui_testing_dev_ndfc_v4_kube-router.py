@@ -34,8 +34,8 @@ def add_calico_ndoe(driver, hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID, "add_node")
     elem.click()
-    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
     sleep(1)
+    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 def fill_by_id(driver, id, value):
     elem = driver.find_element(By.ID, id)

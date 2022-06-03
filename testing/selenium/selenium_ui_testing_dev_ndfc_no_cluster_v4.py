@@ -128,6 +128,7 @@ def main():
         chrome_options.add_argument(chrome_driver_args)
 
     driver = webdriver.Chrome(options=chrome_options)
+    driver.implicitly_wait(10)
     driver.get(url)
 
     root_page(driver)

@@ -5,7 +5,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-import random
 import argparse
 from time import sleep
 
@@ -26,7 +25,7 @@ def add_calico_ndoe(driver, hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID, "add_node")
     elem.click()
-    sleep(1)
+    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 
 def fill_by_id(driver, id, value):

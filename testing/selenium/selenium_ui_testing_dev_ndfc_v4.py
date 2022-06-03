@@ -20,7 +20,7 @@ def check_exits_by_id(driver, id):
 def wait_for_title(driver, title):
     WebDriverWait(driver, 30).until(lambda x: title in x.title )
 
-def add_calico_ndoe(driver, hostname, ip, rack_id):
+def add_calico_node(driver, hostname, ip, rack_id):
     elem = driver.find_element(By.NAME, "hostname")
     elem.clear()
     elem.send_keys(hostname)
@@ -34,7 +34,7 @@ def add_calico_ndoe(driver, hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID, "add_node")
     elem.click()
-    sleep(1)
+    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 
 def fill_by_id(driver, id, value):
@@ -155,12 +155,12 @@ def calico_node_page(driver):
     elem = driver.find_element(By.ID, 'calico_nodes')
     elem.clear()
 
-    add_calico_ndoe(driver, 'gitaction-nkt-master-1', '10.15.0.1/24', '1')
-    add_calico_ndoe(driver, 'gitaction-nkt-master-2', '10.15.0.2/24', '1')
-    add_calico_ndoe(driver, 'gitaction-nkt-master-3', '10.15.0.3/24', '1')
-    add_calico_ndoe(driver, 'gitaction-nkt-worker-1', '10.15.0.4/24', '1')
-    add_calico_ndoe(driver, 'gitaction-nkt-worker-2', '10.15.0.5/24', '1')
-    add_calico_ndoe(driver, 'gitaction-nkt-worker-3', '10.15.0.6/24', '1')
+    add_calico_node(driver, 'gitaction-nkt-master-1', '10.15.0.1/24', '1')
+    add_calico_node(driver, 'gitaction-nkt-master-2', '10.15.0.2/24', '1')
+    add_calico_node(driver, 'gitaction-nkt-master-3', '10.15.0.3/24', '1')
+    add_calico_node(driver, 'gitaction-nkt-worker-1', '10.15.0.4/24', '1')
+    add_calico_node(driver, 'gitaction-nkt-worker-2', '10.15.0.5/24', '1')
+    add_calico_node(driver, 'gitaction-nkt-worker-3', '10.15.0.6/24', '1')
     elem = driver.find_element(By.ID, "submit")
     current_url = driver.current_url
     elem.click()

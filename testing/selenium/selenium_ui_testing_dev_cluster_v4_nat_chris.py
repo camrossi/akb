@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
 from time import sleep
+from selenium_utils import wait_for_clickable
 
 def wait_for_title(driver, title):
     WebDriverWait(driver, 30).until(lambda x: title in x.title )
@@ -26,8 +27,7 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.send_keys(node_ipv4)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
-    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
+    wait_for_clickable(driver,(By.ID,"add_node"))
 
 def add_calico_node(hostname, ip, natip, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
@@ -44,8 +44,7 @@ def add_calico_node(hostname, ip, natip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
-    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
+    wait_for_clickable(driver,(By.ID,"add_node"))
 
 chrome_options = Options()
 if len(sys.argv)>=2:

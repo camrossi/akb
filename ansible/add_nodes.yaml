@@ -34,3 +34,21 @@
     retries: 5
     until: label_res is success
     any_errors_fatal: true
+
+  - name: Copy kube-router manifests
+    template:
+      src: "roles/kube-router/templates/{{ item }}"
+      dest: /tmp/{{ item }}
+      force: yes
+    with_items:
+      - BGPPeers.yaml
+    when: cni_plugin == "Kube-Router"
+
+  - name: Annotate Node with BGP Peers
+    shell: 
+      while read -r line; do kubectl annotate node $line ; done < /tmp/BGPPeers.yaml
+    register: res
+    retries: 10
+    until: res is success
+    any_errors_fatal: true
+    when: cni_plugin == "Kube-Router"

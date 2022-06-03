@@ -1,6 +1,6 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from time import sleep
 def wait_for_clickable(driver, ref):
     c = 0
     while c < 30:
@@ -10,3 +10,4 @@ def wait_for_clickable(driver, ref):
             break
         except Exception:
             continue
+    sleep(2)

@@ -25,7 +25,6 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.send_keys(node_ipv4)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID,"add_node")))
     WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 def add_calico_ndoe(hostname, ip, natip, rack_id):
@@ -43,7 +42,6 @@ def add_calico_ndoe(hostname, ip, natip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID,"add_node")))
     WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 chrome_options = Options()
@@ -51,6 +49,7 @@ if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
+driver.implicitly_wait(10)
 
 driver.get("http://10.48.168.169:5005")
 wait_for_title(driver, "NKT")

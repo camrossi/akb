@@ -34,7 +34,6 @@ def add_calico_node(driver, hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID, "add_node")
     elem.click()
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID,"add_node")))
     WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID,"add_node")))
 
 
@@ -249,6 +248,7 @@ def main():
         chrome_options.add_argument(chrome_driver_args)
 
     driver = webdriver.Chrome(options=chrome_options)
+    driver.implicitly_wait(10)
     driver.get(url)
 
     root_page(driver)

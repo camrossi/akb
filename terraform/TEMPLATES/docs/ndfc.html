@@ -43,15 +43,17 @@
          <div class="container bg-gray">
             <div class="col-md-12">
                 <header>
-                    <h1 class="page-title">VXLAN EVPN and Calico Architecture</h1>
+                    <h1 class="page-title">VXLAN EVPN and K8s Architecture</h1>
                 </header>
                 <div class="page-body">
                     <p id="1a4a776e-1273-4cfc-8ecb-4eed1db95ec2" class="text-size-16">
                     This tool implements Calico Network on Kubernetes cluster based on the <em>AS-per-Cluster</em> in <a href="https://www.cisco.com/c/en/us/td/docs/dcn/whitepapers/cisco-nx-os-calico-network-design.html"><strong>Cisco NX-OS Calico Network Design White Paper</strong></a>, section <strong>Deploy Calico over VXLAN EVPN fabrics </strong>with a little variation. This tool under the hood uses Terraform to push configuration to fabric through Nexus Dashboard Fabric Controller(NDFC) and deploy Kubernetes(K8s) Virtual Machines. Ansible is used to configure K8s VMs, bootstrap and provision K8s Cluster.
+                    <br> <b>Note:</b> The same architecture developed for Calico is re-used for the <a href="https://www.kube-router.io/" > Kube-Router </a> CNI Option
                     </p>
                     <h2 id="f05c7bd9-79ed-4793-b450-54e7d1c65135" class="">High Level Architecture</h2>
                     <p id="6571d860-c2d3-47c6-9ba7-e3996ea52ff6" class="text-size-16" >
-                    As best practice suggested by Cisco, all leaf switches are in the same AS while all Kubernetes nodes are in another AS. An eBGP session is established between the node IP of each Kubernetes node and the loopback address of the local leaf switch. To simplify the BGP configuration on Calico, same peer of loopback addresses will be used on all vPC Peers as they are local to each leaf switch and should not be advertised to EVPN address family. As result, iBGP peering in user VRF is needed between vPC peer. 
+                    As best practice suggested by Cisco, all leaf switches are in the same AS while all Kubernetes nodes are in another AS. An eBGP session is established between the node IP of each Kubernetes node and the loopback address of the local leaf switch. 
+                    To simplify the BGP configuration on the K8s cluster the same BGP peer loopback addresses will be used on all vPC Peers as they are local to each leaf switch and should not be advertised to EVPN address family. As result, iBGP peering in user VRF is needed between vPC peer. 
                     </p>
                     <div class="flex flex-center">
                         <div class="col-md-8 panel panel--bordered panel--raised panel--loose">
@@ -84,7 +86,7 @@
                     </div>
                     </p>
                     <p id="fd7b7190-3171-4537-9478-31150cf17a0c" class="">
-                    Network and VRF used for node connectivity need pre-configured on NDFC with IPv4 gateway(IPv6 is optional). This tool will acquire the subnet configured under Network and use it for Node Subnet. Additional resources are needed as follow:
+                    Network and VRF used for node connectivity needs to be pre-configured on NDFC with IPv4 gateway(IPv6 is optional). This tool will acquire the subnet configured under Network and use it for Node Subnet. Additional resources are needed as follow:
                     </p>
                     <ul id="1059e225-eabb-4978-82e5-b10460583fde" class="bulleted-list">
                         <li style="list-style-type:disc">loopback addresses(IPv4 and IPv6), used for eBGP peer on leaf switches to K8s Nodes</li>
@@ -98,7 +100,6 @@
                     <ul id="fcc6a090-76f7-4c16-9512-60f3a842e0f7" class="bulleted-list">
                         <li style="list-style-type:disc">Route-map name and route tag, used for filtering routes to Kubernetes Nodes</li>
                     </ul>
-                    <p id="01efad2b-0dd2-4c86-b255-548a41855e67" class="text-size-16">Other common requirements, please refer to this <a href="/docs/prereqaci">doc</a>.</p></div>
             </div>
          </div>
          </div>

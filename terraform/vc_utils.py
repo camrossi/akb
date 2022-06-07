@@ -142,7 +142,7 @@ def wait_for_tasks(service_instance, tasks):
 def import_spec_params(entityName,diskProvisioning, hostSystem):
     return vim.OvfManager.CreateImportSpecParams(entityName=entityName, diskProvisioning=diskProvisioning, hostSystem=hostSystem)
 
-def get_largest_free_rp(si, datacenter):
+def get_largest_free_rp(si, datacenter, host):
     """
     Get the resource pool with the largest unreserved memory for VMs.
     """
@@ -152,7 +152,7 @@ def get_largest_free_rp(si, datacenter):
     unreserved_for_vm = 0
     try:
         for resource_pool in container_view.view:
-            if resource_pool.runtime.memory.unreservedForVm > unreserved_for_vm:
+            if resource_pool.runtime.memory.unreservedForVm > unreserved_for_vm and host in resource_pool.owner.host:
                 largest_rp = resource_pool
                 unreserved_for_vm = resource_pool.runtime.memory.unreservedForVm
     finally:

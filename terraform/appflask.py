@@ -1218,7 +1218,8 @@ def vctemplate():
                 return redirect('/vcenterlogin')            
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
-            resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
+            host = datastore.host[0].key
+            resource_pool = vc_utils.get_largest_free_rp(si, datacenter, host)
             ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
             ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
@@ -1228,9 +1229,7 @@ def vctemplate():
             if len(datastore.host) == 0:
                 flash("No hosts connected to datastore ", req.get('datastore'))
                 return redirect('/vctemplate')
-            host = datastore.host[0].key
             cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin',hostSystem=host)
-            
             cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(),resource_pool, datastore, cisp)
 
             if cisr.error:
@@ -1279,7 +1278,8 @@ def vctemplate():
             flash("Unable to connect to VC", 'error')
             return redirect('/vcenterlogin')
         except Exception as e:
-            flash(e.msg, 'error')
+            logger.error(e)
+            flash(str(e), 'error')
             return redirect('/vcenterlogin')
 
         dcs = vc_utils.get_all_dcs(si)

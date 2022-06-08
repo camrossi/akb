@@ -59,3 +59,7 @@ A visualization tool `vkaci` is also deployed on the cluster. It is exposed as a
 ## Open Issues
 
 * L3OUT ECMP is used to load balance traffic to the services running in the cluster: Every node that has a POD for an exposed service will advertise a /32 host route for the service IP. Currently ACI does not support Resilient hashing for L3out ECMP. This means that if the number of ECMP paths are changed (scaling up/down a deploument could result in that as well as node failure) the flows can potentially be re-hashed to a different nodes resulting in connections resets. There is currently a feature request opened to support Resilient hashing for L3out ECMP: US9273
+
+## Support
+
+Software contained in this repo is subject to the MIT license and is not supported by Cisco Systems or any of its subsidiaries in any shape or form.

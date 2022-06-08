@@ -52,3 +52,16 @@
     until: res is success
     any_errors_fatal: true
     when: cni_plugin == "Kube-Router"
+
+- hosts: k8s_workers
+  gather_facts: false
+  tasks:
+  - name: Restart Kube-Rotuer on the new nodes
+    shell: 
+      kubectl  delete pod -n kube-system  -l k8s-app=kube-router --field-selector spec.nodeName="{{ inventory_hostname }}"
+    register: res
+    delegate_to: "{{groups['k8s_primary_master'][0]}}"
+    retries: 10
+    until: res is success
+    any_errors_fatal: true
+    when: cni_plugin == "Kube-Router"

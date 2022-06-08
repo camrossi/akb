@@ -164,6 +164,8 @@ def normalize_url(hostname: str) -> str:
 
 
 def normalize_apt_mirror(mirror: str) -> str:
+    if mirror == "":
+        return mirror
     if mirror.startswith('http://') or mirror.startswith("https://"):
         return mirror
     else:

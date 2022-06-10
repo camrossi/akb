@@ -135,7 +135,7 @@
     - k8s_addons
 
 - name: helm repo update
-  shell: helm repo update4
+  shell: helm repo update
   register: label_res
   retries: 5
   until: label_res is success
@@ -143,9 +143,6 @@
     - not sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
   environment: "{{ proxy_env }}"
-  register: label_res
-  retries: 5
-  until: label_res is success
   tags:
     - k8s_addons
 

@@ -16,5 +16,7 @@ To deploy Kube Routers follow these steps:
 {% endfor %}
     For all the nodes ad also the following annotations
     kube-router.io/peer.asns={{ aci_as }},{{ aci_as }}
+    {% if bgp_pass %}
     kube-router.io/peer.passwords={{ bgp_pass | b64encode}},{{ bgp_pass | b64encode}}
+    {% endif %}
 2) Apply the kuberouter-all-features.yaml file with the kubectl apply -f command.

@@ -54,6 +54,15 @@
 
             <h2>Template Upload</h2>
             <br>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+               <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
             </div>
 
             <div class="container">
@@ -126,7 +135,7 @@
       function clicked(e)
       {
          saveInput();
-            if(!confirm('Press OK to start the Upload. If the template already exists it will be replaced. The UI will freeze till the upload it complete. You can check the upload progress from vCenter')) {
+            if(!confirm('Press OK to start the Upload. If the template already exists it will be replaced.')) {
                e.preventDefault();
             }
       }

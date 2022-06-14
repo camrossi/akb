@@ -5,9 +5,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-import random
 import argparse
 from time import sleep
+from selenium_utils import wait_for_clickable
 
 def wait_for_title(driver, title):
     WebDriverWait(driver, 30).until(lambda x: title in x.title )
@@ -26,7 +26,7 @@ def add_calico_ndoe(driver, hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID, "add_node")
     elem.click()
-    sleep(1)
+    wait_for_clickable(driver,(By.ID,"add_node"))
 
 
 def fill_by_id(driver, id, value):
@@ -119,21 +119,19 @@ def cluster_network_page(driver):
 
 def main():
     chrome_options = Options()
-    url = "http://localhost:5010"
+    url = "http://localhost:5013"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
-    parser.add_argument('--run_id', help='run_id')
 
     args, unknown = parser.parse_known_args()
     if args.url:
         url = args.url
-    if args.run_id:
-        run_id = args.run_id
     if unknown:
         chrome_driver_args = ' '.join(unknown)
         chrome_options.add_argument(chrome_driver_args)
 
     driver = webdriver.Chrome(options=chrome_options)
+    driver.implicitly_wait(10)
     driver.get(url)
 
     root_page(driver)

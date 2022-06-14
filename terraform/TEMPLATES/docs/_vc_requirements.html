@@ -10,9 +10,10 @@
         I can upload a pre-made VM to vCenter for you as part of the installation process. <br>
         However if you prefer to upload the image manually you can:
           <ul>
-            <li>download it from <a href="{{ url_for('static',filename='vm_templates/nkt_ubuntu21_template.ova') }}">here</a></li>
+            <li>download it from <a href="{{ url_for('static',filename='vm_templates/nkt_template.ova') }}">here</a></li>
             <li> Deploy it to vCenter</li>
             <li> Create a SnapShot, this is required as the hcl plan uses linked clones. </li>
+            <li> Add a "Notes" to it called "nkt_template"</li>
           </ul> 
     </li>
  </ul>

@@ -60,6 +60,19 @@ def getdotenv(env):
         logger.error('getdotenv failed to load %s', env)
         return None
 
+def unsetdotenv(key):
+    '''UnSet dotenv'''
+    cmd = 'dotenv unset ' + key
+    os.system(cmd)
+    return None
+def getdotenvjson(env):
+    '''Load dotenv as json'''
+    try:
+        val = getdotenv(env)
+        return json.loads(val)
+    except:
+        return None
+
 def setdotenv(key, value):
     '''Set dotenv'''
     if key :
@@ -151,6 +164,8 @@ def normalize_url(hostname: str) -> str:
 
 
 def normalize_apt_mirror(mirror: str) -> str:
+    if mirror == "":
+        return mirror
     if mirror.startswith('http://') or mirror.startswith("https://"):
         return mirror
     else:
@@ -227,6 +242,8 @@ def ndfc_process_fabric_setting(data: dict) -> bool:
         setdotenv('overlay', json.dumps(overlay))
         if overlay["ipv6_enabled"]:
             setdotenv('ipv6_enabled', "")
+        else:
+            unsetdotenv('ipv6_enabled')
     except KeyError as e:
         print(e)
         return False
@@ -441,44 +458,48 @@ def tf_plan():
     
     # Get the current dir
     cwd = os.getcwd()
+    config_file = "cluster.tfvars"
+    if fabric_type == "vxlan_evpn":
+        config_file = "ndfc/" + config_file 
+    with open(config_file, 'r') as fp:
+        current_config = hcl2.load(fp)
+        print(current_config)
+    if not current_config['vc']['vm_deploy']:
+        logger.info('K8s Cluster deployment disabled')
+        #Change to the VM module directory
+        os.chdir("modules/k8s_node")
+        if os.path.exists("vms.tf"):
+            logger.info('Disable VM Deployment')
+            os.rename("vms.tf","vms.tf.ignore")
+        if os.path.exists("outputs.tf"):
+            logger.info('Enable Config Only outputs')
+            os.rename("outputs.tf","outputs.tf.ignore")
+            os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
+        if os.path.exists("group_var_template.tmpl"):
+            logger.info('Enable Config Only Templates')
+            os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
+            os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
+        os.chdir(cwd)
+    if current_config['vc']['vm_deploy']:
+        logger.info('K8s Cluster enbaled, enable vms and output tf files')
+        os.chdir("modules/k8s_node")
+        if os.path.exists("vms.tf.ignore"):
+            logger.info('Enable VM Deployment')
+            os.rename("vms.tf.ignore","vms.tf")
+        if os.path.exists("outputs.tf.ignore"):
+            logger.info('Enable Cluster Deployment outputs')
+            os.rename("outputs.tf.ignore","outputs.tf")
+            os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
+        if os.path.exists("group_var_template.tmpl.ignore"):
+            logger.info('Enable Cluster Templates')
+            os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
+            os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
+        os.chdir(cwd)
     if fabric_type == "aci":
         apic = json.loads(getdotenv('apic'))
         ret = create_apic_user(apic)
         if ret != 'OK':
             return ret
-        with open("cluster.tfvars", 'r') as fp:
-            current_config = hcl2.load(fp)
-        if not current_config['vc']['vm_deploy']:
-            logger.info('K8s Cluster deployment disabled')
-            #Change to the VM module directory
-            os.chdir("modules/k8s_node")
-            if os.path.exists("vms.tf"):
-                logger.info('Disable VM Deployment')
-                os.rename("vms.tf","vms.tf.ignore")
-            if os.path.exists("outputs.tf"):
-                logger.info('Enable Config Only outputs')
-                os.rename("outputs.tf","outputs.tf.ignore")
-                os.rename("outputs_novms.tf.ignore","outputs_novms.tf")
-            if os.path.exists("group_var_template.tmpl"):
-                logger.info('Enable Config Only Templates')
-                os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
-                os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
-            os.chdir(cwd)
-        if current_config['vc']['vm_deploy']:
-            logger.info('K8s Cluster enbaled, enable vms and output tf files')
-            os.chdir("modules/k8s_node")
-            if os.path.exists("vms.tf.ignore"):
-                logger.info('Enable VM Deployment')
-                os.rename("vms.tf.ignore","vms.tf")
-            if os.path.exists("outputs.tf.ignore"):
-                logger.info('Enable Cluster Deployment outputs')
-                os.rename("outputs.tf.ignore","outputs.tf")
-                os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
-            if os.path.exists("group_var_template.tmpl.ignore"):
-                logger.info('Enable Cluster Templates')
-                os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
-                os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
-            os.chdir(cwd)
         if not os.path.exists('.terraform'):     
             g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
@@ -522,7 +543,7 @@ def tf_apply():
     g = proc.Group()
     cluster_status = check_if_new_cluster()
     if cluster_status == 'new':
-        logger.info("Creating new Cluster")
+        logger.info("Deploy")
         g.run(["bash", "-c","terraform -chdir="+chdir+" apply -auto-approve -no-color plan"])
     else:
         new_nodes, removed_nodes = node_delta(chdir)
@@ -808,20 +829,27 @@ def calico_nodes_view():
         except TypeError:
             pass
         if calico_nodes == []:
+            ipv6_enabled = getdotenv('ipv6_enabled')
+            print("ipv6_enabled: ", ipv6_enabled)
             i = 1
             while i <= 3:
                 hostname = 'nkt-master-' + str(i)
+                ipv6 = ""
+                natip = ""
+                rack_id = "1"
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
                     ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                    if ipv6_enabled:
+                        ipv6 = str(ipaddress.IPv6Interface(l3out['ipv6_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]).prefixlen)
                 elif fabric_type == "vxlan_evpn":
                     overlay = json.loads(getdotenv('overlay'))
                     host = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
                     prefixlen = str(ipaddress.IPv4Network(overlay['node_sub']).prefixlen)
                     ip = f"{host}/{prefixlen}"
-                ipv6 = ""
-                natip = ""
-                rack_id = "1"
+                    if ipv6_enabled:
+                        ipv6 = str(ipaddress.IPv6Interface(overlay['node_sub_v6']).ip + i) + "/" + str(ipaddress.IPv6Network(overlay["node_sub_v6"]).prefixlen)
+
                 calico_nodes.append({"hostname": hostname, "ip": ip, "ipv6": ipv6,"natip": natip, "rack_id": rack_id})
                 i += 1
         ipv4_cluster_subnet = None
@@ -1007,7 +1035,7 @@ def cluster_network():
                     if l3out['vlan_id'] == "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
                         logger.info('Invalid VLAN detected')
                         flash("Please Specify a valid VLAN ID (2-4094)")
-                        return redirect('/cluster_network')
+                        return redirect(f'/cluster_network?fabric_type={fabric_type}')
                     logger.info('save l3out variable to update the VLAN ID in case of not VM Deployment')
                     setdotenv('l3out', json.dumps(l3out))
             if ipv6_enabled: 
@@ -1029,7 +1057,7 @@ def cluster_network():
             if fabric_type == "aci":
                 return redirect('/l3out')
             if fabric_type == "vxlan_evpn":
-                return redirect('/fabric')
+                return redirect(f'/fabric?fabric_type={fabric_type}')
     if request.method == 'GET':
         if fabric_type == "aci":
             l3out = json.loads(getdotenv('l3out'))
@@ -1192,18 +1220,24 @@ def vctemplate():
                 return redirect('/vcenterlogin')            
             datacenter = vc_utils.get_dc(si, req.get('dc'))
             datastore = vc_utils.get_ds(datacenter, req.get('datastore'))
-            resource_pool = vc_utils.get_largest_free_rp(si, datacenter)
+            host = datastore.host[0].key
+            resource_pool = vc_utils.get_largest_free_rp(si, datacenter, host)
             ova_path = str(os.getcwd()) + "/static/vm_templates/" + TEMPLATE_NAME + ".ova"
             ovf_handle = vc_utils.OvfHandler(ova_path)
             ovf_manager = si.content.ovfManager
-            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin')
+            
+            # Passing the first host connected to the datastore ensure we pick one of the host that will run the VM to validate the OVA
+            #If we do not do this we pic a random host in the  resource pool
+            if len(datastore.host) == 0:
+                flash("No hosts connected to datastore ", req.get('datastore'))
+                return redirect('/vctemplate')
+            cisp = vc_utils.import_spec_params(entityName=TEMPLATE_NAME, diskProvisioning='thin',hostSystem=host)
+            cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(),resource_pool, datastore, cisp)
 
-            cisr = ovf_manager.CreateImportSpec(ovf_handle.get_descriptor(), resource_pool, datastore, cisp)
             if cisr.error:
-                print("The following errors will prevent import of this OVA:")
                 for error in cisr.error:
-                    print("%s" % error)
-
+                    flash("The following errors will prevent import of this OVA: {}".format(error.msg), 'error')
+                    return redirect('/vctemplate')
             ovf_handle.set_spec(cisr)
 
             # Run the update_load function in a new thread
@@ -1223,7 +1257,7 @@ def vctemplate():
                 task = vm.Destroy_Task()
                 vc_utils.wait_for_tasks(si, [task])
             upload = concurrent.futures.ThreadPoolExecutor()
-            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle)
+            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle,host)
             # Wait for upload to complete UI freeze here
             upload.shutdown(wait=True)
             vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)
@@ -1246,7 +1280,8 @@ def vctemplate():
             flash("Unable to connect to VC", 'error')
             return redirect('/vcenterlogin')
         except Exception as e:
-            flash(e.msg, 'error')
+            logger.error(e)
+            flash(str(e), 'error')
             return redirect('/vcenterlogin')
 
         dcs = vc_utils.get_all_dcs(si)
@@ -1299,10 +1334,10 @@ def vcenter():
                 si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
             except gaierror as e:
                 flash("Unable to connect to VC", 'error')
-                return redirect('/vcenterlogin')
+                return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
             except Exception as e:
                 flash(e.msg, 'error')
-                return redirect('/vcenterlogin')                     
+                return redirect(f'/vcenterlogin?fabric_type={fabric_type}')                   
             dcs = vc_utils.get_all_dcs(si)
             dc_name = req.get('dc')
             for dc in dcs:
@@ -1344,10 +1379,10 @@ def vcenter():
             si = vc_utils.connect(vc["url"],  vc["username"], vc["pass"], '443')
         except gaierror as e:
             flash("Unable to connect to VC", 'error')
-            return redirect('/vcenterlogin')
+            return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
         except Exception as e:
             flash(e.msg, 'error')
-            return redirect('/vcenterlogin')
+            return redirect(f'/vcenterlogin?fabric_type={fabric_type}')
 
         dcs = vc_utils.get_all_dcs(si)
         vc_utils.disconnect(si)
@@ -1364,6 +1399,14 @@ def anchor_node_error(anchor_nodes, pod_ids, nodes_id, rtr_id, error):
 
 @app.route('/l3out', methods=['GET', 'POST'])
 def l3out_view():
+    def ipv6_status(req):
+        if req.get("ipv6_cluster_subnet") == "":
+            unsetdotenv('ipv6_enabled')
+            return False
+        else:
+            logger.info('save ipv6_enabled variable')
+            setdotenv('ipv6_enabled', "")
+            return True
     ''' l3out page view '''
     apic = json.loads(getdotenv('apic'))
     phys_dom = []
@@ -1386,6 +1429,7 @@ def l3out_view():
         req = request.form
         button = req.get("button")
         if button == "Next":
+            ipv6_enabled = ipv6_status(req)
             mtu = int(req.get("mtu"))
             if mtu < 1280 or mtu > 9000:
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Error: Ivalid MTU, MTU must be >= 1280 and <= 9000")
@@ -1451,19 +1495,11 @@ def l3out_view():
                     anchor_nodes = json.loads(req.get("anchor_nodes"))
                 except ValueError as e:
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "Invalid JSON:" + str(e))
-            if req.get("ipv6_cluster_subnet") == "":
-                ipv6_enabled = False
-
-            else:
-                logger.info('save ipv6_enabled variable')
-                ipv6_enabled = True
-                setdotenv('ipv6_enabled', "")
             
             rack_id = req.get("rack_id")
             rtr_id = req.get("rtr_id")
             primary_ip = req.get("node_ipv4")
-
-            # I check here also the other parameters
+            ipv6_enabled = ipv6_status(req)
 
             try:
                 # Use the Netwrok to ensure that the mask is always present
@@ -1491,6 +1527,7 @@ def l3out_view():
                 return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv4 is equal to the subnet address")
 
             if ipv6_enabled:
+                logger.info("Adding leaf v6")
                 primary_ipv6 = req.get("node_ipv6")
                 try:
                     # Use the Netwrok to ensure that the mask is always present
@@ -1508,6 +1545,7 @@ def l3out_view():
                     return anchor_node_error(req.get("anchor_nodes"), session['pod_ids'], session['nodes_id'], str(rtr_id_counter), "The Primary IPv6 must be contained in the IPv6 Cluster Subnet")
 
                 node_ipv6 = str(ipaddress.IPv6Interface(primary_ipv6).ip) + "/" + str(ipaddress.IPv6Network(req.get("ipv6_cluster_subnet")).prefixlen)
+                logger.info(node_ipv6)
             else:
                 node_ipv6 = ""
             node_ipv4 = str(ipaddress.IPv4Interface(primary_ip).ip) + "/" + str(ipaddress.IPv4Network(req.get("ipv4_cluster_subnet")).prefixlen)
@@ -1583,6 +1621,11 @@ def fabric():
         return redirect('/')
     if not getdotenv("ndfc"):
         return redirect(f"/login?fabric_type={fabric_type}")
+    vc = getdotenvjson("vc")
+    if not vc:
+        vm_deploy = True
+    else:
+        vm_deploy = vc.get('vm_deploy')
     if request.method == "GET":
         if fabric_type == "vxlan_evpn":
             fabrics = []
@@ -1605,7 +1648,7 @@ def fabric():
             return json.dumps({"error": escape(message)}), 400
         result = ndfc_process_fabric_setting(data)
         if result:
-            return json.dumps({"ok": "fabric setting configured"}), 200
+            return json.dumps({"ok": "fabric setting configured", "vm_deploy":vm_deploy}), 200
         else:
             return json.dumps({"error": "invalid settings"}), 400
 

@@ -5,10 +5,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
-from time import sleep
+from selenium_utils import wait_for_clickable
 
 def wait_for_title(driver, title):
     WebDriverWait(driver, 30).until(lambda x: title in x.title )
+
+
 
 def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem = driver.find_element(By.NAME,"pod_id")
@@ -26,7 +28,8 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.send_keys(node_ipv4)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
+    wait_for_clickable(driver,(By.ID,"add_node"))
+    
 
 def add_calico_ndoe(hostname, ip, natip, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
@@ -43,13 +46,15 @@ def add_calico_ndoe(hostname, ip, natip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
+    wait_for_clickable(driver,(By.ID,"add_node"))   
+    
 
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
+driver.implicitly_wait(10)
 
 driver.get("http://localhost:5005")
 wait_for_title(driver, "NKT")

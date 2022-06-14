@@ -320,7 +320,12 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify(data),
             success: function (result, status, xhr) {
-                $(location).attr('href',"/vcenterlogin?fabric_type=vxlan_evpn");
+                if (result.vm_deploy) {
+                    $(location).attr('href', "/vcenterlogin?fabric_type=vxlan_evpn");
+
+                } else {
+                    $(location).attr('href', "/cluster_network?fabric_type=vxlan_evpn");
+                }
             },
             error: function (xhr, status, message) {
                 $("#alert_fail_msg").text(xhr.responseJSON["error"]);

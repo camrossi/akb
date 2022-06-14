@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
 from time import sleep
+from selenium_utils import wait_for_clickable
 
 def wait_for_title(driver, title):
     WebDriverWait(driver, 30).until(lambda x: title in x.title )
@@ -26,9 +27,9 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.send_keys(node_ipv4)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
+    wait_for_clickable(driver,(By.ID,"add_node"))
 
-def add_calico_ndoe(hostname, ip, rack_id):
+def add_calico_node(hostname, ip, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
     elem.clear()
     elem.send_keys(hostname)
@@ -40,13 +41,14 @@ def add_calico_ndoe(hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
+    wait_for_clickable(driver,(By.ID,"add_node"))
 
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
+driver.implicitly_wait(10)
 
 driver.get("http://10.67.185.120:5001")
 wait_for_title(driver, "NKT")
@@ -135,12 +137,12 @@ wait_for_title(driver, "Calico Nodes")
 
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('gitaction-nkt-master-1','192.168.39.1/24', '1')
-add_calico_ndoe('gitaction-nkt-master-2','192.168.39.2/24', '1')
-add_calico_ndoe('gitaction-nkt-master-3','192.168.39.3/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-1','192.168.39.4/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-2','192.168.39.5/24', '1')
-add_calico_ndoe('gitaction-nkt-worker-3','192.168.39.6/24', '1')
+add_calico_node('gitaction-nkt-master-1','192.168.39.1/24', '1')
+add_calico_node('gitaction-nkt-master-2','192.168.39.2/24', '1')
+add_calico_node('gitaction-nkt-master-3','192.168.39.3/24', '1')
+add_calico_node('gitaction-nkt-worker-1','192.168.39.4/24', '1')
+add_calico_node('gitaction-nkt-worker-2','192.168.39.5/24', '1')
+add_calico_node('gitaction-nkt-worker-3','192.168.39.6/24', '1')
 
 
 elem = driver.find_element(By.ID,"submit")

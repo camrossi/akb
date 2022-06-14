@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 import argparse
 from time import sleep
+from selenium_utils import wait_for_clickable
 
 def check_exits_by_id(driver, id):
     '''Test check html element exists by id'''
@@ -34,8 +35,7 @@ def add_calico_ndoe(driver, hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID, "add_node")
     elem.click()
-    sleep(1)
-
+    wait_for_clickable(driver,(By.ID,"add_node"))
 
 def fill_by_id(driver, id, value):
     elem = driver.find_element(By.ID, id)
@@ -141,7 +141,7 @@ def vcenter_page(driver):
     elem = driver.find_element(By.ID, 'port_group')
     elem.send_keys("dvs-cylon/network_k8s_test/vlan-210")
     elem = driver.find_element(By.ID, 'vm_templates')
-    elem.send_keys("ubuntu-20.04-k8s-template")
+    elem.send_keys("nkt_template")
     elem = driver.find_element(By.ID, 'vm_folder')
     elem.send_keys("NKT_CI")
     elem = driver.find_element(By.ID, "submit")
@@ -238,7 +238,7 @@ def previous_pages(driver):
     
 def main():
     chrome_options = Options()
-    url = "http://localhost:5010"
+    url = "http://localhost:5013"
     parser = argparse.ArgumentParser(description='pipeline testing script')
     parser.add_argument('--url', help='testing url')
 
@@ -251,6 +251,7 @@ def main():
         chrome_options.add_argument(chrome_driver_args)
 
     driver = webdriver.Chrome(options=chrome_options)
+    driver.implicitly_wait(10)
     driver.get(url)
 
     root_page(driver)

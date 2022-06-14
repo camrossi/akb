@@ -41,7 +41,6 @@ jobs:
       - name: Cleanup Stale NDFC objects
         run: | 
           ansible-playbook -i inventoy.ini reset_ndfc_ci_env.yaml
-
   nkt-no-cluster-calico:
     # The type of runner that the job will run on
     runs-on: stld
@@ -443,16 +442,16 @@ jobs:
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
         - name: Start NKT
           run: | 
-            gunicorn -w 4 -k gevent -b 0.0.0.0:5010 appflask:app -D ; sleep 5
+            gunicorn -w 4 -k gevent -b 0.0.0.0:5011 appflask:app -D ; sleep 5
         - name: Run headless chrome to generate the config
           run: | 
-            python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_v4_kube-router.py --url http://localhost:5010 --headless && sleep 2
+            python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_v4_kube-router.py --url http://localhost:5011 --headless && sleep 2
         - name: Terraform plan
           run: | 
-            curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan?fabric_type=vxlan_evpn
+            curl -c cookie.txt -s http://localhost:5011 -o /dev/null && curl -b cookie.txt -s http://localhost:5011/tf_plan?fabric_type=vxlan_evpn
         - name: Terraform apply
           run: | 
-            curl -b cookie.txt -s http://localhost:5010/tf_apply?fabric_type=vxlan_evpn
+            curl -b cookie.txt -s http://localhost:5011/tf_apply?fabric_type=vxlan_evpn
         - name: Check if all the nodes are ready
           run: | 
             kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
@@ -468,7 +467,91 @@ jobs:
         - name: Terraform destroy
           if: always()
           run: | 
-            curl -b cookie.txt -s http://localhost:5010/destroy?fabric_type=vxlan_evpn
+            curl -b cookie.txt -s http://localhost:5011/destroy?fabric_type=vxlan_evpn
+
+  nkt-no-cluster-calico-ndfc:
+  # The type of runner that the job will run on
+    runs-on: ndfc
+    needs: [nkt-kube-router-ndfc]
+    defaults:
+      run:
+        working-directory: ndfc-no-cluster/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: ndfc-no-cluster
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5012 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4.py --headless && sleep 2
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://localhost:5012 -o /dev/null && curl -b cookie.txt -s http://localhost:5012/tf_plan?fabric_type=vxlan_evpn
+      - name: Terraform apply
+        run: | 
+            curl -b cookie.txt -s http://localhost:5012/tf_apply?fabric_type=vxlan_evpn
+      - name: Download Manifest Files
+        run: | 
+          curl -b cookie.txt -s --fail http://localhost:5012/static/manifests/manifests.zip    
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+            curl -b cookie.txt -s http://localhost:5012/destroy?fabric_type=vxlan_evpn
+
+  nkt-no-cluster-kube-router-ndfc:
+  # The type of runner that the job will run on
+    runs-on: stld
+    needs: nkt-no-cluster-calico-ndfc
+    defaults:
+      run:
+        working-directory: ndfc-no-cluster-kube-router/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: ndfc-no-cluster-kube-router
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5013 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4-kube-router.py --headless && sleep 2
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://localhost:5013 -o /dev/null && curl -b cookie.txt -s http://localhost:5013/tf_plan?fabric_type=vxlan_evpn
+      - name: Terraform apply
+        run: | 
+            curl -b cookie.txt -s http://localhost:5013/tf_apply?fabric_type=vxlan_evpn
+      - name: Download Manifest Files
+        run: | 
+          curl -b cookie.txt -s --fail http://localhost:5013/static/manifests/manifests.zip    
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform
+
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+            curl -b cookie.txt -s http://localhost:5013/destroy?fabric_type=vxlan_evpn
 
   python_unit_tests:
       runs-on: ubuntu-latest
@@ -486,88 +569,3 @@ jobs:
           run: |
             cd terraform
             pytest
-
-
-### Pending NDFC support for no cluster 
-#  nkt-no-cluster-calico-ndfc:
-#  # The type of runner that the job will run on
-#    runs-on: ndfc
-#    defaults:
-#      run:
-#        working-directory: ndfc-no-cluster/terraform
-#
-#    # Steps represent a sequence of tasks that will be executed as part of the job
-#    steps:
-#      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-#      - uses: actions/checkout@v2
-#        with:
-#          path: ndfc-no-cluster
-#      - name: Install dependencies
-#        run: |
-#          pip3 install -r ../requirements.txt
-#      - name: Start NKT
-#        run: | 
-#          gunicorn -w 4 -k gevent -b 0.0.0.0:5010 appflask:app -D ; sleep 5
-#      - name: Run headless chrome to generate the config
-#        run: | 
-#          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4.py --headless && sleep 2
-#      - name: Terraform plan
-#        run: | 
-#          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
-#      - name: Terraform apply
-#        run: | 
-#            curl -b cookie.txt -s http://localhost:5010/tf_apply
-#      - name: Download Manifest Files
-#        run: | 
-#          curl -b cookie.txt -s --fail http://ocalhost:5010/static/manifests/manifests.zip    
-#      - name: Kill Terraform if workflow is cancelled manually
-#        if: cancelled()
-#        run: | 
-#          killall terraform
-#
-#      - name: Terraform destroy and delete APIC user
-#        if: always()
-#        run: | 
-#            curl -b cookie.txt -s http://localhost:5010/destroy
-#
-#  nkt-no-cluster-kube-router-ndfc:
-#  # The type of runner that the job will run on
-#    runs-on: stld
-#    needs: nkt-no-cluster-calico-ndfc
-#    defaults:
-#      run:
-#        working-directory: ndfc-no-cluster-kube-router/terraform
-#
-#    # Steps represent a sequence of tasks that will be executed as part of the job
-#    steps:
-#      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-#      - uses: actions/checkout@v2
-#        with:
-#          path: ndfc-no-cluster-kube-router
-#      - name: Install dependencies
-#        run: |
-#          pip3 install -r ../requirements.txt
-#      - name: Start NKT
-#        run: | 
-#          gunicorn -w 4 -k gevent -b 0.0.0.0:5010 appflask:app -D ; sleep 5
-#      - name: Run headless chrome to generate the config
-#        run: | 
-#          python3 ../testing/selenium/selenium_ui_testing_dev_ndfc_no_cluster_v4-kube-router.py --headless && sleep 2
-#      - name: Terraform plan
-#        run: | 
-#          curl -c cookie.txt -s http://localhost:5010 -o /dev/null && curl -b cookie.txt -s http://localhost:5010/tf_plan
-#      - name: Terraform apply
-#        run: | 
-#            curl -b cookie.txt -s http://localhost:5010/tf_apply
-#      - name: Download Manifest Files
-#        run: | 
-#          curl -b cookie.txt -s --fail http://ocalhost:5010/static/manifests/manifests.zip    
-#      - name: Kill Terraform if workflow is cancelled manually
-#        if: cancelled()
-#        run: | 
-#          killall terraform
-#
-#      - name: Terraform destroy and delete APIC user
-#        if: always()
-#        run: | 
-#            curl -b cookie.txt -s http://localhost:5010/destroy

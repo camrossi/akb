@@ -55,7 +55,8 @@
             Both the ACI and Kubernetes Architecture are following the Floating SVI design as described in the
             <a
                href="https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html">Cisco
-               Application Centric Infrastructure Calico Design White Paper</a>.
+               Application Centric Infrastructure Calico Design White Paper</a>. 
+               <br> <b>Note:</b> The same architecture developed for Calico is re-used for the <a href="https://www.kube-router.io/" > Kube-Router </a> CNI Option
             <br> All the optimizations and best practices of the design are implemented automatically on ACI.
             <br> NKT uses, under the hood, Terraform to push the ACI configuration and deploy the VMs.
             Ansible is used to configure the VMs, bootstrap and configure the Kubernetes Cluster.
@@ -65,15 +66,15 @@
             href="https://www.cisco.com/c/en/us/solutions/collateral/data-center-virtualization/application-centric-infrastructure/white-paper-c11-743182.html">Cisco
             Application Centric Infrastructure Calico Design White Paper</a>
 
-         <br> Calico supports two main network modes: direct container routing (no overlay transport protocol) or
+         <br> Calico/Kube-Rotuer supports two main network modes: direct container routing (no overlay transport protocol) or
          network overlay using VXLAN or IPinIP (default) encapsulations to exchange traffic between workloads.
-         <br> NKT will deploying Calico in direct routing mode.
+         <br> NKT will deploying Calico/Kube-Rotuer in direct routing mode.
          <br>
          <br>All the nodes in the Kubernetes cluster will have the same AS number and will peer via eBGP with a pair of ACI.
          top-of-rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy
          within the rack.
          <br>
-         This eBGP design does not require running any route reflector in the Calico infrastructure: ACI will be configured to send back to the nodes the routes learned.
+         This eBGP design does not require running any route reflector in the K8s infrastructure: ACI will be configured to send back to the nodes the routes learned.
          <br> this results in a more scalable, simpler, and easier to maintain architecture.
 
          Once this design is implemented, the following connectivity is expected:
@@ -106,7 +107,7 @@
                </ul>
                <h3>Network Architecture - eBGP Design</h3>
                Each Kubernetes node will have the same AS number and will peer via eBGP with a pair of ACI Top-of-Rack (ToR) switches configured in a vPC pair. Having a vPC pair of leaf switches provides redundancy within the rack.
-               This eBGP design does not require running any route reflector nor full mesh peering (iBGP) in the Calico infrastructure; this results in a more scalable, simpler, and easier to maintain architecture.
+               This eBGP design does not require running any route reflector nor full mesh peering (iBGP) in the K8s infrastructure; this results in a more scalable, simpler, and easier to maintain architecture.
                In order to remove the need of running iBGP in the cluster the ACI BGP configuration will need to enable the following features:
                <ul>
                   <li>AS override: The AS override function will replace the AS number from the originating router with the AS number of the sending BGP router in the AS Path of outbound routes.

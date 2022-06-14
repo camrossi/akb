@@ -54,12 +54,13 @@ function saveInput() {
     }
   }
   saveLoopBackAddresses();
+  saveNDFCLeafSwitches();
   // console.log("Saved inputs locally.");
 }
 function saveLoopBackAddresses() {
+  const page = getPageName();
   if (page !== "fabric") return;
   const saved = [];
-  const page = getPageName();
   const loopBacksToSave = ["loopback_ipv4", "loopback_ipv6"];
   for (const loopBack of loopBacksToSave) {
       const grandParentElem = document.getElementById(loopBack);
@@ -75,10 +76,43 @@ function saveLoopBackAddresses() {
   }
 }
 
+function saveNDFCLeafSwitches() {
+  const page = getPageName();
+  if (page !== "fabric") return;
+
+  const saved = [];
+  const leaf_switches = document.getElementById("leaf_switches").children;
+  for (const leaf of leaf_switches) {
+    const leafData = [leaf.firstChild.children[0].innerText, leaf.firstChild.children[2].innerText];
+    // console.log(leafData);
+    saved.push(leafData);
+    sessionStorage.setItem(page + " " + "leaf_switches", JSON.stringify(saved));
+  }
+}
+
+function loadNDFCLeafSwitches() {
+  const page = getPageName();
+  if (page !== "fabric") return;
+
+  const leaf_switches = JSON.parse(sessionStorage.getItem(page + " " + "leaf_switches"));
+
+  for (const leaf of leaf_switches) {
+    console.log(leaf)
+    const addNode = document.getElementById("add_node");
+    document.getElementById("primary_ipv4").value = leaf[0];
+    document.getElementById("secondary_ipv4").value = leaf[1];
+    addNode.click();
+    document.getElementById("primary_ipv4").value = "";
+    document.getElementById("secondary_ipv4").value = "";
+  }
+
+}
+
+
 function loadLoopBackAddresses() {
   const page = getPageName();
-  if (page !== "fabric")
-    return;
+  if (page !== "fabric") return;
+
   const loopBacksToSave = ["loopback_ipv4", "loopback_ipv6"];
 
   for (const loopBack of loopBacksToSave) {
@@ -203,6 +237,7 @@ function loadInput() {
     }
   }
   loadLoopBackAddresses();
+  loadNDFCLeafSwitches();
   // console.log("Loaded saved inputs from local storage.");
 }
 

@@ -60,7 +60,7 @@ spec:
          imagePullPolicy: IfNotPresent
          ports:
          - containerPort: 50000
-         command: ['sh', '-c', "gunicorn -w 1 --thread 12 -k gevent -b 0.0.0.0:8080 visibility_ui:app" ]
+         command: ['sh', '-c', "gunicorn -w 1 --thread 12 -k gevent --timeout 600 -b 0.0.0.0:8080 visibility_ui:app" ]
          env:
            - name: MODE
              value: "CLUSTER"

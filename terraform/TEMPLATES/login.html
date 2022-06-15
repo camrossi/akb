@@ -120,7 +120,7 @@
          <table width="20%" bgcolor="0099CC" align="center">
          <script>
             function deployCheck() {
-               checkbox = document.getElementById("deploy_vm").checked;
+               const checkbox = document.getElementById("deploy_vm").checked;
                if (!checkbox) {
                   sessionStorage.setItem("deploy", "true");
                }

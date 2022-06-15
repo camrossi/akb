@@ -312,7 +312,7 @@ function autoScroll(input) {
       // startAutoScroll();
     }
 
-    if (currentHeight >= previousBottom - 1 || input !== undefined) {
+    if (currentHeight >= previousBottom - 30 || input !== undefined) {
       frame.scrollTo(0, bottom);
       console.log("Previous Bottom: " + previousBottom);
       console.log("frame.scrollTop: " + currentHeight);
@@ -330,7 +330,7 @@ let autoScrollTimer = null;
 function startAutoScroll() {
   autoScrollTimer = setInterval(() => {
     autoScroll();
-  }, 200)
+  }, 100)
 }
 
 function endAutoScroll() {

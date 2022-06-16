@@ -59,3 +59,15 @@ A visualization tool `vkaci` is also deployed on the cluster. It is exposed as a
 ## Open Issues
 
 * L3OUT ECMP is used to load balance traffic to the services running in the cluster: Every node that has a POD for an exposed service will advertise a /32 host route for the service IP. Currently ACI does not support Resilient hashing for L3out ECMP. This means that if the number of ECMP paths are changed (scaling up/down a deploument could result in that as well as node failure) the flows can potentially be re-hashed to a different nodes resulting in connections resets. There is currently a feature request opened to support Resilient hashing for L3out ECMP: US9273
+
+## Advacned 
+
+### Raspberry Pi testing
+We have been testing NKT and VKACI on 3 Raspberry Pis nodes with Ubuntu 20.4. If you plan to test the same here a few tips:
+
+* Configure passwordless sudo
+* CRI-O supports ARM64 Ubuntu starting from v1.24 
+* edit the `/boot/firmware/cmdline.txt` and enable the following options
+  * cgroup_enable=cpuset
+  * cgroup_enable=memory
+  * cgroup_memory=1

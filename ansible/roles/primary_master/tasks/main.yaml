@@ -125,7 +125,7 @@
 
           vrrp_instance VI_1 {
               state MASTER
-              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0', 'kube-bridge', 'kube-dummy-if']) | first }}
+              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0', 'kube-bridge', 'kube-dummy-if', 'wlan0']) | first }}
               virtual_router_id {{ keepalived_router_id }}
               priority 101
               authentication {

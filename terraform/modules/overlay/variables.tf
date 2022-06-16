@@ -16,6 +16,10 @@ variable "overlay" {
     ibgp_peer_vlan = number
     k8s_route_map  = string
     route_tag      = number
+    gateway_v4     = string
+    gateway_v6     = string
+    ipv6_enabled   = bool
+    k8s_integ      = bool
     vpc_peers = list(
       list(object({
         hostname       = string
@@ -45,7 +49,6 @@ variable "k8s_cluster" {
     keepalived_image       = string
     keepalived_router_id   = string
     kubeadm_token          = string
-    ipv6_enabled           = bool
     node_sub               = string
     node_sub_v6            = string
     pod_subnet             = string

@@ -1,6 +1,6 @@
 variable "apic" {
   type = object({
-  username          = string
+  nkt_user          = string
   cert_name         = string
   private_key       = string
   url               = string
@@ -67,6 +67,7 @@ variable "k8s_cluster" {
     eBPF_status         = bool
     dns_servers       = list(string)
     dns_domain        = string
+    cni_plugin        = string
      })
 }
 

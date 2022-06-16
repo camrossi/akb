@@ -1,5 +1,13 @@
 ---
-
+- name: Wait for the nodes to be reachable
+  wait_for_connection:
+    connect_timeout: 10
+    sleep: 5
+    delay: 5
+    timeout: 5000
+  tags:
+    - k8s_nodes
+    
 - name: Generate worker join token
   shell: kubeadm token create --print-join-command
   register: kubeadm_join_cmd

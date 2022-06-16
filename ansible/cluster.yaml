@@ -21,7 +21,10 @@
 - hosts: k8s_primary_master
   gather_facts: false
   roles:
-    - calico
+    - role: calico
+      when: cni_plugin == "Calico"
+    - role: kube-router
+      when: cni_plugin == "Kube-Router"
 
 - hosts: k8s_masters
   gather_facts: false

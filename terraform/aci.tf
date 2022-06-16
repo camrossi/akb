@@ -4,7 +4,7 @@ terraform {
   required_providers {
     aci = {
       source  = "CiscoDevNet/aci"
-      version = "2.0.0"
+      version = "2.3.0"
     }
     vsphere = {
       source  = "hashicorp/vsphere"
@@ -20,7 +20,7 @@ module "k8s_node" {
   k8s_cluster  = var.k8s_cluster
   bgp_peers    = var.l3out.anchor_nodes
   controller   = {
-    username = var.apic.username
+    username = var.apic.nkt_user
     url = var.apic.url
     cert_name = var.apic.cert_name
     private_key = var.apic.private_key
@@ -42,7 +42,7 @@ module "k8s_node" {
 
 provider "aci" {
   # cisco-aci user name
-  username    = var.apic.username
+  username    = var.apic.nkt_user
   cert_name   = var.apic.cert_name
   private_key = var.apic.private_key
   url         = var.apic.url

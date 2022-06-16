@@ -93,8 +93,7 @@
 
 - name: Labels Nodes with local-storage 
   shell: |
-    kubectl label node {{ item }} local-storage=yes --overwrite
-  loop: "{{groups['k8s_nodes']}}"
+    kubectl label node --all local-storage=yes --overwrite
   register: label_res
   retries: 5
   until: label_res is success
@@ -136,7 +135,7 @@
     - k8s_addons
 
 - name: helm repo update
-  shell: helm repo update4
+  shell: helm repo update
   register: label_res
   retries: 5
   until: label_res is success
@@ -144,9 +143,6 @@
     - not sandbox_status
     - fabric_type is not defined or fabric_type == "aci"
   environment: "{{ proxy_env }}"
-  register: label_res
-  retries: 5
-  until: label_res is success
   tags:
     - k8s_addons
 
@@ -173,6 +169,12 @@
   tags:
     - k8s_addons
 
+- name: Force Schedule Neo4j on second master node
+  shell: kubectl patch statefulset  my-neo4j -p '{"spec":{"template":{"spec":{"nodeName":"{{ groups['k8s_master_replicas'][0] }}"}}}}'
+  when: fabric_type is not defined or fabric_type == "aci"
+  tags:
+    - k8s_addons
+
 - name: Expose Neo4j
   shell: kubectl patch svc  my-neo4j-neo4j -p '{"spec":{"type":"NodePort","externalIPs":["{{ neo4j_ip }}"]}}'
   when: fabric_type is not defined or fabric_type == "aci"
@@ -181,6 +183,9 @@
 
 - name: Wait for Neo4j to be Scheduled
   shell: kubectl wait --for=condition=PodScheduled pod -l app=my-neo4j
+  register: label_res
+  retries: 5
+  until: label_res is success
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
     - k8s_addons
@@ -198,7 +203,6 @@
   register: n4j_port
   tags:
     - k8s_addons
-
 
 - name: Copy vkaci addons manifests
   template:

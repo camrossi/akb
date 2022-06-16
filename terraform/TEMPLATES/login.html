@@ -10,32 +10,6 @@
       href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
-   <style>
-      .chevron ul.tabs li.active a {
-         background-color: #017cad !important;
-         opacity: 1 !important;
-         color: #ffffff;
-         box-shadow: none !important;
-      }
-
-      .chevron ul.tabs li a {
-          height: 56px min-width: 90% !important;
-          padding: 10px 6px;
-          background-color: #ffffff;
-          opacity: 1 !important;
-          color: #58585d;
-          text-align: center;
-          position: relative;
-          line-height: 16px;
-          font-size: 12px;
-          cursor: pointer;
-          flex: 1 !important;
-          flex-shrink: 1 !important;
-          flex-wrap: wrap !important;
-          display: flex !important;
-          justify-content: center !important;
-      }
-   </style>
 </head>
 
 
@@ -124,8 +98,9 @@
                   -->
                   <tr>
                       <td>
-                          <div class="container">
-                              <input type="submit" value="Login" class="btn btn--wide" name="button" id="submit">
+                          <div class="navibox">
+                              <input type="submit" value="Login" class="btn btn--wide" name="button" style="margin-left: 10px;" id="submit">
+                              <input id="Previous" type="button" value="Previous" class="btn btn--wide" name="button">
                           </div>
                       </td>
                   </tr>
@@ -205,6 +180,11 @@
             });
          });
          sessionStorage.clear();
+
+         $("#Previous").on("click", function(e){
+            $(location).attr('href',"/");
+         });
+
       </script>
    </body>
 

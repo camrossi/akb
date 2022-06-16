@@ -1,7 +1,5 @@
 fabric_type = "{{ fabric_type }}"
 
-ndfc_k8s_integ = "{{ overlay.k8s_integ | lower}}"
-
 vc = {
   "url" : "{{vc.url}}",
   "username" : "{{vc.username}}",
@@ -13,6 +11,7 @@ vc = {
   "port_group" : "{{vc.port_group}}",
   "vm_template" : "{{vc.vm_template}}",
   "vm_folder" : "{{vc.vm_folder}}"
+  "vm_deploy" : {{vc.vm_deploy | lower}}
 }
 
 ndfc = {
@@ -30,6 +29,12 @@ overlay = {
   "bgp_passwd" : "",
   "k8s_route_map" : "{{overlay.k8s_route_map}}",
   "route_tag" : {{overlay.route_tag}},
+  "k8s_integ" : {{ overlay.k8s_integ | lower}}
+  "ipv6_enabled" : {{overlay.ipv6_enabled | lower}},
+  "loopback_ipv4" : {{ overlay.loopback_ipv4 |tojson }},
+  "loopback_ipv6" : {{ overlay.loopback_ipv6 |tojson}},
+  "gateway_v4" : "{{ overlay.gateway_v4 }}",
+  "gateway_v6" : "{{ overlay.gateway_v6 }}",
   "vpc_peers" : [
     {%- for peer in overlay.vpc_peers %}
       [
@@ -67,9 +72,9 @@ calico_nodes = [
   {
     "hostname" : "{{node.hostname}}",
     "ip" : "{{node.ip}}",
-    "ip_gateway" : "{{overlay.gateway_v4}}"
+    "ip_gateway" : "{{overlay.gateway_v4}}",
     "ipv6" : "{{node.ipv6}}",
-    "ipv6_gateway" : "{{overlay.gateway_v6}}"
+    "ipv6_gateway" : "{{overlay.gateway_v6}}",
     "natip" : "",
     "rack_id" : "1"
   },
@@ -79,7 +84,6 @@ calico_nodes = [
 k8s_cluster = {
   "control_plane_vip" : "{{cluster.control_plane_vip}}",
   "vip_port" : "{{cluster.vip_port}}",
-  "ipv6_enabled" : {{overlay.ipv6_enabled | lower}},
   "pod_subnet" : "{{cluster.pod_subnet}}",
   "pod_subnet_v6" : "{{cluster.pod_subnet_v6}}",
   "cluster_svc_subnet" : "{{cluster.cluster_svc_subnet}}",
@@ -110,6 +114,6 @@ k8s_cluster = {
   "http_proxy" : "{{cluster.http_proxy}}",
   "ubuntu_apt_mirror" : "{{cluster.ubuntu_apt_mirror}}",
   "sandbox_status" : {{cluster.sandbox_status | lower}},
-  "eBPF_status" : {{cluster.eBPF_status | lower}}
-
+  "eBPF_status" : {{cluster.eBPF_status | lower}},
+  "cni_plugin" : "{{cluster.cni_plugin }}"
 }

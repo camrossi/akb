@@ -16,7 +16,6 @@ while i <= nodes:
     print('    "hostname"        : "calico-{}",'.format(i))
     print('    "ip"              : "{}/{}",'.format(subnet[i], subnet.prefixlen))
     print('    "ipv6"            : "{}/{}",'.format(v6subnet[i], v6subnet.prefixlen))
-    print('    "local_as"        : "{}",'.format(as_number))
     print('    "rack_id"         : "{}",'.format(i % racks + 1))
     print('    "natip"           : ""')
     print("},")

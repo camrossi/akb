@@ -9,35 +9,9 @@
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
-   <style>
-      .chevron ul.tabs li.active a {
-         background-color: #017cad !important;
-         opacity: 1 !important;
-         color: #ffffff;
-         box-shadow: none !important;
-      }
-
-      .chevron ul.tabs li a {
-         height: 56px min-width: 90% !important;
-         padding: 10px 6px;
-         background-color: #ffffff;
-         opacity: 1 !important;
-         color: #58585d;
-         text-align: center;
-         position: relative;
-         line-height: 16px;
-         font-size: 12px;
-         cursor: pointer;
-         flex: 1 !important;
-         flex-shrink: 1 !important;
-         flex-wrap: wrap !important;
-         display: flex !important;
-         justify-content: center !important;
-      }
-   </style>
 </head>
 
-<form id="form_vc_login" name="tenantForm" method="post" action="/vcenterlogin">
+<form id="form_vc_login" name="tenantForm" method="post" action="/vcenterlogin?fabric_type={{ fabric_type }}">
 
   <body class="cui cui--animated cui--compressed" data-theme="">
    <div id="oneui">
@@ -68,8 +42,10 @@
             <h2>vCenter Details</h2>
             <p> 
                <br> Insert the vCenter details: NKT will connect to vCenter and deploy a K8s cluster.
-               <br> The k8s cluster will automatically be configured with Calico using non overlay mode and leveraging BGP to advertise routes to ACI leaves.
-               <br> PreRequisite: A Ubuntu 21.01 VM template with Perl and a snapshot must exists. You can download it from <a href="{{ url_for('static',filename='vm_template/test') }}">here</a> for simplicity and upload it to your vCenter as a VM template. 
+               <br> The k8s cluster will automatically be configured with the CNI plugin of choice using non overlay mode and leveraging BGP to advertise routes to ACI leaves.
+               <br> PreRequisite: A Ubuntu 20.04 VM template with Perl and a snapshot must exists. 
+               <br> For simplicity you can upload the template to your vCenter by clicking the "Upload VM Template" checkbox below. 
+               <br> If for any reason the VM Template upload function doesn't work. You can also download it from <a href="{{ url_for('static',filename='vm_templates/nkt_template.ova') }}">here</a> 
             </p>
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -130,7 +106,7 @@
          <div class="container">
             <div class="navibox">
                <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+               <input type="submit" id="Previous" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
          </div>
 
@@ -171,7 +147,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("vcenterlogin")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("vcenterlogin")}}" + '?fabric_type=' + "{{ fabric_type }}";
         $("#form_vc_login").attr("action", url);
         $("#form_vc_login").submit();
     })

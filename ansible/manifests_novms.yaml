@@ -1,0 +1,56 @@
+---
+- name: Playbook
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: Include containers_versions variables 
+      include_vars:
+        file: inventory/group_vars/containers_versions.yaml
+      tags:
+      - cni_manifests
+
+    - name: Delete CNI Manifests directory
+      file:
+        state: absent
+        path: "../terraform/static/manifests/"
+
+    - name: Create CNI Manifests directory
+      file:
+        path: "../terraform/static/manifests/"
+        state: directory
+
+    - name: Copy Calico Manifests
+      template:
+        src: "roles/calico/templates/{{ item }}"
+        dest: "../terraform/static/manifests/{{ item }}"
+      with_items:
+        - BGPPassSecret.yaml
+        - IPPool.yaml
+        - BGPConfiguration.yaml
+        - BGPPeer.yaml
+        - calico-typha.yaml
+        - calico-typha-v46.yaml
+      when: cni_plugin == "Calico"
+      tags:
+        - cni_manifests
+
+    - name: Copy kube-router Manifests
+      template:
+        src: "roles/kube-router/templates/{{ item }}"
+        dest: "../terraform/static/manifests/{{ item }}"
+        lstrip_blocks: yes
+      with_items:
+        - kuberouter-all-features.yaml
+        - Readme
+      when: cni_plugin == "Kube-Router"
+      tags:
+        - cni_manifests
+
+    - name: Archive Manifests
+      archive:
+        path: "../terraform/static/manifests/*"
+        dest: "../terraform/static/manifests/manifests.zip"
+        exclude_path:
+        - ../terraform/static/manifests/manifests.zip
+        format: zip

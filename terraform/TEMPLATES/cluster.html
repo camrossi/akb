@@ -41,35 +41,9 @@
       href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
-   <style>
-      .chevron ul.tabs li.active a {
-         background-color: #017cad !important;
-         opacity: 1 !important;
-         color: #ffffff;
-         box-shadow: none !important;
-      }
-
-      .chevron ul.tabs li a {
-         height: 56px min-width: 90% !important;
-         padding: 10px 6px;
-         background-color: #ffffff;
-         opacity: 1 !important;
-         color: #58585d;
-         text-align: center;
-         position: relative;
-         line-height: 16px;
-         font-size: 12px;
-         cursor: pointer;
-         flex: 1 !important;
-         flex-shrink: 1 !important;
-         flex-wrap: wrap !important;
-         display: flex !important;
-         justify-content: center !important;
-      }
-   </style>
 </head>
 
-<form id="form_cluster" name="tenantForm" method="post" action="/cluster">
+<form id="form_cluster" name="tenantForm" method="post" action="/cluster?fabric_type={{ fabric_type }}">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -244,7 +218,7 @@
                         <label class="checkbox">
                            <input type="checkbox" id="eBPF_status" name="eBPF_status" style="margin:0;" >
                            <span id="eBPF_status" class="checkbox__input"></span>
-                           <span class="checkbox__label hidden-xs">Enable eBPF (IPv6 Not Supported)</span>
+                           <span class="checkbox__label hidden-xs">Enable eBPF (Calico Only, IPv6 Not Supported)</span>
                         </label>
                      </div>
                   </div><br>
@@ -257,7 +231,7 @@
                         </div>
                      </div>
                   </div>
-                     <div class="container">
+                  <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="kube_version">Kubernetes Version:</label>
@@ -332,7 +306,7 @@
          <div class="container">
             <div class="navibox">
                <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+               <input type="submit" id="Previous" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
          </div>
 
@@ -383,7 +357,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("cluster_view")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("cluster_view")}}" + '?fabric_type=' + "{{ fabric_type }}";
         console.log(url);
         $("#form_cluster").attr("action", url);
         $("#form_cluster").submit();

@@ -48,3 +48,9 @@
   ignore_errors: yes
   tags:
     - kube-router
+
+- name: Clean up iptables
+  shell: iptables-save | grep -v KUBE | iptables-restore
+  ignore_errors: yes
+  tags:
+    - kube-router

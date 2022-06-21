@@ -60,6 +60,7 @@ spec:
         - --run-service-proxy=true
         - --bgp-graceful-restart=true
         - --bgp-graceful-restart-deferral-time=30s
+        - --bgp-holdtime=3s
         - --kubeconfig=/var/lib/kube-router/kubeconfig
         - --cluster-asn={{ k8s_cluster_as }}
         - --advertise-external-ip

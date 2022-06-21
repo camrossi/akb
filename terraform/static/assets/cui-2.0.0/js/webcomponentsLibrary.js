@@ -20,7 +20,7 @@ var getUrlParameter = function getUrlParameter(sParam) {
 };
 
 function addFabricToURL() {
-    const fabric = getUrlParameter("fabric_type");
+  const fabric = getUrlParameter("fabric_type");
   if (fabric === "" || fabric === "aci")
     return "?fabric_type=aci";
   else if (fabric === "vxlan_evpn")

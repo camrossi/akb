@@ -182,6 +182,9 @@
                 })
             };
 
+            sessionStorage.clear();
+            // updateConfig(url_for("update_config"), true);
+
             $(document).ready(function () {
                 $("#password").on("keypress", function(e){
                     if (e.key == "Enter") {

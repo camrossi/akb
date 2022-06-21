@@ -386,3 +386,39 @@ function loadListenerCreator() {
       })
       observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
 }
+
+function updateConfig(urlBase, toClear) {
+  let newConfig;
+  if (toClear === undefined)
+    toClear = false;
+  if (toClear || toClear === "true") {
+    newConfig = "[]";
+  }
+  else {
+    newConfig = JSON.stringify({ config: $("#config").val() })
+  }
+
+  function addFabricToURL() {
+    const fabric = getUrlParameter("fabric_type");
+    if (fabric === "" || fabric === "aci") return "?fabric_type=aci";
+    else if (fabric === "vxlan_evpn") return "?fabric_type=vxlan_evpn";
+  }
+
+  const update_url = urlBase + addFabricToURL();
+    $.ajax({
+        url: update_url,  
+        dataType: 'json',
+        type: 'post',
+        contentType: 'application/json',
+        data: newConfig,
+        success: function (result, status, xhr) {
+            $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
+            setTimeout(function(){
+              window.location.reload(1);
+          }, 500);                
+        },
+        error: function (xhr, status, error) {
+            $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+        }
+    });
+}

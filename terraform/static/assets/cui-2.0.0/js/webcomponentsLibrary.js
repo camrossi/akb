@@ -19,6 +19,14 @@ var getUrlParameter = function getUrlParameter(sParam) {
   return "";
 };
 
+function addFabricToURL() {
+    const fabric = getUrlParameter("fabric_type");
+  if (fabric === "" || fabric === "aci")
+    return "?fabric_type=aci";
+  else if (fabric === "vxlan_evpn")
+    return "?fabric_type=vxlan_evpn";
+}
+
 function pagesInitialization() {
   const fabric = getUrlParameter("fabric_type");
   if (fabric === "")
@@ -191,7 +199,7 @@ function changePage(futurePage, currentPage) {
             window.location.origin +
             "/" +
             pages[futurePage][0] +
-            "?fabric_type=vxlan_evpn";
+            addFabricToURL();
           if (futurePage <= skipToCreate)
             sessionStorage.setItem("skipToCreate", -1);
           return futurePage;
@@ -205,7 +213,11 @@ function changePage(futurePage, currentPage) {
         if (futurePage === 0)
           window.location.href = window.location.origin + "/" + pages[futurePage][0];
         else
-          window.location.href = window.location.origin + "/" + pages[futurePage][0] + "?fabric_type=vxlan_evpn";
+          window.location.href =
+            window.location.origin +
+            "/" +
+            pages[futurePage][0] +
+            addFabricToURL();
         if (futurePage <= skipToCreate)
           sessionStorage.setItem("skipToCreate", -1);
         return futurePage;
@@ -216,7 +228,8 @@ function changePage(futurePage, currentPage) {
     else if (futurePage === pages.length - 1) {
       console.log("go to create page: " + futurePage);
       sessionStorage.setItem("skipToCreate", currentPage);
-      window.location.href = window.location.origin + "/" + pages[futurePage][0] + "?fabric_type=vxlan_evpn";
+      window.location.href =
+        window.location.origin + "/" + pages[futurePage][0] + addFabricToURL();
       return futurePage;
     }
 

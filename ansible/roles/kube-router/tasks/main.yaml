@@ -52,5 +52,7 @@
 - name: Clean up iptables
   shell: iptables-save | grep -v KUBE | iptables-restore
   ignore_errors: yes
+  delegate_to: "{{ item }}"
+  loop: "{{groups['k8s_nodes']}}"
   tags:
     - kube-router

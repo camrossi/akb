@@ -54,5 +54,6 @@
   ignore_errors: yes
   delegate_to: "{{ item }}"
   loop: "{{groups['k8s_nodes']}}"
+  register: clean_iptables
   tags:
     - kube-router

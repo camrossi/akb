@@ -71,3 +71,4 @@ We have been testing NKT and VKACI on 3 Raspberry Pis nodes with Ubuntu 20.4. If
   * cgroup_enable=cpuset
   * cgroup_enable=memory
   * cgroup_memory=1
+* Check the maximum MTU supported by the Rpi ethernet interfaces, not all support jumbo MTU. use ` ip -d link list` and look for `maxmtu`

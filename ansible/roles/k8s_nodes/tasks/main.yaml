@@ -57,6 +57,7 @@
 - name: Test https internet connectivity get https://www.google.com
   uri:
     url: https://www.google.com
+    validate_certs: no
   environment: "{{ proxy_env }}"
   register: res
   retries: 10
@@ -274,6 +275,18 @@
   retries: 10
   until: res is success
   any_errors_fatal: true
+  tags:
+    - k8s_nodes
+
+- name: install lldpd
+  apt:
+    name: lldpd
+    state: latest
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+  when: baremetal
   tags:
     - k8s_nodes
 

@@ -48,3 +48,13 @@
   ignore_errors: yes
   tags:
     - kube-router
+
+# This is needed to remove the iptables rules left over by kube-proxy
+- name: Clean up iptables
+  shell: iptables-save | grep -v KUBE | iptables-restore
+  ignore_errors: yes
+  delegate_to: "{{ item }}"
+  loop: "{{groups['k8s_nodes']}}"
+  register: clean_iptables
+  tags:
+    - kube-router

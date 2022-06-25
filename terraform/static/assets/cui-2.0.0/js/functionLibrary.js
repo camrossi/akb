@@ -291,7 +291,7 @@ function autoScroll(input) {
     .querySelector("iframe")
     .contentWindow.document.querySelector("html");
   const iframeSrc = document.querySelector("iframe").getAttribute("src");
-  const bottom = frame.scrollHeight - 564;
+  const bottom = frame.scrollHeight - 540;
   const currentHeight = frame.scrollTop;
 
   if (savedBottom !== 0) {

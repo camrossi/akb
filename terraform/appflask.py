@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 import requests
 from OpenSSL.crypto import sign, load_privatekey, FILETYPE_PEM
 import base64
@@ -352,7 +353,7 @@ def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="
     return vc_vars
 
 def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
-                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_server="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", cni_plugin=""):
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_servers="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", cni_plugin=""):
                         
     ''' Generate the configuration for the Kubernetes Cluster '''
     try:
@@ -369,8 +370,8 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
         dns_servers = ['8.8.8.8']
 
     else:
-        dns_servers = list(dns_servers.split(","))
-
+        dns_servers = [s.strip() for s in dns_servers.split(",")]
+    ntp_servers = [s.strip() for s in ntp_servers.split(",")]
     ubuntu_apt_mirror = normalize_apt_mirror(ubuntu_apt_mirror)
     cluster = { "control_plane_vip": control_plane_vip.split(":")[0] if control_plane_vip != "" else "",
                 "vip_port": control_plane_vip.split(":")[1] if control_plane_vip != "" else 0,
@@ -387,7 +388,7 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
                 "kubeadm_token": kubeadm_token,
                 "node_sub": node_sub,
                 "node_sub_v6": node_sub_v6,
-                "ntp_server": ntp_server,
+                "ntp_servers": ntp_servers,
                 "kube_version": kube_version,
                 "crio_version": crio_version,
                 "OS_Version": crio_os,
@@ -826,12 +827,15 @@ def calico_nodes_view():
         #If it fails assume is empty and move on to pre-populate
         try:
             calico_nodes = json.loads(getdotenv('calico_nodes'))
+            print(calico_nodes)
         except TypeError:
             pass
         if calico_nodes == []:
             ipv6_enabled = getdotenv('ipv6_enabled')
             print("ipv6_enabled: ", ipv6_enabled)
             i = 1
+            offset = 0
+            offset_v6 = 0
             while i <= 3:
                 hostname = 'nkt-master-' + str(i)
                 ipv6 = ""
@@ -839,12 +843,31 @@ def calico_nodes_view():
                 rack_id = "1"
                 if fabric_type == "aci":
                     l3out = json.loads(getdotenv('l3out'))
-                    ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                    # Load all the IPs addresses used in the l3out
+                    used_ips = []
+                    used_ips.append(l3out['floating_ip'])
+                    used_ips.append(l3out['secondary_ip'])
                     if ipv6_enabled:
-                        ipv6 = str(ipaddress.IPv6Interface(l3out['ipv6_cluster_subnet']).ip + i) + "/" + str(ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]).prefixlen)
+                        used_ips.append(l3out['floating_ipv6'])
+                        used_ips.append(l3out['secondary_ipv6'])
+                    for node in l3out['anchor_nodes']:
+                        used_ips.append(node['ip'])
+                        if ipv6_enabled:
+                            used_ips.append(node['ipv6'])
+                    l3out = json.loads(getdotenv('l3out'))
+                    ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i + offset) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                    while ip in used_ips:
+                        offset += 1
+                        ip = str(ipaddress.IPv4Interface(l3out['ipv4_cluster_subnet']).ip + i + offset) + "/" + str(ipaddress.IPv4Network(l3out["ipv4_cluster_subnet"]).prefixlen)
+                    if ipv6_enabled:
+                        ipv6 = str(ipaddress.IPv6Interface(l3out['ipv6_cluster_subnet']).ip + i+ offset_v6) + "/" + str(ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]).prefixlen)
+                        while ipv6 in used_ips:
+                            offset_v6 += 1
+                            ipv6 = str(ipaddress.IPv6Interface(l3out['ipv6_cluster_subnet']).ip + i+ offset_v6) + "/" + str(ipaddress.IPv6Network(l3out["ipv6_cluster_subnet"]).prefixlen)
+
                 elif fabric_type == "vxlan_evpn":
                     overlay = json.loads(getdotenv('overlay'))
-                    host = str(ipaddress.IPv4Network(overlay['node_sub'])[i])
+                    host = str(ipaddress.IPv4Network(overlay['node_sub'])[i + offset])
                     prefixlen = str(ipaddress.IPv4Network(overlay['node_sub']).prefixlen)
                     ip = f"{host}/{prefixlen}"
                     if ipv6_enabled:
@@ -971,7 +994,7 @@ def cluster_view():
             cluster = create_cluster_vars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
             req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"), req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
-            req.get("http_proxy"), req.get("ntp_server"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"))
+            req.get("http_proxy"), req.get("ntp_servers"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"))
             logger.info('save cluster variable')
             setdotenv('cluster', json.dumps(cluster))
             if fabric_type == "aci":

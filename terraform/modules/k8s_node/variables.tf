@@ -86,7 +86,7 @@ variable "k8s_cluster" {
     ingress_ip             = string
     neo4j_ip               = string
     visibility_ip          = string
-    ntp_server             = string
+    ntp_servers            = list(string)
     dns_servers            = list(string)
     dns_domain             = string
     time_zone              = string

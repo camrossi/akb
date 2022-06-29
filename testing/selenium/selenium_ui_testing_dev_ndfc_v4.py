@@ -179,7 +179,7 @@ def cluster_page(driver):
     fill_by_id(driver, "dns_servers", "10.195.200.67")
     fill_by_id(driver, "dns_domain", "cisco.com")
     fill_by_id(driver, "docker_mirror", "registry-shdu.cisco.com")
-    fill_by_id(driver, "ntp_server", "10.195.225.200")
+    fill_by_id(driver, "ntp_servers", "10.195.225.200")
     fill_by_id(driver, "ubuntu_apt_mirror", "dal.mirrors.clouvider.net/ubuntu/")
 
     elem = driver.find_element(By.ID, "submit")

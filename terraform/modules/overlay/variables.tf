@@ -58,7 +58,7 @@ variable "k8s_cluster" {
     external_svc_subnet    = string
     external_svc_subnet_v6 = string
     ingress_ip             = string
-    ntp_server             = string
+    ntp_servers            = list(string)
     dns_servers            = list(string)
     dns_domain             = string
     time_zone              = string

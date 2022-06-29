@@ -12,7 +12,7 @@ crio_version: "1.23"
 haproxy_image: haproxy:latest
 keepalived_image: osixia/keepalived:latest
 
-ntp_server: "72.163.32.44"
+ntp_servers: "72.163.32.44"
 time_zone: "Australia/Sydney"
 http_proxy_status: false
 dns_domain : cam.ciscolabs.com

@@ -99,7 +99,7 @@ k8s_cluster = {
   "kubeadm_token" : "{{cluster.kubeadm_token}}",
   "node_sub" : "{{cluster.node_sub}}",
   "node_sub_v6" : "{{cluster.node_sub_v6}}",
-  "ntp_servers" : "{{cluster.ntp_servers}}",
+  "ntp_servers" : "{{cluster.ntp_servers | tojson}}",
   "dns_domain" : "{{cluster.dns_domain}}",
   "dns_servers" : {{ cluster.dns_servers | tojson }},
   "kube_version" : "{{cluster.kube_version}}",

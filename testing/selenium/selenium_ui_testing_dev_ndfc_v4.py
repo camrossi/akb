@@ -122,8 +122,15 @@ def vcenter_login_page(driver):
 
 def vcenter_page(driver):
     wait_for_title(driver, "vCenter Details")
+    print('Title changed')
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
+    try:
+        WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="dc"]/option[1]')))
+    except ValueError as e:
+        print(e)
+        print("Loading took too much time!")
+    print('DC list populated')
     select = Select(driver.find_element(By.ID, 'dc'))
     select.select_by_visible_text("dc-cylon")
 

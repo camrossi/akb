@@ -125,12 +125,6 @@ def vcenter_page(driver):
     print('Title changed')
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
-    try:
-        WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="dc"]/option[1]')))
-    except ValueError as e:
-        print(e)
-        print("Loading took too much time!")
-    print('DC list populated')
     select = Select(driver.find_element(By.ID, 'dc'))
     select.select_by_visible_text("dc-cylon")
 
@@ -234,8 +228,7 @@ def previous_pages(driver):
         'Calico Nodes',
         'vCenter Details',
         'vCenter Login',
-        'NDFC Fabric',
-        'NDFC Login',
+        'NDFC Fabric'
     ]
     for page in pages:
         print(page)
@@ -258,27 +251,16 @@ def main():
     driver = webdriver.Chrome(options=chrome_options)
     driver.implicitly_wait(10)
     driver.get(url)
-    print('root')
     root_page(driver)
-    print('login_page')
     login_page(driver)
-    print('fabric_page')
     fabric_page(driver)
-    print('vcenter_login_page')
     vcenter_login_page(driver)
-    print('vcenter_page')
     vcenter_page(driver)
-    print('calico_node_page')
     calico_node_page(driver)
-    print('cluster_page')
     cluster_page(driver)
-    print('cluster_network_page')
     cluster_network_page(driver)
-    print('create_page')
     create_page(driver)
-    print('previous_pages')
     previous_pages(driver)
-    
     sleep(5)
     driver.quit()
 

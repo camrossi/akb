@@ -109,6 +109,7 @@ def fabric_page(driver):
 
 
 def vcenter_login_page(driver):
+    wait_for_title(driver, "vCenter Login")
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     fill_by_id(driver, "url", "172.25.74.45")
@@ -118,10 +119,9 @@ def vcenter_login_page(driver):
     upload.click()
     elem = driver.find_element(By.ID, "submit")
     elem.click()
-    WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-
 
 def vcenter_page(driver):
+    wait_for_title(driver, "vCenter Details")
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     select = Select(driver.find_element(By.ID, 'dc'))

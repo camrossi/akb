@@ -231,6 +231,7 @@ def previous_pages(driver):
         'NDFC Login',
     ]
     for page in pages:
+        print(page)
         click_previous(driver, assert_ndfc(driver, page))
     wait_for_title(driver,"Day0")
     

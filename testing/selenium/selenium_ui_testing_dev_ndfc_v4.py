@@ -233,7 +233,6 @@ def previous_pages(driver):
     for page in pages:
         print(page)
         click_previous(driver, assert_ndfc(driver, page))
-    wait_for_title(driver,"Day0")
     
 def main():
     chrome_options = Options()

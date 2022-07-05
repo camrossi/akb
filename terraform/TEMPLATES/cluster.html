@@ -32,7 +32,7 @@
       </script>
 
 <head>
-   {{ turbo() }}
+   {{ turbo(url=url_for('static', filename='assets/js/turbo.es2017-esm.js')) }}
    <meta charset="utf-8">
    <title>NKT - Cluster</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -171,8 +171,8 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
-                  <label for="ntp_server">NTP Server IP:</label>
-                  <input type="text" id="ntp_server" name="ntp_server">
+                  <label for="ntp_servers">Comma separated list for NTP Server IP:</label>
+                  <input type="text" id="ntp_servers" name="ntp_servers">
                </div>
             </div>
          </div>   

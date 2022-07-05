@@ -113,7 +113,7 @@
 
 
          <div class="container">
-            <input type="submit" id="previous_optional" value="Previous" class="btn" name="button">
+            <input type="submit" id="Previous" value="Previous" class="btn" name="button">
             <input type="button" id="btn_update_config" value="Update Config" class="btn" name="button">
             <br><br>
             <input type="button" value="Plan" id="plan" class="btn" name="button" onclick="updateiFrame(this)">
@@ -249,7 +249,7 @@
       if (pageNumber(getPageName()) === pages.length - 1 &&
          (parseInt(sessionStorage.getItem("skipToCreate")) !== -1 &&
          parseInt(sessionStorage.getItem("skipToCreate")) < pages.length - 2)) {
-      document.getElementById("previous_optional").remove();
+      document.getElementById("Previous").remove();
     }
    }
    deletePreviousButton();

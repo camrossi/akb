@@ -1,5 +1,4 @@
 import json
-from pprint import pprint
 import requests
 from OpenSSL.crypto import sign, load_privatekey, FILETYPE_PEM
 import base64
@@ -829,12 +828,12 @@ def calico_nodes_view():
         #If it fails assume is empty and move on to pre-populate
         try:
             calico_nodes = json.loads(getdotenv('calico_nodes'))
-            print(calico_nodes)
+            logger.info("Fount the following calico node %s", calico_nodes)
         except TypeError:
             pass
         if calico_nodes == []:
             ipv6_enabled = getdotenv('ipv6_enabled')
-            print("ipv6_enabled: ", ipv6_enabled)
+            logger.info("ipv6_enabled: %s ", ipv6_enabled)
             i = 1
             offset = 0
             offset_v6 = 0

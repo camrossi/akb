@@ -543,11 +543,13 @@ def tf_apply():
         return Response('Please run "Plan" before "Apply"')
     g = proc.Group()
     cluster_status = check_if_new_cluster()
-    if cluster_status == 'new':
+    new_nodes, removed_nodes = node_delta(chdir)
+    if cluster_status == 'new' or (len(new_nodes) ==0 and len(removed_nodes)==0 ):
+        #If the cluster if new or the number of nodes is not changed I can just run the standard apply command
         logger.info("Deploy")
         g.run(["bash", "-c","terraform -chdir="+chdir+" apply -auto-approve -no-color plan"])
     else:
-        new_nodes, removed_nodes = node_delta(chdir)
+        logger.info("modify deployed Nodes")
         rm_cmd = ""
         add_cmd = ""
         plan_cmd = ""
@@ -577,8 +579,8 @@ def tf_apply():
            to a diffrent library perhaps 
         '''
         cmds = [ANSIBLE_LOCK_CMD, rm_cmd, plan_cmd, add_cmd, ANSIBLE_UNLOCK_CMD]
+        logger.info("Apply %s", cmds)
         g.run(["bash", "-c", ';'.join(filter(None, cmds))])
-
 
     return Response( read_process(g), mimetype='text/event-stream' )
 

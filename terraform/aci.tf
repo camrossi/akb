@@ -3,7 +3,9 @@
 terraform {
   required_providers {
     aci = {
-      source  = "CiscoDevNet/aci"
+      #source  = "CiscoDevNet/aci"
+      #version = "2.3.0"
+      source = "terraform.local/CiscoDevNet/aci"
       version = "2.3.0"
     }
     vsphere = {

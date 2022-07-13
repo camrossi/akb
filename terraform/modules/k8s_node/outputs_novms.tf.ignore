@@ -18,6 +18,9 @@ resource "local_file" "AnsibleConfig" {
 
 resource "null_resource" "sandbox_cluster" {
   depends_on = [local_file.AnsibleConfig]
+    triggers = {
+    always_run = "${timestamp()}"
+  }
   provisioner "local-exec" {
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ${var.ansible_dir}/manifests_novms.yaml --extra-vars=@${var.ansible_dir}/inventory/group_vars/all.yml"
   }

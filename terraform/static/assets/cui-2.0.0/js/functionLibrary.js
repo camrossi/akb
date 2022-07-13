@@ -6,11 +6,16 @@ const tags = [
   // ["span", "checkbox__input"],
   // ["input", "checkbox"],
 ];
-function saveInput() {
-  var inputs, index;
+function getPageName() {
   const path = window.location.pathname;
   const page = path.split("/").pop();
   console.log(page);
+  return page;
+}
+
+function saveInput() {
+  var inputs, index;
+  const page = getPageName();
   for (const tag of tags) {
     // collects all the elements in the HTML with the given tag
     inputs = document.getElementsByTagName(tag[0]);
@@ -48,14 +53,154 @@ function saveInput() {
       }
     }
   }
+  saveLoopBackAddresses();
+  saveNDFCLeafSwitches();
   // console.log("Saved inputs locally.");
 }
+function saveLoopBackAddresses() {
+  const page = getPageName();
+  if (page !== "fabric") return;
+  const saved = [];
+  const loopBacksToSave = ["loopback_ipv4", "loopback_ipv6"];
+  for (const loopBack of loopBacksToSave) {
+      const grandParentElem = document.getElementById(loopBack);
+      if (grandParentElem !== null && grandParentElem !== undefined) {
+        for (const child of grandParentElem.children) {
+          saved.push(child.children[0].innerText);
+        }
+        sessionStorage.setItem(
+          page + " " + grandParentElem.id,
+          JSON.stringify(saved)
+        );
+    }
+  }
+}
+
+function saveNDFCLeafSwitches() {
+  const page = getPageName();
+  if (page !== "fabric") return;
+
+  const saved = [];
+  const leaf_switches = document.getElementById("leaf_switches").children;
+  for (const leaf of leaf_switches) {
+    const leafData = [leaf.firstChild.children[0].innerText, leaf.firstChild.children[2].innerText];
+    // console.log(leafData);
+    saved.push(leafData);
+    sessionStorage.setItem(page + " " + "leaf_switches", JSON.stringify(saved));
+  }
+}
+
+function loadNDFCLeafSwitches() {
+  const page = getPageName();
+  if (page !== "fabric") return;
+
+  const leaf_switches = JSON.parse(sessionStorage.getItem(page + " " + "leaf_switches"));
+
+  for (const leaf of leaf_switches) {
+    console.log(leaf)
+    const addNode = document.getElementById("add_node");
+    document.getElementById("primary_ipv4").value = leaf[0];
+    document.getElementById("secondary_ipv4").value = leaf[1];
+    addNode.click();
+    document.getElementById("primary_ipv4").value = "";
+    document.getElementById("secondary_ipv4").value = "";
+  }
+
+}
+
+
+function loadLoopBackAddresses() {
+  const page = getPageName();
+  if (page !== "fabric") return;
+
+  const loopBacksToSave = ["loopback_ipv4", "loopback_ipv6"];
+
+  for (const loopBack of loopBacksToSave) {
+    const grandParentElem = document.getElementById(loopBack);
+    if (grandParentElem !== null && grandParentElem !== undefined) {
+      console.log(sessionStorage.getItem(page + " " + grandParentElem.id));
+      const addressArr = JSON.parse(sessionStorage.getItem(page + " " + grandParentElem.id));
+      // console.log(addressArr);
+      for (const address of addressArr) {
+        // saved.push(child.children[0].innerText);
+        let elem = undefined;
+        if (loopBack === "loopback_ipv4") {
+          elem = document.getElementById("input_lo_ipv4");
+          elem.value = address;
+          input_lo_ipv4_enter();
+        }
+        else {
+          elem = document.getElementById("input_lo_ipv6");
+          elem.value = address;
+          input_lo_ipv6_enter();
+        }
+        elem.value = "";
+      }
+    }
+  }
+}
+
+  function input_lo_ipv4_enter() {
+    var count_lo = $("#loopback_ipv4").children().length;
+    if (count_lo >= 2) {
+      $("#form_loopback_alert").show();
+      $("#form_loopback").addClass("form-group--error");
+      return false;
+    }
+
+    var lo_ipv4_addrs = $("#loopback_ipv4").data("lo_ipv4_addrs");
+    if (lo_ipv4_addrs == null) {
+      lo_ipv4_addrs = [];
+      $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+    }
+
+    var ipv4_addr = $("#input_lo_ipv4").val();
+    var lo_label = $(
+      '<span class="label label--info label--raised base-margin-left"></span>'
+    );
+    lo_label.append($("<span><span>").text(ipv4_addr));
+    lo_label.append('<span class="icon-close"></span>');
+
+    console.log(lo_label);
+    var label_ipv4 = $(lo_label).appendTo("#loopback_ipv4");
+    label_ipv4.data("ipv4", ipv4_addr);
+    lo_ipv4_addrs.push(ipv4_addr);
+    $("#loopback_ipv4").data("lo_ipv4_addrs", lo_ipv4_addrs);
+    $(this).val("");
+  }
+  
+  function input_lo_ipv6_enter() {
+      var count_lo = $("#loopback_ipv6").children().length;
+      if (count_lo >= 2) {
+        $("#form_loopbackv6_alert").show();
+        $("#form_loopbackv6").addClass("form-group--error");
+        return false;
+      }
+
+      var lo_ipv6_addrs = $("#loopback_ipv6").data("lo_ipv6_addrs");
+      if (lo_ipv6_addrs == null) {
+        lo_ipv6_addrs = [];
+        $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+      }
+
+      var ipv6_addr = $("#input_lo_ipv6").val();
+      var lo_label = $(
+        '<span class="label label--info label--raised base-margin-left"></span>'
+      );
+      lo_label.append($("<span></span>").text(ipv6_addr));
+      lo_label.append($('<span class="icon-close"></span>'));
+      var label_ipv6 = $(lo_label).appendTo("#loopback_ipv6");
+      label_ipv6.data("ipv6", ipv6_addr);
+      lo_ipv6_addrs.push(ipv6_addr);
+      $("#loopback_ipv6").data("lo_ipv6_addrs", lo_ipv6_addrs);
+      $(this).val("");
+  }
+
 function loadInput() {
   var inputs, index;
   // console.log(JSON.stringify(sessionStorage, null, 2));
 
-  const path = window.location.pathname;
-  const page = path.split("/").pop();
+  const page = getPageName();
   // console.log(page);
   // console.log("load attempt")
   for (const tag of tags) {
@@ -91,6 +236,8 @@ function loadInput() {
       }
     }
   }
+  loadLoopBackAddresses();
+  loadNDFCLeafSwitches();
   // console.log("Loaded saved inputs from local storage.");
 }
 
@@ -98,9 +245,7 @@ function loadInputLimit(limitArr) {
   var inputs, index;
   console.log(JSON.stringify(sessionStorage, null, 2));
 
-  const path = window.location.pathname;
-  const page = path.split("/").pop();
-  console.log(page);
+  const page = getPageName();
   // console.log("load attempt")
   for (const tag of limitArr) {
     inputs = document.getElementsByTagName(tag[0]);
@@ -146,7 +291,7 @@ function autoScroll(input) {
     .querySelector("iframe")
     .contentWindow.document.querySelector("html");
   const iframeSrc = document.querySelector("iframe").getAttribute("src");
-  const bottom = frame.scrollHeight - 564;
+  const bottom = frame.scrollHeight - 540;
   const currentHeight = frame.scrollTop;
 
   if (savedBottom !== 0) {
@@ -167,7 +312,7 @@ function autoScroll(input) {
       // startAutoScroll();
     }
 
-    if (currentHeight >= previousBottom - 1 || input !== undefined) {
+    if (currentHeight >= previousBottom - 30 || input !== undefined) {
       frame.scrollTo(0, bottom);
       console.log("Previous Bottom: " + previousBottom);
       console.log("frame.scrollTop: " + currentHeight);
@@ -185,7 +330,7 @@ let autoScrollTimer = null;
 function startAutoScroll() {
   autoScrollTimer = setInterval(() => {
     autoScroll();
-  }, 200)
+  }, 100)
 }
 
 function endAutoScroll() {
@@ -240,4 +385,40 @@ function loadListenerCreator() {
 
       })
       observer.observe(dummyC, { attributes: true, childList: true, subtree: true })
+}
+
+function updateConfig(urlBase, toClear) {
+  let newConfig;
+  if (toClear === undefined)
+    toClear = false;
+  if (toClear || toClear === "true") {
+    newConfig = "[]";
+  }
+  else {
+    newConfig = JSON.stringify({ config: $("#config").val() })
+  }
+
+  function addFabricToURL() {
+    const fabric = getUrlParameter("fabric_type");
+    if (fabric === "" || fabric === "aci") return "?fabric_type=aci";
+    else if (fabric === "vxlan_evpn") return "?fabric_type=vxlan_evpn";
+  }
+
+  const update_url = urlBase + addFabricToURL();
+    $.ajax({
+        url: update_url,  
+        dataType: 'json',
+        type: 'post',
+        contentType: 'application/json',
+        data: newConfig,
+        success: function (result, status, xhr) {
+            $("#alert_success").fadeIn(500).delay(1000).fadeOut(500);
+            setTimeout(function(){
+              window.location.reload(1);
+          }, 500);                
+        },
+        error: function (xhr, status, error) {
+            $("#alert_fail").fadeIn(500).delay(1000).fadeOut(500);
+        }
+    });
 }

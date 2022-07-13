@@ -36,11 +36,14 @@
     - k8s_addons
 
 - name: Enable Scheduling on Masters if less than 3 workers are detected
-  shell: kubectl taint nodes --all node-role.kubernetes.io/master-
+  shell: kubectl taint nodes --all "{{ item }}"
   when: "groups['k8s_workers'] | length < 3"
+  with_items:
+    - node-role.kubernetes.io/master-
+    - node-role.kubernetes.io/control-plane-
   ignore_errors: yes
   tags:
-    - k8s_addons
+    - k8s_addons1
 
 - name: Create guestbook ns
   shell: kubectl create ns gb

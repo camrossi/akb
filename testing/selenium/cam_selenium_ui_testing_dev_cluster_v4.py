@@ -90,8 +90,8 @@ elem.send_keys("common/calico_dev")
 elem = driver.find_element(By.ID,'physical_dom')
 elem.send_keys("Fab1")
 
-add_anchor_node("1","1","101","1.1.1.101","192.168.39.101")
-add_anchor_node("1","1","102","1.1.1.102","192.168.39.102/24")
+add_anchor_node("1","1","101","1.1.1.101","192.168.39.1")
+add_anchor_node("1","1","102","1.1.1.102","192.168.39.3/24")
 
 current_url = driver.current_url
 
@@ -138,7 +138,6 @@ elem.send_keys("CalicoDev_v4")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-
 #Wait for the page to be loaded
 WebDriverWait(driver, 15).until(EC.url_changes(current_url))
 assert "Calico Nodes" in driver.title
@@ -169,9 +168,10 @@ elem = driver.find_element(By.NAME,"dns_domain")
 elem.send_keys("cam.ciscolabs.com")
 elem = driver.find_element(By.ID,'docker_mirror')
 elem.send_keys("10.67.185.120:5000")
-elem = driver.find_element(By.ID,'ntp_server')
+elem = driver.find_element(By.ID,'ntp_servers')
 elem.send_keys("72.163.32.44")
 elem = driver.find_element(By.ID,'ubuntu_apt_mirror')
+elem.clear()
 elem.send_keys("ubuntu.mirror.digitalpacific.com.au/archive/")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url

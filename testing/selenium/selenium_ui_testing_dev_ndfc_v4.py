@@ -109,6 +109,7 @@ def fabric_page(driver):
 
 
 def vcenter_login_page(driver):
+    wait_for_title(driver, "vCenter Login")
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     fill_by_id(driver, "url", "172.25.74.45")
@@ -118,10 +119,10 @@ def vcenter_login_page(driver):
     upload.click()
     elem = driver.find_element(By.ID, "submit")
     elem.click()
-    WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-
 
 def vcenter_page(driver):
+    wait_for_title(driver, "vCenter Details")
+    print('Title changed')
     current_url = driver.current_url
     assert "fabric_type=vxlan_evpn" in current_url
     select = Select(driver.find_element(By.ID, 'dc'))
@@ -179,7 +180,7 @@ def cluster_page(driver):
     fill_by_id(driver, "dns_servers", "10.195.200.67")
     fill_by_id(driver, "dns_domain", "cisco.com")
     fill_by_id(driver, "docker_mirror", "registry-shdu.cisco.com")
-    fill_by_id(driver, "ntp_server", "10.195.225.200")
+    fill_by_id(driver, "ntp_servers", "10.195.225.200")
     fill_by_id(driver, "ubuntu_apt_mirror", "dal.mirrors.clouvider.net/ubuntu/")
 
     elem = driver.find_element(By.ID, "submit")
@@ -227,12 +228,11 @@ def previous_pages(driver):
         'Calico Nodes',
         'vCenter Details',
         'vCenter Login',
-        'NDFC Fabric',
-        'NDFC Login',
+        'NDFC Fabric'
     ]
     for page in pages:
+        print(page)
         click_previous(driver, assert_ndfc(driver, page))
-    wait_for_title(driver,"Day0")
     
 def main():
     chrome_options = Options()
@@ -250,7 +250,6 @@ def main():
     driver = webdriver.Chrome(options=chrome_options)
     driver.implicitly_wait(10)
     driver.get(url)
-
     root_page(driver)
     login_page(driver)
     fabric_page(driver)

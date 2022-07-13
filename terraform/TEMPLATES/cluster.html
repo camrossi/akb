@@ -32,7 +32,7 @@
       </script>
 
 <head>
-   {{ turbo() }}
+   {{ turbo(url=url_for('static', filename='assets/js/turbo.es2017-esm.js')) }}
    <meta charset="utf-8">
    <title>NKT - Cluster</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,16 +66,22 @@
                </div>
             </div>
          </header>
-         <div class="flexrow">
+         <!-- <div class="flexrow">
             <div class="cell"></div>
             <div class="cell"> </div>
-         </div>
-
-         <!--  K8s Settings   -->
-
-         <div class="form-group base-margin-bottom">
+         </div> -->
+         <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/webcomponentsLibrary.js') }}"></script>
+                  <div class="form-group base-margin-bottom">
             <div class="form-group__text"></div>
          </div>
+         <div class="container">
+            <status-bar></status-bar>
+         </div>
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>  
+
+         <!--  K8s Settings   -->
 
          <div class="container bg-gray">
             <h2>K8s Cluster Details</h2>
@@ -165,8 +171,8 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
-                  <label for="ntp_server">NTP Server IP:</label>
-                  <input type="text" id="ntp_server" name="ntp_server">
+                  <label for="ntp_servers">Comma separated list for NTP Server IP:</label>
+                  <input type="text" id="ntp_servers" name="ntp_servers">
                </div>
             </div>
          </div>   
@@ -235,7 +241,7 @@
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="kube_version">Kubernetes Version:</label>
-                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.23.4-00">
+                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.24.2-00">
                               <datalist id="kube_version_list">
                                  {% for o in k8s_ver %}
                                  <option value="{{ o }}">
@@ -293,10 +299,10 @@
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
-                              <label for="ubuntu_apt_mirror">Ubuntu APT Mirror (Optional):
-                                 <span data-title="If set it will override the default ubuntu APT mirror">ⓘ</span>
+                              <label for="ubuntu_apt_mirror">Ubuntu APT Mirror:
+                                 <span data-title="Set the Ubuntu APT mirror">ⓘ</span>
                               </label>
-                              <input type="text" id="ubuntu_apt_mirror" name="ubuntu_apt_mirror">
+                              <input type="text" id="ubuntu_apt_mirror" name="ubuntu_apt_mirror" value="archive.ubuntu.com/ubuntu">
                            </div>
                         </div>
                      </div>  

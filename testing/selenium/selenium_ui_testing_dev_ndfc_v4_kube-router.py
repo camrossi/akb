@@ -178,7 +178,7 @@ def cluster_page(driver):
     fill_by_id(driver, "dns_servers", "10.195.200.67")
     fill_by_id(driver, "dns_domain", "cisco.com")
     fill_by_id(driver, "docker_mirror", "registry-shdu.cisco.com")
-    fill_by_id(driver, "ntp_server", "10.195.225.200")
+    fill_by_id(driver, "ntp_servers", "10.195.225.200")
     fill_by_id(driver, "ubuntu_apt_mirror", "dal.mirrors.clouvider.net/ubuntu/")
 
     elem = driver.find_element(By.ID, "submit")
@@ -220,22 +220,7 @@ def click_previous(driver, url):
     elem.click()
     WebDriverWait(driver, 60).until(EC.url_changes(url))
 
-def previous_pages(driver):
-    '''test the previous buttons'''
-    pages = [
-        'Create',
-        'Cluster Network',
-        'Cluster',
-        'Calico Nodes',
-        'vCenter Details',
-        'vCenter Login',
-        'NDFC Fabric',
-        'NDFC Login',
-        'Day0'
-    ]
-    for page in pages:
-        click_previous(driver, assert_ndfc(driver, page))
-    
+ 
 def main():
     chrome_options = Options()
     url = "http://localhost:5013"
@@ -263,7 +248,6 @@ def main():
     cluster_page(driver)
     cluster_network_page(driver)
     create_page(driver)
-    # previous_pages(driver)
     sleep(5)
     driver.quit()
 

@@ -75,6 +75,45 @@
     - k8s_nodes
   when: ubuntu_apt_mirror
 
+- name: set timezone
+  shell: timedatectl set-timezone {{ time_zone }}
+  tags:
+    - k8s_nodes
+  when: time_zone
+    
+- name: Install the NTP daemon
+  apt: name=ntp
+  register: apt_res
+  retries: 100
+  until: apt_res is success
+  tags:
+    - k8s_nodes
+
+- name: Copy over the NTP configuration
+  template: src=./templates/ntp.conf dest=/etc/ntp.conf
+  tags:
+    - k8s_nodes
+
+- name: restart ntpd
+  service: name=ntp state=restarted
+  tags:
+    - k8s_nodes
+
+- name: Install ntpstats
+  apt: name=ntpstat
+  register: apt_res
+  retries: 100
+  until: apt_res is success
+  tags:
+    - k8s_nodes
+
+- name: Wait for ntp sync
+  command: ntpstat
+  register: apt_res
+  retries: 1000
+  until: apt_res.rc == 0
+  tags:
+    - k8s_nodes
 
 - name: add apt-key for Kubeadm
   apt_key:
@@ -142,29 +181,6 @@
   retries: 10
   until: res is success
   any_errors_fatal: true
-  tags:
-    - k8s_nodes
-
-- name: set timezone
-  shell: timedatectl set-timezone {{ time_zone }}
-  tags:
-    - k8s_nodes
-    
-- name: Install the NTP daemon
-  apt: name=ntp
-  register: apt_res
-  retries: 100
-  until: apt_res is success
-  tags:
-    - k8s_nodes
-
-- name: Copy over the NTP configuration
-  template: src=./templates/ntp.conf dest=/etc/ntp.conf
-  tags:
-    - k8s_nodes
-
-- name: restart ntpd
-  service: name=ntp state=restarted
   tags:
     - k8s_nodes
 
@@ -286,7 +302,7 @@
   retries: 10
   until: res is success
   any_errors_fatal: true
-  when: baremetal
+  when: bare_metal
   tags:
     - k8s_nodes
 
@@ -402,5 +418,13 @@
     sleep: 5
     delay: 5
     timeout: 5000
+  tags:
+    - k8s_nodes
+
+- name: Wait for ntp sync
+  command: ntpstat
+  register: apt_res
+  retries: 1000
+  until: apt_res.rc == 0
   tags:
     - k8s_nodes

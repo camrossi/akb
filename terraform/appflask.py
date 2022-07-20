@@ -25,6 +25,8 @@ import argparse
 from dotenv import load_dotenv
 import time
 import logging
+from ansible.parsing.dataloader import DataLoader
+from ansible.inventory.manager import InventoryManager
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()
@@ -106,12 +108,6 @@ def update_all_dotenv(config):
         setdotenv('ndfc', json.dumps(config['ndfc']))
     if 'overlay' in config:
         setdotenv('overlay', json.dumps(config['overlay']))
-
-def deldotenv(key):
-    '''Del dotenv'''
-    cmd = 'dotenv unset ' + key
-    os.system(cmd)
-    return None
 
 def require_api_token(func):
     '''This function is used to block direct access to all pages unless you have a session token'''
@@ -341,7 +337,7 @@ def create_l3out_vars(ipv6_enabled:bool, l3out_tenant, name, vrf, physical_dom, 
 
 def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="",
                 dvs="", port_group="",
-                vm_template="", vm_folder="", vm_deploy=True):
+                vm_template="", vm_folder="", vm_deploy=True, bare_metal=False):
 
     '''Return the fomratted Virtual Center Variables'''
     vc_vars = {
@@ -352,7 +348,7 @@ def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="
     return vc_vars
 
 def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
-                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_servers="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", cni_plugin=""):
+                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_servers="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", ansible_user="", cni_plugin=""):
                         
     ''' Generate the configuration for the Kubernetes Cluster '''
     try:
@@ -403,7 +399,8 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
                 "eBPF_status" : True if eBPF_status == "on" else False,
                 "dns_domain" : dns_domain,
                 "dns_servers" : dns_servers,
-                "cni_plugin": cni_plugin
+                "cni_plugin": cni_plugin,
+                "ansible_user": ansible_user
                 } 
     return cluster
 
@@ -464,7 +461,9 @@ def tf_plan():
     with open(config_file, 'r') as fp:
         current_config = hcl2.load(fp)
         print(current_config)
-    if not current_config['vc']['vm_deploy']:
+
+    # If Cluster is not deployed
+    if not current_config['vc']['vm_deploy'] and not current_config['vc']['bare_metal']:
         logger.info('K8s Cluster deployment disabled')
         #Change to the VM module directory
         os.chdir("modules/k8s_node")
@@ -480,7 +479,26 @@ def tf_plan():
             os.rename("group_var_template.tmpl","group_var_template.tmpl.ignore")
             os.rename("group_var_template_novms.tmpl.ignore","group_var_template_novms.tmpl")
         os.chdir(cwd)
-    if current_config['vc']['vm_deploy']:
+
+    # If we deploy on Baremetal 
+    if current_config['vc']['vm_deploy'] and current_config['vc']['bare_metal']:
+        logger.info('K8s Cluster deployment on Baremetal')
+        #Change to the VM module directory
+        os.chdir("modules/k8s_node")
+        if os.path.exists("vms.tf"):
+            logger.info('Disable VM Deployment')
+            os.rename("vms.tf","vms.tf.ignore")
+        if os.path.exists("outputs.tf.ignore"):
+            logger.info('Enable Cluster Deployment outputs')
+            os.rename("outputs.tf.ignore","outputs.tf")
+            os.rename("outputs_novms.tf","outputs_novms.tf.ignore")
+        if os.path.exists("group_var_template.tmpl.ignore"):
+            logger.info('Enable Cluster Templates')
+            os.rename("group_var_template.tmpl.ignore","group_var_template.tmpl")
+            os.rename("group_var_template_novms.tmpl","group_var_template_novms.tmpl.ignore")
+        os.chdir(cwd)
+     # If we deploy on VMs 
+    if current_config['vc']['vm_deploy'] and not current_config['vc']['bare_metal']:
         logger.info('K8s Cluster enbaled, enable vms and output tf files')
         os.chdir("modules/k8s_node")
         if os.path.exists("vms.tf.ignore"):
@@ -513,17 +531,26 @@ def tf_plan():
 
 def node_delta(chdir):
     '''Calculte the new and removed k8s nodes'''
+    new_nodes, removed_nodes = [], []
     cmd = "terraform -chdir="+chdir+" show -json plan"
     stream = os.popen(cmd)
-    new_nodes = set()
-    removed_nodes = set()
     changes = json.loads(stream.read())
     for change in changes['resource_changes']:
-        if "module.k8s_node.vsphere_virtual_machine.vm" in change['address']:
-            if "create" in change['change']['actions']:
-                new_nodes.add(change['index'])
-            if "delete" in change['change']['actions']:
-                removed_nodes.add(change['index'])
+        if "module.k8s_node.local_file.AnsibleInventory" in change['address'] and change['change']['before']:
+            data_loader = DataLoader()
+            current_inventory = open("/tmp/nkt_current_inventory.ini", "w")
+            new_inventory = open("/tmp/nkt_new_inventory.ini", "w")
+            current_inventory.write(change['change']['before']['content'])
+            new_inventory.write(change['change']['after']['content'])
+            current_inventory.close()
+            new_inventory.close()
+            current_inventory = InventoryManager(loader=data_loader, sources="/tmp/nkt_current_inventory.ini")
+            new_inventory = InventoryManager(loader=data_loader, sources="/tmp/nkt_new_inventory.ini")
+    
+    new_workers = [str(x) for x in new_inventory.get_hosts('k8s_workers')]
+    current_workers = [str(x) for x in current_inventory.get_hosts('k8s_workers')]
+    new_nodes = set(new_workers) - set(current_workers)
+    removed_nodes = set(current_workers) - set(new_workers)
     return new_nodes, removed_nodes
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
@@ -828,7 +855,7 @@ def calico_nodes_view():
         #If it fails assume is empty and move on to pre-populate
         try:
             calico_nodes = json.loads(getdotenv('calico_nodes'))
-            logger.info("Fount the following calico node %s", calico_nodes)
+            logger.info("Found the following calico node %s", calico_nodes)
         except TypeError:
             pass
         if calico_nodes == []:
@@ -995,7 +1022,7 @@ def cluster_view():
             cluster = create_cluster_vars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
             req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"), req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
             req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
-            req.get("http_proxy"), req.get("ntp_servers"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"))
+            req.get("http_proxy"), req.get("ntp_servers"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"), req.get("ansible_user"))
             logger.info('save cluster variable')
             setdotenv('cluster', json.dumps(cluster))
             if fabric_type == "aci":
@@ -1013,8 +1040,8 @@ def cluster_view():
             ipv4_cluster_subnet = overlay["node_sub"]
 
         api_ip = str(ipaddress.IPv4Network(ipv4_cluster_subnet, strict=False).broadcast_address - 3)
-
-        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions(), fabric_type=fabric_type)
+        vc = json.loads(getdotenv('vc'))
+        return render_template('cluster.html', api_ip=api_ip, k8s_ver=k8s_versions(), fabric_type=fabric_type, bare_metal=vc['bare_metal'],)
 
 def calculate_k8s_as(fabric_as):
     '''Ensure the K8s AS number falls within 1 and 65534'''
@@ -1025,6 +1052,16 @@ def calculate_k8s_as(fabric_as):
 
 @app.route('/cluster_network', methods=['GET', 'POST'])
 def cluster_network():
+    def add_l3out_vlan(req):
+        l3out = json.loads(getdotenv('l3out'))
+        l3out['vlan_id'] = req.get("vlan_id")
+        if l3out['vlan_id'] == "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
+            logger.info('Invalid VLAN detected')
+            flash("Please Specify a valid VLAN ID (2-4094)")
+            return redirect(f'/cluster_network?fabric_type={fabric_type}')
+        logger.info('save l3out variable to update the VLAN ID in case of not VM Deployment')
+        setdotenv('l3out', json.dumps(l3out))
+
     '''K8s Cluster networks definition'''
     vc = json.loads(getdotenv('vc'))
     fabric_type = get_fabric_type(request)
@@ -1046,6 +1083,9 @@ def cluster_network():
                 cluster['ingress_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 1)
                 cluster['visibility_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 2)
                 cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
+                if fabric_type == "aci" and vc['bare_metal']:
+                    add_l3out_vlan(req)
+
             else:
                 cluster = create_cluster_vars()
                 cluster['pod_subnet'] = req.get("ipv4_pod_sub")
@@ -1054,14 +1094,7 @@ def cluster_network():
                 cluster['local_as'] = req.get("k8s_local_as")
                 cluster['cni_plugin'] = req.get("cni_plugin")
                 if fabric_type == "aci":
-                    l3out = json.loads(getdotenv('l3out'))
-                    l3out['vlan_id'] = req.get("vlan_id")
-                    if l3out['vlan_id'] == "" or int(l3out['vlan_id']) < 2 or int(l3out['vlan_id']) >4094:
-                        logger.info('Invalid VLAN detected')
-                        flash("Please Specify a valid VLAN ID (2-4094)")
-                        return redirect(f'/cluster_network?fabric_type={fabric_type}')
-                    logger.info('save l3out variable to update the VLAN ID in case of not VM Deployment')
-                    setdotenv('l3out', json.dumps(l3out))
+                    add_l3out_vlan(req)
             if ipv6_enabled: 
                 cluster['cluster_svc_subnet_v6'] = req.get("ipv6_svc_sub")
                 cluster['pod_subnet_v6'] = req.get("ipv6_pod_sub")
@@ -1141,6 +1174,7 @@ def cluster_network():
                                     ipv6_ext_svc_sub=ipv6_ext_svc_sub,
                                     k8s_local_as=k8s_local_as,
                                     vm_deploy=vc['vm_deploy'],
+                                    bare_metal=vc['bare_metal'],
                                     fabric_type = fabric_type)
 
 @app.route('/vcenterlogin', methods=['GET', 'POST'])
@@ -1153,7 +1187,7 @@ def vcenterlogin():
         req = request.form
         button = req.get("button")
         if button == "Next":
-            vc = create_vc_vars()
+            vc = json.loads(getdotenv('vc'))
             vc["url"] = req.get("url")
             vc["username"] = req.get("username")
             vc["pass"] = req.get("pass")
@@ -1478,8 +1512,10 @@ def l3out_view():
                 "import-security"), req.get("shared-security"), req.get("shared-rtctrl"), req.get("local_as"), req.get("bgp_pass"), req.get("contract"), req.get("anchor_nodes"))
             logger.info('save l3out variable')
             setdotenv('l3out', json.dumps(l3out))
-            if vc['vm_deploy']:
+            if vc['vm_deploy'] and not vc['bare_metal']:
                 return redirect('/vcenterlogin')
+            if vc['vm_deploy'] and vc['bare_metal']:
+                return redirect('/calico_nodes')
             else:
                 return redirect('/cluster_network')
         # Then the post came from the L3OUT Tenant Select
@@ -1832,6 +1868,7 @@ def login():
             apic['private_key']= "../ansible/roles/aci/files/" + apic['nkt_user'] + '-user.key'
             apic['oob_ips'] = ""
             vc['vm_deploy'] = True if req.get("deploy_vm") == "on" else False
+            vc['bare_metal'] = True if req.get("bare_metal") == "on" else False
             # PyACI requires to have the MetaData present locally. Since the metada changes depending on the APIC version I use an init container to pull it.
             # No you can't put it in the same container as the moment you try to import pyaci it crashed is the metadata is not there. Plus init containers are cool!
             # Get the APIC Model. s.environ.get("APIC_IPS").split(',')[0] gets me the first APIC here I don't care about RR
@@ -1881,7 +1918,9 @@ def login():
         if os.path.exists('.env'):
             with open('.env', 'w'):
                 logger.info('Cleared .env file')
-
+        if os.path.exists('cluster.tfvars'):
+            os.remove('cluster.tfvars')
+            logger.info('Deleted cluster.tfvars file')
         if fabric_type == "aci":
             return render_template('login.html')
         elif fabric_type == "vxlan_evpn":
@@ -1979,9 +2018,15 @@ def destroy():
     g = proc.Group()
     
     if fabric_type == "aci":
+        vc = json.loads(getdotenv('vc'))
+        cmds = []
         ansible_cmd = "ansible-playbook -i ../ansible/inventory/apic.yaml ../ansible/apic_user.yaml --tags='apic_user_del'"
         tf_cmd = "terraform destroy -auto-approve -no-color -var-file='cluster.tfvars'"
-        cmds = [tf_cmd, ANSIBLE_LOCK_CMD, ansible_cmd, ANSIBLE_UNLOCK_CMD]
+        if vc['bare_metal']:
+            reset_k8s_cmd = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/nodes.ini ../ansible/reset_k8s.yaml --skip-tags reboot"
+            cmds.append(reset_k8s_cmd)
+        cmds.extend([tf_cmd, ANSIBLE_LOCK_CMD, ansible_cmd, ANSIBLE_UNLOCK_CMD])
+        print(cmds)
         g.run(["bash", "-c", ';'.join(filter(None, cmds))])
     elif fabric_type == "vxlan_evpn":
         integ_reset = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ../ansible/inventory/ndfc.yaml ../ansible/ndfc_integration.yaml -t reset"

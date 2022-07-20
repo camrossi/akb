@@ -66,9 +66,14 @@ A visualization tool `vkaci` is also deployed on the cluster. It is exposed as a
 We have been testing NKT and VKACI on 3 Raspberry Pis nodes with Ubuntu 20.4. If you plan to test the same here a few tips:
 
 * Configure passwordless sudo
+  * Edit sudoers file: sudo nano /etc/sudoers
+  * Find a line which contains includedir /etc/sudoers.d
+  * Below that line add: username ALL=(ALL) NOPASSWD: ALL
 * CRI-O supports ARM64 Ubuntu starting from v1.24 
 * edit the `/boot/firmware/cmdline.txt` and enable the following options
   * cgroup_enable=cpuset
   * cgroup_enable=memory
   * cgroup_memory=1
 * Check the maximum MTU supported by the Rpi ethernet interfaces, not all support jumbo MTU. use ` ip -d link list` and look for `maxmtu`
+* The APT Mirror MUST BE http://ports.ubuntu.com/
+* The Pi does not have a RTC (Real Time Clock) so every time is reloaded the time is set back to the build time, at least with Ubuntu 20.0.4. So it is mandatory to have NTP working even after the installation or the cluster will die after a reload as all the certificate will be invalid.

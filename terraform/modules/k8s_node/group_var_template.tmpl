@@ -1,5 +1,5 @@
 ### TO DO: This should be fixed with SSH KEY Autnentication
-ansible_user: cisco
+ansible_user: ${k8s_cluster.ansible_user}
 ansible_ssh_private_key_file: ${ ssh_private_key }
 
 fabric_type: ${ fabric_type }
@@ -74,3 +74,4 @@ dns_domain: ${dns_domain}
 ubuntu_apt_mirror: ${k8s_cluster.ubuntu_apt_mirror}
 eBPF_status: ${k8s_cluster.eBPF_status}
 cni_plugin: ${k8s_cluster.cni_plugin}
+bare_metal: ${vc.bare_metal}

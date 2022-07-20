@@ -107,6 +107,26 @@
   tags:
     - primary_master
 
+#Find the K8s interface based name based on the IP address of the node
+- set_fact:
+    target_interface: "{{ item }}"
+  when: >
+    (hostvars[inventory_hostname]['ansible_%s' % item]|default({}))
+    .get('ipv4', {}).get('address') == "{{ real_ip }}"
+    or
+    "{{ real_ip }}" in ((hostvars[inventory_hostname]['ansible_%s' % item]|default({}))
+    .get('ipv4_secondaries'))|map(attribute='address')|list
+  with_items:
+    - "{{ ansible_interfaces }}"
+  tags:
+    - primary_master
+- debug:
+    msg: >-
+      detected keepalived interface {{ target_interface }}
+      with address "{{ real_ip }}"
+  tags:
+    - primary_master
+
 - name: configure keepalived on Master
   copy:
     dest: /etc/keepalived/keepalived.conf
@@ -125,7 +145,7 @@
 
           vrrp_instance VI_1 {
               state MASTER
-              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0', 'kube-bridge', 'kube-dummy-if', 'wlan0', 'cni-podman0']) | first }}
+              interface {{ target_interface }}
               virtual_router_id {{ keepalived_router_id }}
               priority 101
               authentication {

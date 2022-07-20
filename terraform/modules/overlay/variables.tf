@@ -67,5 +67,6 @@ variable "k8s_cluster" {
     http_proxy             = string
     ubuntu_apt_mirror      = string
     sandbox_status         = bool
+    ansible_user      = string
   })
 }

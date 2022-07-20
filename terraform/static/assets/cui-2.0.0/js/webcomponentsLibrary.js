@@ -29,11 +29,25 @@ function addFabricToURL() {
 
 function pagesInitialization() {
   const fabric = getUrlParameter("fabric_type");
+  console.log("deploy:", sessionStorage.getItem("deploy"))
+  console.log("bare_metal:", sessionStorage.getItem("bare_metal"))
   if (fabric === "")
     ndfc = false;
   else if (fabric === "vxlan_evpn")
     ndfc = true;
-  if (sessionStorage.getItem("deploy") === "true") {
+  if (sessionStorage.getItem("deploy") === "true" && sessionStorage.getItem("bare_metal") === "true") {
+    console.log("Deploy on ACI and Configure BareMetal Servers");
+    pages = [
+      ["", "required"],
+      ["login", "required"],
+      ["l3out", "required"],
+      ["calico_nodes", "required"],
+      ["cluster", "required"],
+      ["cluster_network", "required"],
+      ["create", "required"],
+    ];
+  }else if (sessionStorage.getItem("deploy") === "false") {
+    console.log("Deploy on ACI NO Nodes");
     pages = [
       ["", "required"],
       ["login", "required"],
@@ -55,6 +69,7 @@ function pagesInitialization() {
       ["create", "required"],
     ];
   } else {
+    console.log("Deploy on ACI and VMs");
     pages = [
       ["", "required"],
       ["login", "required"],

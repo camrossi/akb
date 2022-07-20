@@ -20,6 +20,8 @@ variable "vc" {
     port_group  = string
     vm_template = string
     vm_folder   = string
+    vm_deploy   = bool
+    bare_metal  = bool
   })
 }
 
@@ -118,7 +120,7 @@ variable "k8s_cluster" {
     sandbox_status         = bool
     eBPF_status            = bool
     cni_plugin             = string
-
+    ansible_user      = string
   })
 }
 

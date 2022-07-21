@@ -112,6 +112,7 @@
   register: apt_res
   retries: 1000
   until: apt_res.rc == 0
+  when: bare_metal
   tags:
     - k8s_nodes
 
@@ -426,5 +427,6 @@
   register: apt_res
   retries: 1000
   until: apt_res.rc == 0
+  when: bare_metal
   tags:
     - k8s_nodes

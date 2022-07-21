@@ -546,11 +546,10 @@ def node_delta(chdir):
             new_inventory.close()
             current_inventory = InventoryManager(loader=data_loader, sources="/tmp/nkt_current_inventory.ini")
             new_inventory = InventoryManager(loader=data_loader, sources="/tmp/nkt_new_inventory.ini")
-    
-    new_workers = [str(x) for x in new_inventory.get_hosts('k8s_workers')]
-    current_workers = [str(x) for x in current_inventory.get_hosts('k8s_workers')]
-    new_nodes = set(new_workers) - set(current_workers)
-    removed_nodes = set(current_workers) - set(new_workers)
+            new_workers = [str(x) for x in new_inventory.get_hosts('k8s_workers')]
+            current_workers = [str(x) for x in current_inventory.get_hosts('k8s_workers')]
+            new_nodes = set(new_workers) - set(current_workers)
+            removed_nodes = set(current_workers) - set(new_workers)
     return new_nodes, removed_nodes
 
 @app.route('/tf_apply', methods=['GET', 'POST'])
@@ -729,7 +728,10 @@ def calico_nodes_view():
             logger.info('save calico_nodes variable')
             setdotenv('calico_nodes', json.dumps(calico_nodes))     
             return redirect(f"/cluster?fabric_type={fabric_type}")
-        if button == "Previous":
+        vc = json.loads(getdotenv('vc'))
+        if button == "Previous" and vc['bare_metal']:
+            return redirect(f'/l3out?fabric_type={fabric_type}')
+        if button == "Previous" and not vc['bare_metal']:
             return redirect(f'/vcenter?fabric_type={fabric_type}')
         if button == "Add Node":
             if req.get("calico_nodes") != "":

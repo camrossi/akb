@@ -86,11 +86,15 @@
          <div class="container bg-gray">
             <h2>K8s Cluster Details</h2>
             <p>
-               <br> Here you should insert the K8s cluster details. </br>
-               <b>Internet Access:</b> If you do not have internet access you <b>MUST</b> use the provided VM template.<br>
-               No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. <br>
-               This only works for the default image versions and result in a faster cluster bring up.<br>
-               If you want to use your own template or specific image version then Internet access is required.<br>
+                Here you should insert the K8s cluster details.
+                <br><b>Internet Access:</b> 
+               <ul> 
+                  <li>If you do not have internet access you <b>MUST</b> use the provided VM template: 
+                     No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. 
+                     This only works for the default image versions and result in a faster cluster bring up.
+                     If you want to use your own template or specific image version then Internet access is required. </li>
+                  <li> If you are deploying <b>bare metal</b> nodes you must have internet access or the installtion will fail
+               </ul>
 
             </p>
          </div>
@@ -307,9 +311,9 @@
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="ubuntu_apt_mirror">Ubuntu APT Mirror:
-                                 <span data-title="Set the Ubuntu APT mirror">ⓘ</span>
+                                 <span data-title="Set the Ubuntu APT mirror, for example archive.ubuntu.com/ubuntu">ⓘ</span>
                               </label>
-                              <input type="text" id="ubuntu_apt_mirror" name="ubuntu_apt_mirror" value="archive.ubuntu.com/ubuntu">
+                              <input type="text" id="ubuntu_apt_mirror" name="ubuntu_apt_mirror">
                            </div>
                         </div>
                      </div>  

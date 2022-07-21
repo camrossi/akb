@@ -109,21 +109,17 @@
 
 #Find the K8s interface based name based on the IP address of the node
 - set_fact:
-    target_interface: "{{ item }}"
-  when: >
-    (hostvars[inventory_hostname]['ansible_%s' % item]|default({}))
-    .get('ipv4', {}).get('address') == "{{ real_ip }}"
-    or
-    "{{ real_ip }}" in ((hostvars[inventory_hostname]['ansible_%s' % item]|default({}))
-    .get('ipv4_secondaries'))|map(attribute='address')|list
-  with_items:
-    - "{{ ansible_interfaces }}"
+    target_interface: "{{ hostvars[inventory_hostname]['ansible_' + item]['device'] }}"
+  when:
+        - hostvars[inventory_hostname]['ansible_' + item].ipv4 is defined
+        - hostvars[inventory_hostname]['ansible_' + item]['ipv4']['address'] | ansible.utils.ipaddr(real_ip)
+  with_items: "{{ ansible_interfaces }}"
   tags:
     - primary_master
 - debug:
     msg: >-
       detected keepalived interface {{ target_interface }}
-      with address "{{ real_ip }}"
+      with address {{ real_ip }}
   tags:
     - primary_master
 

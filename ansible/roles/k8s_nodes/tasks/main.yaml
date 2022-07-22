@@ -106,6 +106,7 @@
   register: apt_res
   retries: 100
   until: apt_res is success
+  when: bare_metal
   tags:
     - k8s_nodes
 
@@ -114,6 +115,7 @@
   register: apt_res
   retries: 100
   until: apt_res is success
+  when: bare_metal
   tags:
     - k8s_nodes
 

@@ -99,7 +99,7 @@
   tags:
     - k8s_nodes
 
-- name: Install ntpstats
+- name: Install ntpstat
   apt: name=ntpstat
   register: apt_res
   retries: 100

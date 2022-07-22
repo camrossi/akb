@@ -19,3 +19,4 @@ dns_domain : cam.ciscolabs.com
 ubuntu_apt_mirror : https://ubuntu.mirror.digitalpacific.com.au/archive/
 docker_mirror: "10.67.185.120:5000"
 proxy_env: {}
+bare_metal: true

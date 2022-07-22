@@ -99,6 +99,16 @@
   tags:
     - k8s_nodes
 
+- name: apt update
+  apt:
+    update_cache: yes
+    cache_valid_time: 0
+  register: apt_res
+  retries: 100
+  until: apt_res is success
+  tags:
+    - k8s_nodes
+
 - name: Install ntpstat
   apt: name=ntpstat
   register: apt_res
@@ -190,7 +200,7 @@
     update_cache: yes
     cache_valid_time: 0
   register: apt_res
-  retries: 100
+  retries: 10
   until: apt_res is success
   tags:
     - k8s_nodes

@@ -1894,12 +1894,12 @@ def login():
             if ret != 'OK':
                 return ret
             return redirect('/l3out')
-
-                
+      
         if fabric_type == "vxlan_evpn":
             
             # NDC does not support yet selecting VM deployment option so settin it here to true
             vc['vm_deploy'] = request.json["deploy_vm"]
+            vc['bare_metal'] = True if req.get("bare_metal") == "on" else False
             ndfc = {}
             ndfc["url"] = normalize_url(request.json["url"])
             ndfc["username"] = request.json["username"]

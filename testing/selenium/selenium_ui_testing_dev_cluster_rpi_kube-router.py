@@ -50,7 +50,7 @@ if len(sys.argv)>=2:
 driver = webdriver.Chrome(options=chrome_options)
 driver.implicitly_wait(10)
 
-driver.get("http://10.67.185.120:5002")
+driver.get("http://10.67.185.120:5003")
 wait_for_title(driver, "NKT")
 elem = driver.find_element(By.NAME,"button")
 elem.click()

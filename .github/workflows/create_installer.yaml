@@ -86,7 +86,4 @@ jobs:
         run: | 
           bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-sydney
           
-      - name: Delete compressed images
-        run: | 
-          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova*
           

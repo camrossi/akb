@@ -266,7 +266,100 @@ jobs:
         if: always()
         run: | 
           curl -b cookie.txt -s  http://10.67.185.120:5002/destroy
+      
+  nkt-rpi-kube-router:
+    # The type of runner that the job will run on
+    runs-on: stld
+    defaults:
+      run:
+        working-directory: rpi/terraform
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: rpi
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5003 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 ../testing/selenium/selenium_ui_testing_dev_cluster_rpi_kube-router.py --headless && sleep 2
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://10.67.185.120:5003/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5003/tf_plan
+      - name: Terraform apply
+        run: | 
+          curl -b cookie.txt -s http://10.67.185.120:5003/tf_apply
+      - name: Check if all the nodes are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+      - name: Check if all the pods are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform 
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+          curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
 
+  nkt-rpi:
+    # The type of runner that the job will run on
+    runs-on: stld
+    needs: nkt-rpi-kube-router
+    defaults:
+      run:
+        working-directory: rpi/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: v4
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5003 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 ../testing/selenium/selenium_ui_testing_dev_cluster_rpi.py --headless && sleep 2
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://10.67.185.120:5003/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5003/tf_plan
+      - name: Terraform apply
+        run: | 
+          curl -b cookie.txt -s http://10.67.185.120:5003/tf_apply
+      - name: Check if all the nodes are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+      - name: Check if all the pods are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform 
+          
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+          curl -b cookie.txt -s  http://10.67.185.120:5003/destroy
   nkt-calico-v4-nat:
     # The type of runner that the job will run on
     runs-on: bxl

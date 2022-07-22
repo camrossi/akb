@@ -41,6 +41,8 @@ variable "vc" {
     port_group  = string
     vm_template = string
     vm_folder   = string
+    vm_deploy   = bool
+    bare_metal  = bool
   })
 }
 
@@ -99,6 +101,7 @@ variable "k8s_cluster" {
     dns_servers            = list(string)
     dns_domain             = string
     cni_plugin             = string
+    ansible_user      = string
   })
 }
 variable "ansible_dir" {

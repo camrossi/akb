@@ -89,7 +89,7 @@
          {% endfor %}
          {% endif %}
          {% endwith %}
-                     <div id="checkbox-unchecked" {% if vm_deploy %} style="display:none";{% endif %}  >     
+                     <div id="checkbox-unchecked" {% if vm_deploy and not bare_metal %} style="display:none";{% endif %}  >     
                         <div class="container">
                            <div class="form-group base-margin-bottom">
                               <div  class="form-group__text">

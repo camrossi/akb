@@ -43,7 +43,7 @@
     - node-role.kubernetes.io/control-plane-
   ignore_errors: yes
   tags:
-    - k8s_addons1
+    - k8s_addons
 
 - name: Create guestbook ns
   shell: kubectl create ns gb

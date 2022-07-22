@@ -86,20 +86,25 @@
          <div class="container bg-gray">
             <h2>K8s Cluster Details</h2>
             <p>
-               <br> Here you should insert the K8s cluster details. </br>
-               <b>Internet Access:</b> If you do not have internet access you <b>MUST</b> use the provided VM template.<br>
-               No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. <br>
-               This only works for the default image versions and result in a faster cluster bring up.<br>
-               If you want to use your own template or specific image version then Internet access is required.<br>
+                Here you should insert the K8s cluster details.
+                <br><b>Internet Access:</b> 
+               <ul> 
+                  <li>If you do not have internet access you <b>MUST</b> use the provided VM template: 
+                     No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. 
+                     This only works for the default image versions and result in a faster cluster bring up.
+                     If you want to use your own template or specific image version then Internet access is required. </li>
+                  <li> If you are deploying <b>bare metal</b> nodes you must have internet access or the installtion will fail
+               </ul>
 
             </p>
          </div>
 
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %} >
             <div class="checkbox form-group form-group--inline c8041">
                <label class="checkbox">
                   <span class="checkbox__label hidden-xs">deploy k8s cluster in air-gapped environment?</span>
-                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;" checked onchange="if (!this.checked) {openModal('confirm_modal')}">
+                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;" onchange="if (!this.checked) {openModal('confirm_modal')}"
+                  {% if not bare_metal %} checked ;{% endif %}>
                   <span id="sandbox_status" class="checkbox__input"></span>
                   <div class="modal modal--small hide" id="confirm_modal">
                      <div class="modal__dialog">
@@ -127,7 +132,7 @@
          </div>
          <br>
 
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %}>
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="time_zone">Time Zone:</label>
@@ -139,7 +144,7 @@
             </div>
          </div>
          
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %}>
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="dns_servers">DNS servers:
@@ -150,7 +155,7 @@
             </div>
          </div>
          
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %}>
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="dns_domain">DNS Domain: </label>
@@ -158,7 +163,16 @@
                </div>
             </div>
          </div>
-
+         <div class="container"{% if not bare_metal %} style="display:none";{% endif %}>
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="ansible_user">Nodes Username 
+                     <span data-title="Username to connect to the nodes. This needs to be part of the sudoers">ⓘ</span>
+                  </label>
+                  <input type="text" id="ansible_user" name="ansible_user" value="cisco">
+               </div>
+            </div>
+         </div>
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
@@ -177,11 +191,8 @@
             </div>
          </div>   
 
-                        <!--advanced tab for proxy-->
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text"></div>
-                        </div>
-                        <div class="container">
+
+                        <div class="container" {% if bare_metal %} style="display:none";{% endif %} >
                            <div class="checkbox form-group form-group--inline c8041">
                               <label class="checkbox">
                                  <input type="checkbox" id="http_proxy_status" name="http_proxy_status" onclick="DoCheckUncheckDisplay2(this,'checkbox-checked2','checkbox-unchecked2')" style="margin:0;">
@@ -284,7 +295,7 @@
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="keepalived_image">keepalived image:</label>
-                              <input type="text" id="keepalived_image" name="keepalived_image" value="osixia/keepalived:latest">
+                              <input type="text" id="keepalived_image" name="keepalived_image" value="quay.io/camillo/keepalived:latest">
                            </div>
                         </div>
                      </div>
@@ -300,9 +311,9 @@
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="ubuntu_apt_mirror">Ubuntu APT Mirror:
-                                 <span data-title="Set the Ubuntu APT mirror">ⓘ</span>
+                                 <span data-title="Set the Ubuntu APT mirror, for example archive.ubuntu.com/ubuntu">ⓘ</span>
                               </label>
-                              <input type="text" id="ubuntu_apt_mirror" name="ubuntu_apt_mirror" value="archive.ubuntu.com/ubuntu">
+                              <input type="text" id="ubuntu_apt_mirror" name="ubuntu_apt_mirror">
                            </div>
                         </div>
                      </div>  

@@ -79,6 +79,13 @@
                      <span class="checkbox__label hidden-xs">Deploy K8s cluster</span>
                   </label>
                </div>
+               <div class="checkbox form-group form-group--inline c8041">
+                  <label class="checkbox" id="bare_metal_label" >
+                     <input type="checkbox" style="margin:0;" id="bare_metal" name="bare_metal" unchecked onchange="bmCheck()">
+                     <span id='bare_metal-checkbox' class="checkbox__input"></span>
+                     <span class="checkbox__label hidden-xs">On BareMetal</span>
+                  </label>
+               </div>
             </div>
 
             <table class="table table--compressed table--selectable table--wrap c1990" id="_uid829dc898">
@@ -122,13 +129,29 @@
             function deployCheck() {
                const checkbox = document.getElementById("deploy_vm").checked;
                if (!checkbox) {
-                  sessionStorage.setItem("deploy", "true");
+                  sessionStorage.setItem("deploy", "flase");               
+                  document.getElementById("bare_metal").checked = false;
+                  sessionStorage.setItem("bare_metal", "false");
+                  console.log('deployCheck deploy:',sessionStorage.getItem("deploy"));
                }
                else
-                  sessionStorage.setItem("deploy", "false");
-               console.log(sessionStorage.getItem("deploy"));
+                  sessionStorage.setItem("deploy", "true");
+                  console.log('deployCheck deploy:',sessionStorage.getItem("deploy"));
+            }
+            function bmCheck() {
+               const bm_checkbox = document.getElementById("bare_metal").checked;
+               if (!bm_checkbox) {
+                  sessionStorage.setItem("bare_metal", "false");
+                  console.log('bmCheck bare_metal:',sessionStorage.getItem("bare_metal"));
+               }
+               else
+                  sessionStorage.setItem("bare_metal", "true");
+                  sessionStorage.setItem("deploy", "true");
+                  console.log('bmCheck bare_metal:', sessionStorage.getItem("bare_metal"));
             }
             deployCheck();
+            bmCheck();
+            
          </script>
 
 

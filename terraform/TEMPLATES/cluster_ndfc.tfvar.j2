@@ -12,6 +12,7 @@ vc = {
   "vm_template" : "{{vc.vm_template}}",
   "vm_folder" : "{{vc.vm_folder}}"
   "vm_deploy" : {{vc.vm_deploy | lower}}
+  "bare_metal" : {{vc.bare_metal | lower}}
 }
 
 ndfc = {
@@ -116,4 +117,5 @@ k8s_cluster = {
   "sandbox_status" : {{cluster.sandbox_status | lower}},
   "eBPF_status" : {{cluster.eBPF_status | lower}},
   "cni_plugin" : "{{cluster.cni_plugin }}"
+  "ansible_user" : "{{cluster.ansible_user }}"
 }

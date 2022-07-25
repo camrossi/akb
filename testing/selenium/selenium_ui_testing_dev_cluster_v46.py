@@ -178,7 +178,7 @@ elem = driver.find_element(By.ID,'ntp_servers')
 elem.send_keys("72.163.32.44")
 elem = driver.find_element(By.ID,'ubuntu_apt_mirror')
 elem.clear()
-elem.send_keys("ubuntu.mirror.digitalpacific.com.au/archive/")
+elem.send_keys("http://ubuntu.mirror.digitalpacific.com.au/archive/")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()

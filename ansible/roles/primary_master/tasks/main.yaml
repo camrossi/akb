@@ -1,4 +1,10 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - primary_master
+    
 - name: Ensures haproxy dir exists
   file: 
     path: /etc/haproxy/
@@ -76,7 +82,7 @@
             namespace: kube-system
           spec:
             containers:
-            - image: {{ haproxy_image }}
+            - image: {{ images.haproxy }}
               imagePullPolicy: IfNotPresent
               name: haproxy
               livenessProbe:
@@ -191,7 +197,7 @@
                 namespace: kube-system
               spec:
                 containers:
-                - image: {{ keepalived_image }}
+                - image: {{ images.keepalived }}
                   imagePullPolicy: IfNotPresent
                   name: keepalived
                   resources: {}

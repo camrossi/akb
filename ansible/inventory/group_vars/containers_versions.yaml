@@ -1,2 +1,21 @@
-vkaci: dev-5-jul
-kube_router: v1.5.0
+images:
+  vkaci: quay.io/camillo/vkaci:dev-5-jul
+  vkaci_init: quay.io/camillo/vkaci-init:dev-5-jul
+  kube_router: docker.io/cloudnativelabs/kube-router:v1.5.0
+  neo4j: neo4j:4.4.3
+  goldpinger: docker.io/bloomberg/goldpinger:v3.5.1
+  calico_cni: docker.io/calico/cni:v3.22.0
+  calico_kube_controllers: docker.io/calico/kube-controllers:v3.22.0
+  calico_node: docker.io/calico/node:v3.22.0
+  calico_flexvol: docker.io/calico/pod2daemon-flexvol:v3.22.0
+  calico_typha: docker.io/calico/typha:v3.22.0
+  gb_frontend: gcr.io/google_samples/gb-frontend:v6
+  gb_redisslave: gcr.io/google-samples/gb-redisslave:v3
+  redis: docker.io/redis:3.2.12
+  haproxy: haproxy:latest
+  metrics_server: k8s.gcr.io/metrics-server/metrics-server:v0.4.2
+  keepalived: quay.io/camillo/keepalived:latest
+  k8s_dashboard: kubernetesui/dashboard:v2.2.0
+  metrics_scraper: kubernetesui/metrics-scraper:v1.0.6
+  nginx_certgen: k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1
+  nginx_controller: k8s.gcr.io/ingress-nginx/controller:v1.1.1

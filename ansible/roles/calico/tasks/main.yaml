@@ -1,4 +1,9 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - calico
 
 - name: Copy Calico manifests
   template:

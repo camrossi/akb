@@ -4104,7 +4104,7 @@ spec:
       securityContext:
         fsGroup: 65534
       containers:
-      - image: docker.io/calico/typha:v3.22.0
+      - image: {{ images.calico_typha }}
         imagePullPolicy: IfNotPresent
         name: calico-typha
         ports:
@@ -4221,7 +4221,7 @@ spec:
         # It can be deleted if this is a fresh installation, or if you have already
         # upgraded to use calico-ipam.
         - name: upgrade-ipam
-          image: docker.io/calico/cni:v3.22.0
+          image: {{ images.calico_cni }}
           imagePullPolicy: IfNotPresent
           command: ["/opt/cni/bin/calico-ipam", "-upgrade"]
           envFrom:
@@ -4249,7 +4249,7 @@ spec:
         # This container installs the CNI binaries
         # and CNI network config file on each node.
         - name: install-cni
-          image: docker.io/calico/cni:v3.22.0
+          image: {{ images.calico_cni }}
           imagePullPolicy: IfNotPresent
           command: ["/opt/cni/bin/install"]
           envFrom:
@@ -4291,7 +4291,7 @@ spec:
         # Adds a Flex Volume Driver that creates a per-pod Unix Domain Socket to allow Dikastes
         # to communicate with Felix over the Policy Sync API.
         - name: flexvol-driver
-          image: docker.io/calico/pod2daemon-flexvol:v3.22.0
+          image: {{ images.calico_flexvol }}
           imagePullPolicy: IfNotPresent
           volumeMounts:
           - name: flexvol-driver-host
@@ -4303,7 +4303,7 @@ spec:
         # container programs network policy and routes on each
         # host.
         - name: calico-node
-          image: docker.io/calico/node:v3.22.0
+          image: {{ images.calico_node }}
           imagePullPolicy: IfNotPresent
           envFrom:
           - configMapRef:
@@ -4533,7 +4533,7 @@ spec:
       priorityClassName: system-cluster-critical
       containers:
         - name: calico-kube-controllers
-          image: docker.io/calico/kube-controllers:v3.22.0
+          image: {{ images.calico_kube_controllers }}
           imagePullPolicy: IfNotPresent
           env:
             # Choose which controllers to run.

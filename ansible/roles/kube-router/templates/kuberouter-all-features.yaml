@@ -48,7 +48,7 @@ spec:
       serviceAccount: kube-router
       containers:
       - name: kube-router
-        image: docker.io/cloudnativelabs/kube-router:{{ kube_router }}
+        image: {{ images.kube_router }}
         imagePullPolicy: IfNotPresent
         # bgp-graceful-restart-deferral-time: The default is 6min and will result in a delay for BGP route adcvertisment of 6minutes
         # That seems excessive to setting this to 30s seemed sensible
@@ -103,7 +103,7 @@ spec:
           readOnly: false
       initContainers:
       - name: install-cni
-        image: docker.io/cloudnativelabs/kube-router:{{ kube_router }}
+        image: {{ images.kube_router }}
         imagePullPolicy: IfNotPresent
         command:
         - /bin/sh

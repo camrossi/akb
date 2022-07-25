@@ -4,6 +4,7 @@
     file: ../../inventory/group_vars/containers_versions.yaml
   tags:
     - kube-router
+    
 - name: Copy kube-router manifests
   template:
     src: "{{ item }}"

@@ -1,4 +1,9 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - master_replicas
 
 - name: "Create kubernetes folders"
   file:
@@ -43,14 +48,14 @@
     - name: Join to Cluster
       shell: "{{ kubeadm_join_cmd.stdout }} --control-plane"
       register: res
-      retries: 10
+      retries: 50
       until: res is success
       any_errors_fatal: true
   rescue:
     - name: Join to Cluster with ingores
       shell: "{{ kubeadm_join_cmd.stdout }} --control-plane --ignore-preflight-errors=all"
       register: res
-      retries: 10
+      retries: 50
       until: res is success
       any_errors_fatal: true
   tags:

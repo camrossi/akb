@@ -3,7 +3,7 @@
   include_vars:
     file: ../../inventory/group_vars/containers_versions.yaml
   tags:
-    - k8s_addons
+    - k8s_addons1
 
 - name: Copy common addons manifests
   template:
@@ -214,7 +214,7 @@
     force: yes
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
-    - k8s_addons
+    - k8s_addons1
 
 ####
 - name: Install vkaci

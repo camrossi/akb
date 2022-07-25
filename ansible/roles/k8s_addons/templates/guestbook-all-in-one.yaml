@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: leader
-        image: "docker.io/redis:3.2.12"
+        image: {{ images.redis }}
         resources:
           requests:
             cpu: 100m
@@ -67,7 +67,7 @@ spec:
     spec:
       containers:
       - name: follower
-        image: gcr.io/google-samples/gb-redisslave:v3
+        image: {{ images.gb_redisslave }}
         resources:
           requests:
             cpu: 100m
@@ -110,7 +110,7 @@ spec:
     spec:
       containers:
       - name: php-redis
-        image: gcr.io/google_samples/gb-frontend:v6
+        image: {{ images.gb_frontend }}
         env:
         - name: GET_HOSTS_FROM
           value: "dns"

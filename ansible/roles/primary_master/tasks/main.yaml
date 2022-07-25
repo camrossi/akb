@@ -267,7 +267,11 @@
     - primary_master
 
 - name: Bootstrap first Master
-  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs 
+  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs
+  register: res
+  retries: 50
+  until: res is success
+  any_errors_fatal: true
   tags:
     - primary_master
 

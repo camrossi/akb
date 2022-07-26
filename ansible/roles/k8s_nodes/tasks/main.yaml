@@ -357,18 +357,18 @@
   shell: kubeadm config images list --kubernetes-version "{{ kube_version.split("-")[0] }}"  | grep pause
   register: pause_image
   tags:
-    - k8s_nodes
+    - k8s_nodes1
 
 - name: Ensure Crio uses the right pause container
   ansible.builtin.lineinfile:
     path: /etc/crio/crio.conf
     regex: '# pause_image = .*'
-    line: pause_image = {{ pause_image.stdout }}
+    line: pause_image = "{{ pause_image.stdout }}"
     owner: root
     group: root
     mode: '0644'
   tags:
-    - k8s_nodes
+    - k8s_nodes1
 
 - name: Just force systemd to reread configs (2.4 and above)
   ansible.builtin.systemd:

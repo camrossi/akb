@@ -353,13 +353,13 @@
   tags:
     - k8s_nodes
 
-- name: Ensure Crio uses the right pause container
+- name: Detect the pause image version
   shell: kubeadm config images list --kubernetes-version "{{ kube_version.split("-")[0] }}"  | grep pause
   register: pause_image
   tags:
     - k8s_nodes1
 
-- name: Ensure Crio uses the right pause container
+- name: Ensure Crio uses the right pause container image
   ansible.builtin.lineinfile:
     path: /etc/crio/crio.conf
     regex: '# pause_image = .*'

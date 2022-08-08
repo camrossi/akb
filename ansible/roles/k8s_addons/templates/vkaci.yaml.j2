@@ -7,10 +7,7 @@ metadata:
   name: pods-list
 rules:
 - apiGroups: [""]
-  resources: ["pods","nodes"]
-  verbs: ["list","get"]
-- apiGroups: [""]
-  resources: ["services"]
+  resources: ["pods","services","nodes"]
   verbs: ["list","get"]
 - apiGroups: ["crd.projectcalico.org"]
   resources: ["bgpconfigurations"]

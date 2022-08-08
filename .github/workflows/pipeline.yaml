@@ -272,13 +272,13 @@ jobs:
     runs-on: stld
     defaults:
       run:
-        working-directory: rpi/terraform
+        working-directory: rpi-kube-router/terraform
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: rpi
+          path: rpi-kube-router
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
@@ -325,7 +325,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with:
-          path: v4
+          path: rpi
       - name: Install dependencies
         run: |
           pip3 install -r ../requirements.txt
@@ -519,14 +519,14 @@ jobs:
       needs: [cleanup_stale_vms, nkt-calico-ndfc]
       defaults:
         run:
-          working-directory: ndfc/terraform
+          working-directory: ndfc-kube-router/terraform
 
       # Steps represent a sequence of tasks that will be executed as part of the job
       steps:
         # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
         - uses: actions/checkout@v2
           with:
-            path: ndfc
+            path: ndfc-kube-router
         - name: Install dependencies
           run: |
             pip3 install -r ../requirements.txt

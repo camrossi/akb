@@ -315,7 +315,7 @@ class OvfHandler(object):
             if self.lease.state not in [vim.HttpNfcLease.State.done,
                                         vim.HttpNfcLease.State.error]:
                 self.start_timer()
-            sys.stderr.write("Progress: %d%%\r" % prog)
+            #print("Progress: %d%%\r" % prog)
             self.upload_progress = prog
             return prog
         except Exception:  # Any exception means we should stop updating progress.

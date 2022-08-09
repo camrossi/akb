@@ -17,7 +17,6 @@ from packaging.version import Version
 import random
 import string
 from datetime import datetime
-import concurrent.futures
 import hcl2
 from ndfc import NDFC, Fabric
 from jinja2 import Template
@@ -1215,20 +1214,6 @@ def vcenterlogin():
             return render_template('vcenter-login.html', fabric_type=fabric_type)
 
 
-def update_load(ovf_handle):
-    ''' Updates the progress of the upload on the UI'''
-    while ovf_handle.get_upload_progress() < 99:
-        time.sleep(.5)
-        # x = x + 1
-        htmlRendered = render_template('_template_upload_progress.html', progressVal=ovf_handle.get_upload_progress())
-        # below line prints the server-side rendered html and significantly helps debugging of the progress bar
-        # print(htmlRendered)
-        if turbo.can_stream():
-            print("Web App:" , ovf_handle.get_upload_progress())
-            turbo.push(turbo.replace(htmlRendered, 'template-upload-progress'))
-        else:
-            print("can't stream")
-
 @app.route('/vctemplate', methods=['GET', 'POST'])
 def vctemplate():
     '''vCenter Update VM Template Page'''
@@ -1300,9 +1285,6 @@ def vctemplate():
                     return redirect('/vctemplate')
             ovf_handle.set_spec(cisr)
 
-            # Run the update_load function in a new thread
-            executor.submit(update_load, ovf_handle)
-
             #Start upload as a new thread
             #Find Folder
             # Get only 1st level folder
@@ -1316,10 +1298,17 @@ def vctemplate():
             if vm:
                 task = vm.Destroy_Task()
                 vc_utils.wait_for_tasks(si, [task])
-            upload = concurrent.futures.ThreadPoolExecutor()
-            upload.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle,host)
-            # Wait for upload to complete UI freeze here
-            upload.shutdown(wait=True)
+            upload_task = executor.submit(vc_utils.start_upload, vc["url"], resource_pool,cisr, folder, ovf_handle,host)
+            #Wait for the upload to complete
+            while not upload_task.done():
+                progress = ovf_handle.get_upload_progress()
+                logger.info("Upload Progress: %d%%", progress)
+                htmlRendered = render_template('_template_upload_progress.html', progressVal=progress)
+                if turbo.can_stream():
+                    turbo.push(turbo.replace(htmlRendered, 'template-upload-progress'))
+                time.sleep(1)
+
+
             vm = vc_utils.find_by_name(si,folder,TEMPLATE_NAME)
             vm.CreateSnapshot_Task(name=str(datetime.now()),
                                         description="Snapshot",

@@ -516,7 +516,7 @@ def tf_plan():
         if ret != 'OK':
             return ret
         if not os.path.exists('.terraform'):     
-            g.run(["bash", "-c", "terraform init -no-color && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
+            g.run(["bash", "-c", "terraform init -no-color -upgrade && terraform plan -no-color -var-file='cluster.tfvars' -out='plan'" ])
         else:
             g.run(["bash", "-c", "terraform plan -no-color -var-file='cluster.tfvars' -out='plan'"])
     elif fabric_type == "vxlan_evpn":

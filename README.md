@@ -50,7 +50,7 @@ A few add-ons are also installed on the cluster:
 ## UI
 
 All the configurations can be done via the integrated webui.
-Just execture the `appflask.py` file from the `terraform` directory
+Move to the `terraform` directory and start the application with `gunicorn -w 4 -k gevent -b 0.0.0.0:8080 appflask:app`
 
 ### Visibility
 

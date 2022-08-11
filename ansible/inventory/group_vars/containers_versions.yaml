@@ -14,7 +14,7 @@ images:
   redis: docker.io/redis:3.2.12
   haproxy: haproxy:latest
   metrics_server: k8s.gcr.io/metrics-server/metrics-server:v0.4.2
-  keepalived: quay.io/datacenter/keepalived:latest
+  keepalived: quay.io/datacenter/keepalived:v2.2.7
   k8s_dashboard: kubernetesui/dashboard:v2.2.0
   metrics_scraper: kubernetesui/metrics-scraper:v1.0.6
   nginx_certgen: k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1

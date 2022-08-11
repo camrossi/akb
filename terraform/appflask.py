@@ -347,7 +347,7 @@ def create_vc_vars(url="", username="", passw="", dc="", datastore="", cluster="
     return vc_vars
 
 def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_pod_sub="", ipv6_pod_sub="", ipv4_svc_sub="", ipv6_svc_sub="", external_svc_subnet="", external_svc_subnet_v6="", local_as="", kube_version="", kubeadm_token="", 
-                        crio_version="", crio_os="", haproxy_image="", keepalived_image="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_servers="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", ansible_user="", cni_plugin=""):
+                        crio_version="", crio_os="", keepalived_router_id="", timezone="", docker_mirror="", http_proxy_status="", http_proxy="", ntp_servers="", ubuntu_apt_mirror="", sandbox_status="", eBPF_status="", dns_servers="", dns_domain="", ansible_user="", cni_plugin=""):
                         
     ''' Generate the configuration for the Kubernetes Cluster '''
     try:
@@ -386,8 +386,6 @@ def create_cluster_vars(control_plane_vip="", node_sub="", node_sub_v6="", ipv4_
                 "kube_version": kube_version,
                 "crio_version": crio_version,
                 "OS_Version": crio_os,
-                "haproxy_image": haproxy_image,
-                "keepalived_image": keepalived_image,
                 "keepalived_router_id": keepalived_router_id,
                 "time_zone": timezone,
                 "docker_mirror": docker_mirror,
@@ -1022,7 +1020,7 @@ def cluster_view():
             crio_version = req.get("kube_version").split('.')[0] + '.' + req.get("kube_version").split('.')[1]
             cluster = create_cluster_vars(req.get("control_plane_vip"), ipv4_cluster_subnet, ipv6_cluster_subnet, req.get("ipv4_pod_sub"), req.get("ipv6_pod_sub"), req.get("ipv4_svc_sub"), 
             req.get("ipv6_svc_sub"), req.get("ipv4_ext_svc_sub"), req.get("ipv6_ext_svc_sub"), req.get("local_as"),req.get("kube_version"), req.get("kubeadm_token"), crio_version, req.get("crio_os"),
-            req.get("haproxy_image"), req.get("keepalived_image"), req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
+            req.get("keepalived_router_id"), req.get("timezone"), req.get("docker_mirror"), req.get("http_proxy_status"), 
             req.get("http_proxy"), req.get("ntp_servers"), req.get("ubuntu_apt_mirror"), req.get("sandbox_status"),req.get("eBPF_status"),req.get("dns_servers"), req.get("dns_domain"), req.get("ansible_user"))
             logger.info('save cluster variable')
             setdotenv('cluster', json.dumps(cluster))

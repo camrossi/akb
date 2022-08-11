@@ -43,8 +43,6 @@ variable "k8s_cluster" {
     control_plane_vip   = string
     vip_port            = number
     local_as            = number
-    haproxy_image       = string
-    keepalived_image    = string
     keepalived_router_id= string
     kubeadm_token       = string
     node_sub            = string

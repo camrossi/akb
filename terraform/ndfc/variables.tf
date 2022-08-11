@@ -94,8 +94,6 @@ variable "k8s_cluster" {
     local_as               = number
     peer_as                = number
     bgp_passwd             = string
-    haproxy_image          = string
-    keepalived_image       = string
     keepalived_router_id   = string
     kubeadm_token          = string
     node_sub               = string

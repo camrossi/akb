@@ -83,13 +83,12 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
-                  <input list="l3out_tenant_list" id="l3out_tenant" name="l3out_tenant"
+                  <select id="l3out_tenant" name="l3out_tenant"
                      onchange="if(this.value.length>0) this.form.requestSubmit()" autocomplete="off" />
-                  <datalist id="l3out_tenant_list">
                      {% for o in tenants %}
-                     <option value="{{ o }}">
-                        {% endfor %}
-                  </datalist>
+                     <option name="{{ o }}">{{ o }} </option>
+                     {% endfor %}
+                  </select>
                   <label 
                      for="l3out_tenant">Tenant name:
                      <span data-title="Name of the tenant where we NKT will create the floating L3OUT SVI">ⓘ</span>

@@ -6,12 +6,11 @@
                 <span data-title="Pick a pre-existing VRF for you Calico Cluster.">ⓘ</span>
 
             </label>
-            <input list="vrf_name_list" id="vrf_name" name="vrf_name" />
-              <datalist id="vrf_name_list">
+            <select id="vrf_name" name="vrf_name">
                 {% for o in vrfs %}
-                <option value="{{ o }}">
+                <option name="{{ o }}">{{ o }} </option>
                 {% endfor %}
-            </datalist> 
+            </select> 
         </div>
         </div>
     </div>
@@ -22,12 +21,11 @@
               <label for="contract" >Contract Name for Ext EPG :
                 <span data-title="Must exist and applied manually to any EPG that needs to speak with the Catch All External EPG define above">ⓘ</span>
               </label>
-              <input list="contract_list" id="contract" name="contract" />
-              <datalist id="contract_list">
+              <select  id="contract" name="contract" >
                 {% for o in contracts %}
-                <option value="{{ o }}">
+                <option name="{{ o }}">{{ o }} </option>
                 {% endfor %}
-            </datalist> 
+            </select> 
            </div>
         </div>
      </div>

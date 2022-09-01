@@ -82,6 +82,9 @@ jobs:
         run: | 
           chmod 777 $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
           
-      - name: Upload to Sydney S3
+      - name: Upload Installer to Sydney S3
         run: | 
           bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-sydney
+      - name: Upload Template to Sydney S3
+        run: | 
+          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_template.ova nkt-sydney

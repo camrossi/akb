@@ -104,7 +104,7 @@ wait_for_title(driver, "vCenter Login")
 elem = driver.find_element(By.NAME,"url")
 elem.send_keys("10.48.168.200")
 elem = driver.find_element(By.NAME,"username")
-elem.send_keys("cpaggen@vsphere.local")
+elem.send_keys("administrator@insbu.lab")
 elem = driver.find_element(By.NAME,"pass")
 elem.send_keys("Ins3965!")
 elem = driver.find_element(By.ID,"template_checkbox")
@@ -114,7 +114,7 @@ elem.click()
 
 wait_for_title(driver, "vCenter Details")
 select = Select(driver.find_element(By.ID,'dc'))
-select.select_by_visible_text("AKB")
+select.select_by_visible_text("NKT")
 
 #Wait for vCenter API to populate the page
 try:
@@ -124,7 +124,7 @@ except ValueError as e:
 #elem = driver.find_element(By.ID,'datastore')
 #elem.send_keys("ESXi3_SSD")
 select = Select(driver.find_element(By.ID,'cluster'))
-select.select_by_visible_text("AKB")
+select.select_by_visible_text("K8S")
 elem = driver.find_element(By.ID,'port_group')
 elem.send_keys("AKB/K8s-nodes-vlan-667/vlan-667")
 elem = driver.find_element(By.ID,'vm_templates')

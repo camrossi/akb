@@ -2,7 +2,7 @@
   include_vars:
     file: ../../inventory/group_vars/containers_versions.yaml
   tags:
-    - sandbox1
+    - sandbox
 
 - name: Pre Pull Kubeadm Images
   command: kubeadm config images pull --kubernetes-version "{{ kube_version.split("-")[0] }}"
@@ -13,7 +13,7 @@
   command: crictl pull "{{ item.value }}"
   loop: "{{ lookup('ansible.builtin.dict', images) }} "
   tags:
-    - sandbox1
+    - sandbox
 
 - name: Install calicoctl
   get_url:

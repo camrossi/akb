@@ -319,6 +319,18 @@
   tags:
     - k8s_nodes
 
+- name: Install kubeadm, kubelet and kubectl 
+  apt: 
+    name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
+    state: present
+    force: True
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+  tags:
+    - k8s_nodes
+    
 - name: install cri-tools
   apt: 
     name: cri-tools
@@ -354,10 +366,11 @@
     - k8s_nodes
 
 - name: Detect the pause image version
-  shell: kubeadm config images list --kubernetes-version "{{ kube_version.split("-")[0] }}"  | grep pause
+  shell: kubeadm config images list --kubernetes-version "{{ kube_version.split("-")[0] }}" | grep pause
   register: pause_image
   tags:
-    - k8s_nodes1
+    - k8s_nodes
+    - k8s_nodes_pause
 
 - name: Ensure Crio uses the right pause container image
   ansible.builtin.lineinfile:
@@ -368,7 +381,8 @@
     group: root
     mode: '0644'
   tags:
-    - k8s_nodes1
+    - k8s_nodes
+    - k8s_nodes_pause
 
 - name: Just force systemd to reread configs (2.4 and above)
   ansible.builtin.systemd:
@@ -405,18 +419,6 @@
   service:
     name: crio
     state: restarted
-  any_errors_fatal: true
-  tags:
-    - k8s_nodes
-
-- name: Install kubeadm, kubelet and kubectl 
-  apt: 
-    name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
-    state: present
-    force: True
-  register: res
-  retries: 10
-  until: res is success
   any_errors_fatal: true
   tags:
     - k8s_nodes

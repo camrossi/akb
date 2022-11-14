@@ -4,7 +4,7 @@ ansible_user: cisco
 ansible_sudo_pass: 123Cisco123
 ansible_ssh_private_key_file: "roles/sandbox/files/id_rsa"
 #K8S an Crio Version
-kube_version: 1.24.2-00           # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
+kube_version: 1.24.7-00           # This is the versioning number as per Ubuntu Packages. (apt-cache show <package> | grep Version)
 OS_Version: "xUbuntu_20.04"
 crio_version: "1.24"
 

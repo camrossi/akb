@@ -3,7 +3,7 @@
   include_vars:
     file: ../../inventory/group_vars/containers_versions.yaml
   tags:
-    - k8s_addons1
+    - k8s_addons
 
 - name: Copy common addons manifests
   template:

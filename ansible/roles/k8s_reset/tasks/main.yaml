@@ -1,6 +1,16 @@
 - name: kubeadm reset -f
   command: kubeadm reset -f
 
+- name: Delete CNI configs
+  file:
+    state: absent
+    path: /etc/cni/net.d/
+
+- name: Create /etc/cni/net.d/ directory
+  file:
+    path: /etc/cni/net.d/
+    state: directory
+
 - name: Reboot the server
   shell: "sleep 5 && reboot"
   async: 1

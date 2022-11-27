@@ -165,7 +165,7 @@
 
 - name: add apt-key for cri-o
   apt_key:
-    url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:/{{ crio_version }}/{{ OS_Version }}/Release.key
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ OS_Version }}/Release.key
   environment: "{{ proxy_env }}"
   register: res
   retries: 10

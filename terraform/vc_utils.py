@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 import sys
 
 def connect(url, username, vc_pass, port):
-    return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)
+    return vc_connect.SmartConnect(host=url,  user=username, pwd=vc_pass, port=port, disableSslCertValidation=True)
 
 def disconnect(si):
     vc_connect.Disconnect(si)

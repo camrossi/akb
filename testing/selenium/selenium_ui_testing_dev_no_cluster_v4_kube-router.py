@@ -109,3 +109,5 @@ elem.send_keys("Kube-Router")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
+wait_for_title(driver, "Create")
+driver.quit()

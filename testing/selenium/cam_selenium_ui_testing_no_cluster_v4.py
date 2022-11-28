@@ -7,6 +7,10 @@ from selenium.webdriver.chrome.options import Options
 import sys
 import random
 from time import sleep
+
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
+    
 def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem = driver.find_element(By.NAME,"pod_id")
     elem.send_keys(pod_id)
@@ -108,3 +112,5 @@ elem.send_keys("11")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
+wait_for_title(driver, "Create")
+driver.quit()

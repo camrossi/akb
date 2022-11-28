@@ -94,4 +94,6 @@ elem.send_keys("11")
 elem = driver.find_element(By.ID,"submit")
 current_url = driver.current_url
 elem.click()
-#driver.quit()
+
+wait_for_title(driver, "Create")
+driver.quit()

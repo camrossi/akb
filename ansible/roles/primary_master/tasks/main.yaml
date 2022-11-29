@@ -1,4 +1,10 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - primary_master
+    
 - name: Ensures haproxy dir exists
   file: 
     path: /etc/haproxy/
@@ -76,7 +82,7 @@
             namespace: kube-system
           spec:
             containers:
-            - image: {{ haproxy_image }}
+            - image: {{ images.haproxy }}
               imagePullPolicy: IfNotPresent
               name: haproxy
               livenessProbe:
@@ -107,6 +113,22 @@
   tags:
     - primary_master
 
+#Find the K8s interface based name based on the IP address of the node
+- set_fact:
+    target_interface: "{{ hostvars[inventory_hostname]['ansible_' + item]['device'] }}"
+  when:
+        - hostvars[inventory_hostname]['ansible_' + item].ipv4 is defined
+        - hostvars[inventory_hostname]['ansible_' +  item]['ipv4']['address'] | ansible.utils.ipaddr(real_ip)
+  with_items: "{{ ansible_interfaces }}"
+  tags:
+    - primary_master
+- debug:
+    msg: >-
+      detected keepalived interface {{ target_interface }}
+      with address {{ real_ip }}
+  tags:
+    - primary_master
+
 - name: configure keepalived on Master
   copy:
     dest: /etc/keepalived/keepalived.conf
@@ -125,7 +147,7 @@
 
           vrrp_instance VI_1 {
               state MASTER
-              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0']) | first }}
+              interface {{ target_interface }}
               virtual_router_id {{ keepalived_router_id }}
               priority 101
               authentication {
@@ -175,7 +197,7 @@
                 namespace: kube-system
               spec:
                 containers:
-                - image: {{ keepalived_image }}
+                - image: {{ images.keepalived }}
                   imagePullPolicy: IfNotPresent
                   name: keepalived
                   resources: {}
@@ -202,68 +224,11 @@
   tags:
     - primary_master
 
-
-#- name: Install JQ
-#  apt: name=jq
-#  register: res
-#  retries: 10
-#  until: res is success
-#  any_errors_fatal: true
-#  tags:
-#    - primary_master
-#
-#- name: Install YQ
-#  shell: wget https://github.com/mikefarah/yq/releases/download/v4.18.1/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
-#  register: res
-#  retries: 10
-#  until: res is success
-#  any_errors_fatal: true
-#  tags:
-#    - primary_master
-#
-#- name: Delete Kustomize if installed
-#  ansible.builtin.file:
-#    path: kustomize
-#    state: absent
-#  tags:
-#    - primary_master
-#
-#- name: Install Kustomize
-#  shell: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
-#  register: res
-#  retries: 10
-#  until: res is success
-#  any_errors_fatal: true
-#  tags:
-#    - primary_master
-
 - name: Create Kubeadm config - v4
-  copy:
+  template:
+    src: kubeadm-v4.yaml
     dest: /tmp/kubeadm.yaml
     force: yes
-    content: |
-      apiVersion: kubeadm.k8s.io/v1beta2
-      kind: InitConfiguration
-      bootstrapTokens:
-      - groups:
-        - system:bootstrappers:kubeadm:default-node-token
-        token: {{ kubeadm_token }}
-      nodeRegistration:
-        criSocket: "unix:///var/run/crio/crio.sock"
-      ---
-      apiServer:
-        timeoutForControlPlane: 4m0s
-      kind: ClusterConfiguration
-      controlPlaneEndpoint: {{ control_plane_vip }}:{{ vip_port }}
-      kubernetesVersion: "{{ kube_version.split("-")[0] }}"
-      networking:
-        podSubnet: {{ pod_subnet }}
-        serviceSubnet: {{ cluster_svc_subnet }}
-      apiVersion: kubeadm.k8s.io/v1beta2
-      ---
-      apiVersion: kubelet.config.k8s.io/v1beta1
-      kind: KubeletConfiguration
-      cgroupDriver: systemd
   run_once: true
   when: pod_subnet and not pod_subnet_v6
   tags:
@@ -274,7 +239,7 @@
     dest: /tmp/kubeadm.yaml
     force: yes
     content: |
-      apiVersion: kubeadm.k8s.io/v1beta2
+      apiVersion: kubeadm.k8s.io/v1beta3
       kind: InitConfiguration
       bootstrapTokens:
       - groups:
@@ -291,7 +256,7 @@
       networking:
         podSubnet: {{ pod_subnet }},{{ pod_subnet_v6 }}
         serviceSubnet: {{ cluster_svc_subnet }},{{ cluster_svc_subnet_v6 }}
-      apiVersion: kubeadm.k8s.io/v1beta2
+      apiVersion: kubeadm.k8s.io/v1beta3
       ---
       apiVersion: kubelet.config.k8s.io/v1beta1
       kind: KubeletConfiguration
@@ -302,7 +267,11 @@
     - primary_master
 
 - name: Bootstrap first Master
-  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs 
+  command: kubeadm init --config=/tmp/kubeadm.yaml --upload-certs
+  register: res
+  retries: 50
+  until: res is success
+  any_errors_fatal: true
   tags:
     - primary_master
 

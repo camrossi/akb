@@ -8,10 +8,8 @@ import ssl
 from urllib.request import Request, urlopen
 import sys
 
-import appflask
-
 def connect(url, username, vc_pass, port):
-    return vc_connect.SmartConnectNoSSL(host=url,  user=username, pwd=vc_pass, port=port)
+    return vc_connect.SmartConnect(host=url,  user=username, pwd=vc_pass, port=port, disableSslCertValidation=True)
 
 def disconnect(si):
     vc_connect.Disconnect(si)
@@ -141,13 +139,10 @@ def wait_for_tasks(service_instance, tasks):
         if pcfilter:
             pcfilter.Destroy()
 
-def get_vm(si, name):
-    vm = si.content.searchIndex.FindByUuid(None, args.uuid, True, instance_search)
+def import_spec_params(entityName,diskProvisioning, hostSystem):
+    return vim.OvfManager.CreateImportSpecParams(entityName=entityName, diskProvisioning=diskProvisioning, hostSystem=hostSystem)
 
-def import_spec_params(entityName,diskProvisioning):
-    return vim.OvfManager.CreateImportSpecParams(entityName=entityName, diskProvisioning=diskProvisioning)
-
-def get_largest_free_rp(si, datacenter):
+def get_largest_free_rp(si, datacenter, host):
     """
     Get the resource pool with the largest unreserved memory for VMs.
     """
@@ -157,7 +152,7 @@ def get_largest_free_rp(si, datacenter):
     unreserved_for_vm = 0
     try:
         for resource_pool in container_view.view:
-            if resource_pool.runtime.memory.unreservedForVm > unreserved_for_vm:
+            if resource_pool.runtime.memory.unreservedForVm > unreserved_for_vm and host in resource_pool.owner.host:
                 largest_rp = resource_pool
                 unreserved_for_vm = resource_pool.runtime.memory.unreservedForVm
     finally:
@@ -166,8 +161,8 @@ def get_largest_free_rp(si, datacenter):
         raise Exception("Failed to find a resource pool in datacenter %s" % datacenter.name)
     return largest_rp
 
-def start_upload(url, resource_pool,cisr, folder, ovf_handle):
-    lease = resource_pool.ImportVApp(cisr.importSpec, folder)
+def start_upload(url, resource_pool,cisr, folder, ovf_handle, host):
+    lease = resource_pool.ImportVApp(cisr.importSpec, folder, host)
     while lease.state == vim.HttpNfcLease.State.initializing:
         print("Waiting for lease to be ready...")
         time.sleep(1)
@@ -320,7 +315,7 @@ class OvfHandler(object):
             if self.lease.state not in [vim.HttpNfcLease.State.done,
                                         vim.HttpNfcLease.State.error]:
                 self.start_timer()
-            sys.stderr.write("Progress: %d%%\r" % prog)
+            #print("Progress: %d%%\r" % prog)
             self.upload_progress = prog
             return prog
         except Exception:  # Any exception means we should stop updating progress.

@@ -1,4 +1,9 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - master_replicas
 
 - name: "Create kubernetes folders"
   file:
@@ -43,14 +48,14 @@
     - name: Join to Cluster
       shell: "{{ kubeadm_join_cmd.stdout }} --control-plane"
       register: res
-      retries: 10
+      retries: 50
       until: res is success
       any_errors_fatal: true
   rescue:
     - name: Join to Cluster with ingores
       shell: "{{ kubeadm_join_cmd.stdout }} --control-plane --ignore-preflight-errors=all"
       register: res
-      retries: 10
+      retries: 50
       until: res is success
       any_errors_fatal: true
   tags:
@@ -135,7 +140,7 @@
             namespace: kube-system
           spec:
             containers:
-            - image: {{ haproxy_image }}
+            - image: {{ images.haproxy }}
               imagePullPolicy: IfNotPresent
               name: haproxy
               livenessProbe:
@@ -166,6 +171,22 @@
   tags:
     - master_replicas
 
+#Find the K8s interface based name based on the IP address of the node
+- set_fact:
+    target_interface: "{{ item }}"
+  when:
+        - hostvars[inventory_hostname]['ansible_' + item].ipv4 is defined
+        - hostvars[inventory_hostname]['ansible_' + item]['ipv4']['address'] | ansible.utils.ipaddr(real_ip)
+  with_items: "{{ ansible_interfaces }}"
+  tags:
+    - master_replicas
+- debug:
+    msg: >-
+      detected keepalived interface {{ target_interface }}
+      with address {{ real_ip }}
+  tags:
+    - master_replicas
+
 - name: configure keepalived on Slaves
   copy:
     dest: /etc/keepalived/keepalived.conf
@@ -184,7 +205,7 @@
 
           vrrp_instance VI_1 {
               state BACKUP
-              interface {{ ansible_interfaces | difference(['lo', 'cni0','tunl0']) | first }}
+              interface {{ target_interface }}
               virtual_router_id {{ keepalived_router_id }}
               priority 100
               authentication {
@@ -234,7 +255,7 @@
                 namespace: kube-system
               spec:
                 containers:
-                - image: {{ keepalived_image }}
+                - image: {{ images.keepalived }}
                   imagePullPolicy: IfNotPresent
                   name: keepalived
                   resources: {}

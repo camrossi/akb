@@ -57,6 +57,7 @@
 - name: Test https internet connectivity get https://www.google.com
   uri:
     url: https://www.google.com
+    validate_certs: no
   environment: "{{ proxy_env }}"
   register: res
   retries: 10
@@ -74,6 +75,58 @@
     - k8s_nodes
   when: ubuntu_apt_mirror
 
+- name: set timezone
+  shell: timedatectl set-timezone {{ time_zone }}
+  tags:
+    - k8s_nodes
+  when: time_zone
+    
+- name: Install the NTP daemon
+  apt: name=ntp
+  register: apt_res
+  retries: 100
+  until: apt_res is success
+  tags:
+    - k8s_nodes
+
+- name: Copy over the NTP configuration
+  template: src=./templates/ntp.conf dest=/etc/ntp.conf
+  tags:
+    - k8s_nodes
+
+- name: restart ntpd
+  service: name=ntp state=restarted
+  tags:
+    - k8s_nodes
+
+- name: apt update
+  apt:
+    update_cache: yes
+    cache_valid_time: 0
+  register: apt_res
+  retries: 100
+  until: apt_res is success
+  when: bare_metal
+  tags:
+    - k8s_nodes
+
+- name: Install ntpstat
+  apt: name=ntpstat
+  register: apt_res
+  retries: 100
+  until: apt_res is success
+  when: bare_metal
+  tags:
+    - k8s_nodes
+
+- name: Wait for ntp sync
+  command: ntpstat
+  register: apt_res
+  retries: 1000
+  until: apt_res.rc == 0
+  when: bare_metal
+  tags:
+    - k8s_nodes
 
 - name: add apt-key for Kubeadm
   apt_key:
@@ -112,7 +165,7 @@
 
 - name: add apt-key for cri-o
   apt_key:
-    url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:/{{ crio_version }}/{{ OS_Version }}/Release.key
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ OS_Version }}/Release.key
   environment: "{{ proxy_env }}"
   register: res
   retries: 10
@@ -144,17 +197,12 @@
   tags:
     - k8s_nodes
 
-- name: set timezone
-  shell: timedatectl set-timezone {{ time_zone }}
-  tags:
-    - k8s_nodes
-
 - name: apt update
   apt:
     update_cache: yes
     cache_valid_time: 0
   register: apt_res
-  retries: 100
+  retries: 10
   until: apt_res is success
   tags:
     - k8s_nodes
@@ -166,24 +214,6 @@
     state: latest
   tags:
     - k8s_nodes    
-
-- name: Install the NTP daemon
-  apt: name=ntp
-  register: apt_res
-  retries: 100
-  until: apt_res is success
-  tags:
-    - k8s_nodes
-
-- name: Copy over the NTP configuration
-  template: src=./templates/ntp.conf dest=/etc/ntp.conf
-  tags:
-    - k8s_nodes
-
-- name: restart ntpd
-  service: name=ntp state=restarted
-  tags:
-    - k8s_nodes
 
 - name: Make sure ntp is started, and is enabled on restart.
   service: name=ntp state=started enabled=yes
@@ -277,6 +307,30 @@
   tags:
     - k8s_nodes
 
+- name: install lldpd
+  apt:
+    name: lldpd
+    state: latest
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+  when: bare_metal
+  tags:
+    - k8s_nodes
+
+- name: Install kubeadm, kubelet and kubectl 
+  apt: 
+    name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
+    state: present
+    force: True
+  register: res
+  retries: 10
+  until: res is success
+  any_errors_fatal: true
+  tags:
+    - k8s_nodes
+    
 - name: install cri-tools
   apt: 
     name: cri-tools
@@ -310,6 +364,25 @@
   when: docker_mirror != "" 
   tags:
     - k8s_nodes
+
+- name: Detect the pause image version
+  shell: kubeadm config images list --kubernetes-version "{{ kube_version.split("-")[0] }}" | grep pause
+  register: pause_image
+  tags:
+    - k8s_nodes
+    - k8s_nodes_pause
+
+- name: Ensure Crio uses the right pause container image
+  ansible.builtin.lineinfile:
+    path: /etc/crio/crio.conf
+    regex: '# pause_image = .*'
+    line: pause_image = "{{ pause_image.stdout }}"
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - k8s_nodes
+    - k8s_nodes_pause
 
 - name: Just force systemd to reread configs (2.4 and above)
   ansible.builtin.systemd:
@@ -350,18 +423,6 @@
   tags:
     - k8s_nodes
 
-- name: Install kubeadm, kubelet and kubectl 
-  apt: 
-    name: kubelet={{ kube_version }},kubectl={{ kube_version }},kubeadm={{ kube_version }}
-    state: present
-    force: True
-  register: res
-  retries: 10
-  until: res is success
-  any_errors_fatal: true
-  tags:
-    - k8s_nodes
-
 - name: Create local-storage folder
   file:
     path: /mnt/local-storage
@@ -389,5 +450,14 @@
     sleep: 5
     delay: 5
     timeout: 5000
+  tags:
+    - k8s_nodes
+
+- name: Wait for ntp sync
+  command: ntpstat
+  register: apt_res
+  retries: 1000
+  until: apt_res.rc == 0
+  when: bare_metal
   tags:
     - k8s_nodes

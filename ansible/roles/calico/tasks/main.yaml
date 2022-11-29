@@ -1,4 +1,9 @@
 ---
+- name: Include containers_versions variables 
+  include_vars:
+    file: ../../inventory/group_vars/containers_versions.yaml
+  tags:
+    - calico
 
 - name: Copy Calico manifests
   template:
@@ -8,7 +13,7 @@
   with_items:
     - IPPool.yaml
     - BGPConfiguration.yaml
-    - BGPPeer.j2
+    - BGPPeer.yaml
     - calico-typha.yaml
     - calico-typha-v46.yaml
     - kubernetes-services-endpoint.yaml
@@ -24,16 +29,35 @@
   tags:
     - calico
 
-- name: Download Calicoctl on the installer VM if missing
+- name: Download Calicoctl x86_64 on the installer VM if missing
   run_once: true
   become: false
   delegate_to: localhost
   get_url:          
     url: https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64
     dest: ./roles/calico/files/calicoctl
-    force: no
+    force: yes
   environment: "{{ proxy_env }}"
-  ignore_errors: yes 
+  ignore_errors: yes
+  when: 
+    - not sandbox_status
+    - ansible_architecture == "x86_64"
+  tags:
+    - calico
+
+- name: Download Calicoctl arm64 on the installer VM if missing
+  run_once: true
+  become: false
+  delegate_to: localhost
+  get_url:          
+    url: https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-arm64
+    dest: ./roles/calico/files/calicoctl
+    force: yes
+  environment: "{{ proxy_env }}"
+  ignore_errors: yes
+  when: 
+    - not sandbox_status
+    - ansible_architecture == "aarch64"
   tags:
     - calico
 
@@ -41,13 +65,15 @@
   copy:
     src: ./roles/calico/files/calicoctl
     dest: /bin/calicoctl
-    force: no
+    force: yes
     mode: '0755'
   environment: "{{ proxy_env }}"
   register: res
   retries: 10
   until: res is success
   any_errors_fatal: true
+  when: 
+    - not sandbox_status
   tags:
     - calico
 
@@ -130,7 +156,7 @@
   with_items:
     - IPPool.yaml
     - BGPConfiguration.yaml
-    - BGPPeer.j2
+    - BGPPeer.yaml
   register: res
   retries: 100
   until: res is success

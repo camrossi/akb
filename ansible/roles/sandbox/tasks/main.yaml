@@ -3,34 +3,15 @@
     file: ../../inventory/group_vars/containers_versions.yaml
   tags:
     - sandbox
-  
+
 - name: Pre Pull Kubeadm Images
   command: kubeadm config images pull --kubernetes-version "{{ kube_version.split("-")[0] }}"
   tags:
     - sandbox
 
 - name: Pre Pull Images
-  command: crictl pull "{{ item }}"
-  with_items:
-   - docker.io/bloomberg/goldpinger:v3.3.0
-   - docker.io/calico/cni:v3.22.0
-   - docker.io/calico/kube-controllers:v3.22.0
-   - docker.io/calico/node:v3.22.0
-   - docker.io/calico/pod2daemon-flexvol:v3.22.0
-   - docker.io/calico/typha:v3.22.0
-   - gcr.io/google-samples/gb-frontend:v4
-   - gcr.io/google_samples/gb-redisslave:v1
-   - haproxy:latest
-   - k8s.gcr.io/metrics-server/metrics-server:v0.4.2
-   - k8s.gcr.io/redis:e2e
-   - osixia/keepalived:latest
-   - kubernetesui/dashboard:v2.2.0
-   - kubernetesui/metrics-scraper:v1.0.6
-   - quay.io/camillo/vkaci:{{ vkaci }}
-   - quay.io/camillo/vkaci-init:{{ vkaci }}
-   - k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1
-   - k8s.gcr.io/ingress-nginx/controller:v1.1.1
-   - neo4j:4.4.3
+  command: crictl pull "{{ item.value }}"
+  loop: "{{ lookup('ansible.builtin.dict', images) }} "
   tags:
     - sandbox
 

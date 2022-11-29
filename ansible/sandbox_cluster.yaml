@@ -37,6 +37,9 @@
 - hosts: k8s_primary_master
   gather_facts: false
   roles:
-    - calico
-    - k8s_addons
-    - ingress-nginx
+    - role: calico
+      when: cni_plugin == "Calico"
+    - role: kube-router
+      when: cni_plugin == "Kube-Router"
+    - role: k8s_addons
+    - role: ingress-nginx

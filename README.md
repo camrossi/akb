@@ -66,7 +66,8 @@ The latest template can be downloaded from the following locations:
 
 ### Visibility
 
-A visualization tool `vkaci` is also deployed on the cluster. It is exposed as a service and can be used to visualize the cluster topology.
+A visualization tool [ACI-Kubernetes-Visualiser](https://github.com/datacenter/ACI-Kubernetes-Visualiser) is also deployed on the cluster. It is exposed as a service and can be used to visualize the cluster topology.
+Currently only ACI is supported.
 
 ## Open Issues
 

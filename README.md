@@ -50,7 +50,12 @@ A few add-ons are also installed on the cluster:
 ## UI
 
 All the configurations can be done via the integrated webui. 
-A VM with NKT and the K8s VMs tempalte is provided for convenience and can be downloaded from the Release page, just import it in vCenter and you are ready to go!
+A VM with NKT and the K8s VMs tempalte is provided for convenience and can be downloaded from:
+* https://nkt-paris.s3.eu-west-3.amazonaws.com/nkt_installer-1.0.ova
+* https://nkt-paris.s3.eu-west-3.amazonaws.com/nkt_installer-1.0.ova
+* https://nkt-us-west.s3.us-west-1.amazonaws.com/nkt_installer-1.0.ova
+
+and imported in vCenter
 
 If you prefer to run NKT on your server execture the `startup.sh <port>` script to start the webui on the selected port. The Ubuntu VM template needs to be manually downloaded and placed into the `terraform/static/vm_templates` folder.
 

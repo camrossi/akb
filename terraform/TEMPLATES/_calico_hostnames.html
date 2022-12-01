@@ -1,0 +1,9 @@
+<turbo-frame id="tf_calico_hostnames">
+   <!-- This hostname is type search so it gets the cross button to clear it.  -->
+   <div class="form-group__text"><input type="search" name="hostname" id="hostname" list="hostname-list" autocomplete="off" value=""><label>Hostname</label></div>
+    <datalist id="hostname-list">
+        {%for h in hostnames %}
+           <option>{{h}}</option>
+        {%endfor%}
+     </datalist>
+</turbo-frame>

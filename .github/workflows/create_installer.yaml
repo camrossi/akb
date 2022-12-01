@@ -46,7 +46,7 @@ jobs:
       
       - name: Export NKT K8s Node Template
         run: | 
-          ovftool -o vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
+          ovftool --noSSLVerify -o vi://$GOVC_URL/$DC/vm/$VM_FOLDER/$NKT_TEMPLATE $DESTINATION_PATH/nkt_template.ova   
 
       - name: Set permission for NKT K8s Node Template
         run: | 
@@ -71,7 +71,7 @@ jobs:
       
       - name: Export Installer OVA
         run: | 
-          ovftool -o vi://$GOVC_URL/$DC/vm/nkt_installer-${{github.ref_name}} $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
+          ovftool --noSSLVerify -o vi://$GOVC_URL/$DC/vm/nkt_installer-${{github.ref_name}} $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
       
       - name: Delete Installer VM
         if: always()
@@ -82,11 +82,9 @@ jobs:
         run: | 
           chmod 777 $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova
           
-      - name: Upload to Sydney S3
+      - name: Upload Installer to Sydney S3
         run: | 
           bash packer/aws_upload.sh $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova nkt-sydney
-          
-      - name: Delete compressed images
+      - name: Upload Template to Sydney S3
         run: | 
-          rm $DESTINATION_PATH/nkt_installer-${{github.ref_name}}.ova*
-          
+          bash packer/aws_upload.sh $DESTINATION_PATH/nkt_template.ova nkt-sydney

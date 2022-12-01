@@ -15,6 +15,7 @@ resource "local_file" "AnsibleConfig" {
   content = templatefile("${path.module}/group_var_template.tmpl",
     {
       k8s_cluster     = var.k8s_cluster
+      vc              = var.vc
       calico_nodes    = var.calico_nodes
       as              = var.fabric.as
       bgp_pass        = var.fabric.bgp_pass
@@ -28,4 +29,16 @@ resource "local_file" "AnsibleConfig" {
     }
   )
   filename = "${var.ansible_dir}/inventory/group_vars/all.yml"
+}
+
+# Run ansible-playbook to provision the baremetal cluster
+resource "null_resource" "AnsibleInventory" {
+  count      = var.k8s_cluster.sandbox_status ? 0 : 1
+  depends_on = [local_file.AnsibleInventory, local_file.AnsibleConfig]
+  triggers = {
+    ansible_dir = "${var.ansible_dir}"
+  }
+  provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -b -i ${self.triggers.ansible_dir}/inventory/nodes.ini ${self.triggers.ansible_dir}/cluster.yaml"
+  }
 }

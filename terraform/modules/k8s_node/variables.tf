@@ -41,6 +41,8 @@ variable "vc" {
     port_group  = string
     vm_template = string
     vm_folder   = string
+    vm_deploy   = bool
+    bare_metal  = bool
   })
 }
 
@@ -71,8 +73,6 @@ variable "k8s_cluster" {
     control_plane_vip      = string
     vip_port               = number
     local_as               = number
-    haproxy_image          = string
-    keepalived_image       = string
     keepalived_router_id   = string
     kubeadm_token          = string
     node_sub               = string
@@ -86,7 +86,7 @@ variable "k8s_cluster" {
     ingress_ip             = string
     neo4j_ip               = string
     visibility_ip          = string
-    ntp_server             = string
+    ntp_servers            = list(string)
     dns_servers            = list(string)
     dns_domain             = string
     time_zone              = string
@@ -98,6 +98,8 @@ variable "k8s_cluster" {
     eBPF_status            = bool
     dns_servers            = list(string)
     dns_domain             = string
+    cni_plugin             = string
+    ansible_user      = string
   })
 }
 variable "ansible_dir" {

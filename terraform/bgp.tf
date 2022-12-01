@@ -25,16 +25,6 @@ resource "aci_bgp_timers" "bgp_timers" {
   stale_intvl  = "6"
 }
 
-## Map Timers to BGP Protocol Profile 
-## There is a bug on ACI that will have the destroy fail you can do this 
-
-#not working https://github.com/CiscoDevNet/terraform-provider-aci/issues/415
-resource "aci_l3out_bgp_protocol_profile" "bgp_pol_timers" { 
-  logical_node_profile_dn  = aci_logical_node_profile.calico_node_profile.id
-  relation_bgp_rs_bgp_node_ctx_pol = aci_bgp_timers.bgp_timers.id
-}
-
-
 ## Create BGP Best Path Policy
 
 resource "aci_bgp_best_path_policy" "relax_as_policy" {
@@ -43,16 +33,14 @@ resource "aci_bgp_best_path_policy" "relax_as_policy" {
     ctrl = "asPathMultipathRelax"
 }
 
-## Map BGP Best Path Policy to BGP Protocol Profile 
-#https://github.com/CiscoDevNet/terraform-provider-aci/issues/416
-resource "aci_rest" "bgp_pol_relax_as_restriction" {
-  depends_on = [ aci_l3out_bgp_protocol_profile.bgp_prot_pfl ]
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/out-${var.l3out.name}/lnodep-${var.l3out.node_profile_name}/protp/rsBestPathCtrlPol.json"
-  class_name = "bgpRsBestPathCtrlPol"
-    content = {
-      "tnBgpBestPathCtrlPolName" = "${var.l3out.name}-Relax-AS"
-  }
+## Map Timers to BGP Protocol Profile 
+
+resource "aci_l3out_bgp_protocol_profile" "bgp_pol_timers" { 
+  logical_node_profile_dn  = aci_logical_node_profile.calico_node_profile.id
+  relation_bgp_rs_bgp_node_ctx_pol = aci_bgp_timers.bgp_timers.id
+  relation_bgp_rs_best_path_ctrl_pol = aci_bgp_best_path_policy.relax_as_policy.id
 }
+
 
 ## Create BGP Address Family Context Policy
 ## Use to increase the Max eBGP and iBGP ECMP from 16 to 64 (current Maximum of ACI) the iBGP is used for the internal MP-BGP redistributed routes. 
@@ -64,28 +52,18 @@ resource "aci_bgp_address_family_context" "bgp_addr_family_context" {
   max_ecmp_ibgp = "64"
 }
 
-# Map BGP Address Family Context Policy to Calico VRF for V4
-# https://github.com/CiscoDevNet/terraform-provider-aci/issues/790
-resource "aci_rest" "bgp_addr_family_context_to_vrf" {
-  depends_on = [ aci_bgp_address_family_context.bgp_addr_family_context ]
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/ctx-${var.l3out.vrf_name}/rsctxToBgpCtxAfPol-[${var.l3out.name}]-ipv4-ucast.json"
-  class_name = "fvRsCtxToBgpCtxAfPol"
-    content = {
-      "tnBgpCtxAfPolName" = var.l3out.name
-      "af" = "ipv4-ucast"
-  }
+resource "aci_vrf_to_bgp_address_family_context" "bgp_addr_family_context_to_vrf" {
+  vrf_dn  = data.aci_vrf.l3out_vrf.id
+  bgp_address_family_context_dn = aci_bgp_address_family_context.bgp_addr_family_context.id
+  address_family  = "ipv4-ucast"
 }
 
 # Map BGP Address Family Context Policy to Calico VRF for V6
-resource "aci_rest" "bgp_addr_family_context_to_vrf_v6" {
+resource "aci_vrf_to_bgp_address_family_context" "bgp_addr_family_context_to_vrf_v6" {
   count = var.l3out.ipv6_enabled ? 1 : 0
-  depends_on = [ aci_bgp_address_family_context.bgp_addr_family_context ]
-  path       = "/api/mo/uni/tn-${var.l3out.l3out_tenant}/ctx-${var.l3out.vrf_name}/rsctxToBgpCtxAfPol-[${var.l3out.name}]-ipv6-ucast.json"
-  class_name = "fvRsCtxToBgpCtxAfPol"
-    content = {
-      "tnBgpCtxAfPolName" = var.l3out.name
-      "af" = "ipv6-ucast"
-  }
+  vrf_dn  = data.aci_vrf.l3out_vrf.id
+  bgp_address_family_context_dn = aci_bgp_address_family_context.bgp_addr_family_context.id
+  address_family  = "ipv6-ucast"
 }
 # Configure default-export policy to advertise the POD subnets back to the nodes
 

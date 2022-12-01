@@ -1,6 +1,6 @@
 variable "apic" {
   type = object({
-  username          = string
+  nkt_user          = string
   cert_name         = string
   private_key       = string
   url               = string
@@ -31,6 +31,7 @@ variable "vc" {
   vm_template       = string
   vm_folder         = string
   vm_deploy         = bool
+  bare_metal        = bool
   })
 }
 
@@ -42,8 +43,6 @@ variable "k8s_cluster" {
     control_plane_vip   = string
     vip_port            = number
     local_as            = number
-    haproxy_image       = string
-    keepalived_image    = string
     keepalived_router_id= string
     kubeadm_token       = string
     node_sub            = string
@@ -57,7 +56,7 @@ variable "k8s_cluster" {
     ingress_ip          = string
     neo4j_ip            = string
     visibility_ip       = string
-    ntp_server          = string
+    ntp_servers         = list(string)
     time_zone           = string
     docker_mirror       = string
     http_proxy_status   = string
@@ -67,6 +66,8 @@ variable "k8s_cluster" {
     eBPF_status         = bool
     dns_servers       = list(string)
     dns_domain        = string
+    cni_plugin        = string
+    ansible_user      = string
      })
 }
 

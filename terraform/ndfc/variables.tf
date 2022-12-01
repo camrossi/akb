@@ -8,10 +8,6 @@ variable "ndfc_k8s_user" {
   default = "kubereader"
 }
 
-variable "ndfc_k8s_integ" {
-  type = bool
-}
-
 variable "vc" {
   type = object({
     url         = string
@@ -24,6 +20,8 @@ variable "vc" {
     port_group  = string
     vm_template = string
     vm_folder   = string
+    vm_deploy   = bool
+    bare_metal  = bool
   })
 }
 
@@ -48,6 +46,10 @@ variable "overlay" {
     bgp_passwd     = string
     k8s_route_map  = string
     route_tag      = number
+    k8s_integ      = bool
+    ipv6_enabled   = bool
+    gateway_v4     = string
+    gateway_v6     = string
     vpc_peers = list(
       list(object({
         hostname       = string
@@ -92,11 +94,8 @@ variable "k8s_cluster" {
     local_as               = number
     peer_as                = number
     bgp_passwd             = string
-    haproxy_image          = string
-    keepalived_image       = string
     keepalived_router_id   = string
     kubeadm_token          = string
-    ipv6_enabled           = bool
     node_sub               = string
     node_sub_v6            = string
     pod_subnet             = string
@@ -108,7 +107,7 @@ variable "k8s_cluster" {
     ingress_ip             = string
     neo4j_ip               = string
     visibility_ip          = string
-    ntp_server             = string
+    ntp_servers            = list(string)
     dns_servers            = list(string)
     dns_domain             = string
     time_zone              = string
@@ -118,7 +117,8 @@ variable "k8s_cluster" {
     ubuntu_apt_mirror      = string
     sandbox_status         = bool
     eBPF_status            = bool
-
+    cni_plugin             = string
+    ansible_user      = string
   })
 }
 

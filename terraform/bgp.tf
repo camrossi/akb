@@ -25,20 +25,12 @@ resource "aci_bgp_timers" "bgp_timers" {
   stale_intvl  = "6"
 }
 
-## Create BGP Best Path Policy
-
-resource "aci_bgp_best_path_policy" "relax_as_policy" {
-    tenant_dn  = data.aci_tenant.tenant_l3out.id
-    name  = "${var.l3out.name}-Relax-AS"
-    ctrl = "asPathMultipathRelax"
-}
 
 ## Map Timers to BGP Protocol Profile 
 
 resource "aci_l3out_bgp_protocol_profile" "bgp_pol_timers" { 
   logical_node_profile_dn  = aci_logical_node_profile.calico_node_profile.id
   relation_bgp_rs_bgp_node_ctx_pol = aci_bgp_timers.bgp_timers.id
-  relation_bgp_rs_best_path_ctrl_pol = aci_bgp_best_path_policy.relax_as_policy.id
 }
 
 

@@ -50,9 +50,7 @@ A few add-ons are also installed on the cluster:
 ## UI
 
 All the configurations can be done via the integrated webui. 
-
-A VM with NKT and the K8s VMs tempalte is provided for convenience and can be downloaded from the Release page, just import it in vCenter and you are ready to go!
-
+A VM with NKT and the K8s VMs tempalte is provided for convenience and can be downloaded from:
 * https://nkt-paris.s3.eu-west-3.amazonaws.com/nkt_installer-1.0.ova
 * https://nkt-paris.s3.eu-west-3.amazonaws.com/nkt_installer-1.0.ova
 * https://nkt-us-west.s3.us-west-1.amazonaws.com/nkt_installer-1.0.ova

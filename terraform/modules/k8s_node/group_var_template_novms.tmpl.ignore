@@ -1,0 +1,27 @@
+#Cluster Networking
+pod_subnet: ${k8s_cluster.pod_subnet}
+cluster_svc_subnet: ${k8s_cluster.cluster_svc_subnet}
+external_svc_subnet: ${k8s_cluster.external_svc_subnet}
+pod_subnet_v6: ${k8s_cluster.pod_subnet_v6}
+cluster_svc_subnet_v6: ${k8s_cluster.cluster_svc_subnet_v6}
+external_svc_subnet_v6: ${k8s_cluster.external_svc_subnet_v6}
+
+
+aci_as: ${as}
+k8s_cluster_as:  ${k8s_cluster.local_as}
+apic_username : ${controller.username}
+apic_cert_name : ${controller.cert_name}
+apic_private_key: ${controller.private_key}
+apic_oob_ips :  ${controller.oob_ips}
+vrf_tenant: ${vrf_tenant}
+vrf_name: ${vrf_name}
+
+bgp_peers:
+%{ for node in bgp_peers ~}
+  - id: ${node.node_id}
+    primary_ip: ${split("/",node.ip)[0]}
+    primary_ipv6: ${split("/",node.ipv6)[0]}
+    rack_id: "${node.rack_id}"
+%{ endfor ~}
+cni_plugin: ${k8s_cluster.cni_plugin}
+bgp_pass: ${bgp_pass}

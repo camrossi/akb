@@ -59,7 +59,7 @@ resource "dcnm_interface" "loopbacks" {
 resource "dcnm_policy" "infra_vlan" {
   for_each      = data.dcnm_inventory.vpc_peer
   serial_number = each.value.serial_number
-  description   = "ibgp peer vlan of ${each.value.switch_name}"
+  description   = "k8s ibgp peer vlan of ${var.k8s_cluster.node_sub}"
   priority      = 450
   template_name = "system_nve_infra_vlan"
   template_props = {
@@ -72,7 +72,7 @@ resource "dcnm_policy" "k8s_route_map" {
     for switch in local.switches : "${switch.switch_name}" => switch
   }
   serial_number = data.dcnm_inventory.vpc_peer[each.value.switch_name].serial_number
-  description   = "route map for k8s node peering rof ${each.value.switch_name}"
+  description   = "k8s route map node peering ${var.k8s_cluster.node_sub} "
   entity_name   = "SWITCH"
   entity_type   = "SWITCH"
   priority      = 430
@@ -91,7 +91,7 @@ resource "dcnm_policy" "vrf_ibgp_peer" {
     for switch in local.switches : "${switch.switch_name}" => switch
   }
   serial_number = data.dcnm_inventory.vpc_peer[each.value.switch_name].serial_number
-  description   = "ibgp peer of ${each.value.switch_name}"
+  description   = "k8s ibgp peer of ${var.k8s_cluster.node_sub}"
   entity_name   = "SWITCH"
   entity_type   = "SWITCH"
   priority      = 430

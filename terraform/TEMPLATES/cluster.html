@@ -32,7 +32,7 @@
       </script>
 
 <head>
-   {{ turbo() }}
+   {{ turbo(url=url_for('static', filename='assets/js/turbo.es2017-umd.js')) }}
    <meta charset="utf-8">
    <title>NKT - Cluster</title>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,35 +41,9 @@
       href="{{ url_for('static',filename='assets/cui-2.0.0/css/cui-standard.min.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/frame.css') }}">
    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='assets/cui-2.0.0/css/style.css') }}">
-   <style>
-      .chevron ul.tabs li.active a {
-         background-color: #017cad !important;
-         opacity: 1 !important;
-         color: #ffffff;
-         box-shadow: none !important;
-      }
-
-      .chevron ul.tabs li a {
-         height: 56px min-width: 90% !important;
-         padding: 10px 6px;
-         background-color: #ffffff;
-         opacity: 1 !important;
-         color: #58585d;
-         text-align: center;
-         position: relative;
-         line-height: 16px;
-         font-size: 12px;
-         cursor: pointer;
-         flex: 1 !important;
-         flex-shrink: 1 !important;
-         flex-wrap: wrap !important;
-         display: flex !important;
-         justify-content: center !important;
-      }
-   </style>
 </head>
 
-<form id="form_cluster" name="tenantForm" method="post" action="/cluster">
+<form id="form_cluster" name="tenantForm" method="post" action="/cluster?fabric_type={{ fabric_type }}">
 
    <body class="cui cui--animated cui--compressed" data-theme="">
       <div id="oneui">
@@ -92,34 +66,45 @@
                </div>
             </div>
          </header>
-         <div class="flexrow">
+         <!-- <div class="flexrow">
             <div class="cell"></div>
             <div class="cell"> </div>
-         </div>
-
-         <!--  K8s Settings   -->
-
-         <div class="form-group base-margin-bottom">
+         </div> -->
+         <script src="{{ url_for('static',filename='assets/cui-2.0.0/js/webcomponentsLibrary.js') }}"></script>
+                  <div class="form-group base-margin-bottom">
             <div class="form-group__text"></div>
          </div>
+         <div class="container">
+            <status-bar></status-bar>
+         </div>
+         <div class="form-group base-margin-bottom">
+            <div class="form-group__text"></div>
+         </div>  
+
+         <!--  K8s Settings   -->
 
          <div class="container bg-gray">
             <h2>K8s Cluster Details</h2>
             <p>
-               <br> Here you should insert the K8s cluster details. </br>
-               <b>Internet Access:</b> If you do not have internet access you <b>MUST</b> use the provided VM template.<br>
-               No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. <br>
-               This only works for the default image versions and result in a faster cluster bring up.<br>
-               If you want to use your own template or specific image version then Internet access is required.<br>
+                Here you should insert the K8s cluster details.
+                <br><b>Internet Access:</b> 
+               <ul> 
+                  <li>If you do not have internet access you <b>MUST</b> use the provided VM template: 
+                     No binaries nor images are pulled from the internet as they are pre-pulled and pre-installed. 
+                     This only works for the default image versions and result in a faster cluster bring up.
+                     If you want to use your own template or specific image version then Internet access is required. </li>
+                  <li> If you are deploying <b>bare metal</b> nodes you must have internet access or the installtion will fail
+               </ul>
 
             </p>
          </div>
 
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %} >
             <div class="checkbox form-group form-group--inline c8041">
                <label class="checkbox">
                   <span class="checkbox__label hidden-xs">deploy k8s cluster in air-gapped environment?</span>
-                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;" checked onchange="if (!this.checked) {openModal('confirm_modal')}">
+                  <input type="checkbox" id="sandbox_status" name="sandbox_status" style="margin:0;" onchange="if (!this.checked) {openModal('confirm_modal')}"
+                  {% if not bare_metal %} checked ;{% endif %}>
                   <span id="sandbox_status" class="checkbox__input"></span>
                   <div class="modal modal--small hide" id="confirm_modal">
                      <div class="modal__dialog">
@@ -147,7 +132,7 @@
          </div>
          <br>
 
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %}>
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="time_zone">Time Zone:</label>
@@ -159,7 +144,7 @@
             </div>
          </div>
          
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %}>
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="dns_servers">DNS servers:
@@ -170,7 +155,7 @@
             </div>
          </div>
          
-         <div class="container">
+         <div class="container" {% if bare_metal %} style="display:none";{% endif %}>
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
                   <label for="dns_domain">DNS Domain: </label>
@@ -178,7 +163,16 @@
                </div>
             </div>
          </div>
-
+         <div class="container"{% if not bare_metal %} style="display:none";{% endif %}>
+            <div class="form-group base-margin-bottom">
+               <div class="form-group__text">
+                  <label for="ansible_user">Nodes Username 
+                     <span data-title="Username to connect to the nodes. This needs to be part of the sudoers">ⓘ</span>
+                  </label>
+                  <input type="text" id="ansible_user" name="ansible_user" value="cisco">
+               </div>
+            </div>
+         </div>
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
@@ -191,17 +185,14 @@
          <div class="container">
             <div class="form-group base-margin-bottom">
                <div class="form-group__text">
-                  <label for="ntp_server">NTP Server IP:</label>
-                  <input type="text" id="ntp_server" name="ntp_server">
+                  <label for="ntp_servers">Comma separated list for NTP Server IP:</label>
+                  <input type="text" id="ntp_servers" name="ntp_servers">
                </div>
             </div>
          </div>   
 
-                        <!--advanced tab for proxy-->
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text"></div>
-                        </div>
-                        <div class="container">
+
+                        <div class="container" {% if bare_metal %} style="display:none";{% endif %} >
                            <div class="checkbox form-group form-group--inline c8041">
                               <label class="checkbox">
                                  <input type="checkbox" id="http_proxy_status" name="http_proxy_status" onclick="DoCheckUncheckDisplay2(this,'checkbox-checked2','checkbox-unchecked2')" style="margin:0;">
@@ -244,7 +235,7 @@
                         <label class="checkbox">
                            <input type="checkbox" id="eBPF_status" name="eBPF_status" style="margin:0;" >
                            <span id="eBPF_status" class="checkbox__input"></span>
-                           <span class="checkbox__label hidden-xs">Enable eBPF (IPv6 Not Supported)</span>
+                           <span class="checkbox__label hidden-xs">Enable eBPF (Calico Only, IPv6 Not Supported)</span>
                         </label>
                      </div>
                   </div><br>
@@ -257,11 +248,11 @@
                         </div>
                      </div>
                   </div>
-                     <div class="container">
+                  <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
                               <label for="kube_version">Kubernetes Version:</label>
-                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.23.4-00">
+                              <input list="kube_version_list" id="kube_version" name="kube_version" value="1.24.7-00">
                               <datalist id="kube_version_list">
                                  {% for o in k8s_ver %}
                                  <option value="{{ o }}">
@@ -295,22 +286,6 @@
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
-                              <label for="haproxy_image">haproxy image:</label>
-                              <input type="text" id="haproxy_image" name="haproxy_image" value="haproxy:latest">
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
-                              <label for="keepalived_image">keepalived image:</label>
-                              <input type="text" id="keepalived_image" name="keepalived_image" value="osixia/keepalived:latest">
-                           </div>
-                        </div>
-                     </div>
-                     <div class="container">
-                        <div class="form-group base-margin-bottom">
-                           <div class="form-group__text">
                               <label for="keepalived_router_id">keepalived Router ID (Must Be Unique per VLAN):</label>
                               <input type="text" id="keepalived_router_id" name="keepalived_router_id" value="51">
                            </div>
@@ -319,8 +294,8 @@
                      <div class="container">
                         <div class="form-group base-margin-bottom">
                            <div class="form-group__text">
-                              <label for="ubuntu_apt_mirror">Ubuntu APT Mirror (Optional):
-                                 <span data-title="If set it will override the default ubuntu APT mirror">ⓘ</span>
+                              <label for="ubuntu_apt_mirror">Ubuntu APT Mirror:
+                                 <span data-title="Set the Ubuntu APT mirror, for example archive.ubuntu.com/ubuntu">ⓘ</span>
                               </label>
                               <input type="text" id="ubuntu_apt_mirror" name="ubuntu_apt_mirror">
                            </div>
@@ -332,7 +307,7 @@
          <div class="container">
             <div class="navibox">
                <input id="submit" type="submit" value="Next" class="btn btn--wide" name="button" style="margin-left: 10px;" onclick="saveInput()">
-               <input type="submit" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
+               <input type="submit" id="Previous" value="Previous" class="btn btn--wide" name="button" style="margin-left: 0px" onclick="saveInput()">
             </div>
          </div>
 
@@ -383,7 +358,7 @@
 </body>
 <script>
     $("#submit").on("click", function(){
-        var url = "{{ url_for("cluster_view")}}" + '?fabric_type=' + getUrlParameter('fabric_type');
+        var url = "{{ url_for("cluster_view")}}" + '?fabric_type=' + "{{ fabric_type }}";
         console.log(url);
         $("#form_cluster").attr("action", url);
         $("#form_cluster").submit();

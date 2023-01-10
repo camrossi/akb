@@ -167,7 +167,7 @@ Use this section to specify your Kubernetes Cluster Configuration parameters.
 * pod_subnet: The subnet for the PODs. Keep in mind every Calico Nodes gets a /26 by default. Do your math before! if you want to have for example 64 nodes you need a /20 subnetas minimum or you won't have enough /26 to allocate!!
 * cluster_svc_subnet: The Cluster-IP Service subnet
 * external_svc_subnet: The External Service subnet used for Services of type LoadBalancer
-* ntp_server: IP address or name of the DNS server, NTP is good... use NTP
+* ntp_servers: IP address or name of the DNS server, NTP is good... use NTP
 * time_zone: The time zone in the standard unix format. Use `timedatectl list-timezones` to get a list of valid Time Zones
 * docker_mirror: (Optional, set to "" to disable) in the format of IP:PORT configure CRIO to pull images from a dockerhub mirror. Very useful now that docker limits the pull youcan do. This DOES not install a mirror for you. You need to install one on your own. If you get stuck [This](docker_mirror.dm) is how I did it.
 * ingress_ip: The cluster comes with a few add-ons, one is an Nginx Ingress controller. This parameter set its IP address. This must be a free address from the external_svc_subnet
@@ -186,7 +186,7 @@ k8s_cluster = {
     node_sub            = "192.168.2.0/24"
     pod_subnet          = "10.1.0.0/16"
     cluster_svc_subnet  = "192.168.8.0/22"
-    ntp_server          = "72.163.32.44"
+    ntp_servers          = "72.163.32.44"
     time_zone           = "Australia/Sydney"
     docker_mirror       = "10.67.185.120:5000"
     ingress_ip          = "192.168.3.1"

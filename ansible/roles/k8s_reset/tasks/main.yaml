@@ -1,7 +1,32 @@
 - name: kubeadm reset -f
   command: kubeadm reset -f
 
-- name: restart cri-o
-  service:
-    name: crio
-    state: restarted
+- name: Delete CNI configs
+  file:
+    state: absent
+    path: /etc/cni/net.d/
+
+- name: Create /etc/cni/net.d/ directory
+  file:
+    path: /etc/cni/net.d/
+    state: directory
+
+- name: Reboot the server
+  shell: "sleep 5 && reboot"
+  async: 1
+  poll: 0
+  tags:
+    - reboot
+- name: Pause for 1 minutes to ensure the hosts are off
+  pause:
+    minutes: 1
+  tags:
+    - reboot
+- name: Wait for the nodes to be reachable
+  wait_for_connection:
+    connect_timeout: 10
+    sleep: 5
+    delay: 5
+    timeout: 5000
+  tags:
+    - reboot

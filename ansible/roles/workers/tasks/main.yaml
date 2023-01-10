@@ -1,5 +1,13 @@
 ---
-
+- name: Wait for the nodes to be reachable
+  wait_for_connection:
+    connect_timeout: 10
+    sleep: 5
+    delay: 5
+    timeout: 5000
+  tags:
+    - k8s_nodes
+    
 - name: Generate worker join token
   shell: kubeadm token create --print-join-command
   register: kubeadm_join_cmd
@@ -16,14 +24,14 @@
     - name: Join to Cluster
       shell: "{{ kubeadm_join_cmd.stdout }}"
       register: join_workers
-      retries: 10
+      retries: 50
       until: join_workers is success
       any_errors_fatal: true
   rescue:
     - name: Join to Cluster
       shell: "{{ kubeadm_join_cmd.stdout }} --ignore-preflight-errors=all"
       register: join_workers
-      retries: 10
+      retries: 50
       until: join_workers is success
       any_errors_fatal: true
   tags:

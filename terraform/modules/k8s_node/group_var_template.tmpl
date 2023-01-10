@@ -1,5 +1,5 @@
 ### TO DO: This should be fixed with SSH KEY Autnentication
-ansible_user: cisco
+ansible_user: ${k8s_cluster.ansible_user}
 ansible_ssh_private_key_file: ${ ssh_private_key }
 
 fabric_type: ${ fabric_type }
@@ -10,10 +10,8 @@ OS_Version: "${k8s_cluster.OS_Version}"
 crio_version: "${k8s_cluster.crio_version}"
 
 #HA-Proxy and Keepalied Config 
-haproxy_image: ${k8s_cluster.haproxy_image}
 control_plane_vip: ${k8s_cluster.control_plane_vip}
 vip_port: ${k8s_cluster.vip_port}
-keepalived_image: ${k8s_cluster.keepalived_image}
 keepalived_router_id: ${k8s_cluster.keepalived_router_id}
 
 #Cluster Networking
@@ -26,13 +24,16 @@ external_svc_subnet_v6: ${k8s_cluster.external_svc_subnet_v6}
 ingress_ip: ${k8s_cluster.ingress_ip}
 visibility_ip: ${k8s_cluster.visibility_ip}
 neo4j_ip: ${k8s_cluster.neo4j_ip}
-ntp_server: ${k8s_cluster.ntp_server}
+ntp_servers:
+%{ for s in k8s_cluster.ntp_servers ~}
+  - ${s}
+%{ endfor ~}
 time_zone: "${k8s_cluster.time_zone}"
 
 kubeadm_token: ${k8s_cluster.kubeadm_token}
 
 aci_as: ${as}
-calico_as:  ${k8s_cluster.local_as}
+k8s_cluster_as:  ${k8s_cluster.local_as}
 apic_username : ${controller.username}
 apic_cert_name : ${controller.cert_name}
 apic_private_key: ${controller.private_key}
@@ -71,3 +72,4 @@ dns_domain: ${dns_domain}
 ubuntu_apt_mirror: ${k8s_cluster.ubuntu_apt_mirror}
 eBPF_status: ${k8s_cluster.eBPF_status}
 cni_plugin: ${k8s_cluster.cni_plugin}
+bare_metal: ${vc.bare_metal}

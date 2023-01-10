@@ -49,13 +49,44 @@ A few add-ons are also installed on the cluster:
 
 ## UI
 
-All the configurations can be done via the integrated webui.
-Just execture the `appflask.py` file from the `terraform` directory
+All the configurations can be done via the integrated webui. 
+A VM with NKT and the K8s VMs tempalte is provided for convenience and can be downloaded from:
+* https://nkt-paris.s3.eu-west-3.amazonaws.com/nkt_installer-1.0.ova
+* https://nkt-paris.s3.eu-west-3.amazonaws.com/nkt_installer-1.0.ova
+* https://nkt-us-west.s3.us-west-1.amazonaws.com/nkt_installer-1.0.ova
+
+and imported in vCenter
+
+If you prefer to run NKT on your server execture the `startup.sh <port>` script to start the webui on the selected port. The Ubuntu VM template needs to be manually downloaded and placed into the `terraform/static/vm_templates` folder.
+
+The latest template can be downloaded from the following locations:
+* https://nkt-sydney.s3.ap-southeast-2.amazonaws.com/nkt_template.ova
+* https://nkt-paris.s3.eu-west-3.amazonaws.com/nkt_template.ova
+* https://nkt-us-west.s3.us-west-1.amazonaws.com/nkt_template.ova
 
 ### Visibility
 
-A visualization tool `vkaci` is also deployed on the cluster. It is exposed as a service and can be used to visualize the cluster topology.
+A visualization tool [ACI-Kubernetes-Visualiser](https://github.com/datacenter/ACI-Kubernetes-Visualiser) is also deployed on the cluster. It is exposed as a service and can be used to visualize the cluster topology.
+Currently only ACI is supported.
 
 ## Open Issues
 
 * L3OUT ECMP is used to load balance traffic to the services running in the cluster: Every node that has a POD for an exposed service will advertise a /32 host route for the service IP. Currently ACI does not support Resilient hashing for L3out ECMP. This means that if the number of ECMP paths are changed (scaling up/down a deploument could result in that as well as node failure) the flows can potentially be re-hashed to a different nodes resulting in connections resets. There is currently a feature request opened to support Resilient hashing for L3out ECMP: US9273
+
+## Advacned 
+
+### Raspberry Pi testing
+We have been testing NKT and VKACI on 3 Raspberry Pis nodes with Ubuntu 20.4. If you plan to test the same here a few tips:
+
+* Configure passwordless sudo
+  * Edit sudoers file: sudo nano /etc/sudoers
+  * Find a line which contains includedir /etc/sudoers.d
+  * Below that line add: username ALL=(ALL) NOPASSWD: ALL
+* CRI-O supports ARM64 Ubuntu starting from v1.24 
+* edit the `/boot/firmware/cmdline.txt` and enable the following options
+  * cgroup_enable=cpuset
+  * cgroup_enable=memory
+  * cgroup_memory=1
+* Check the maximum MTU supported by the Rpi ethernet interfaces, not all support jumbo MTU. use ` ip -d link list` and look for `maxmtu`
+* The APT Mirror MUST BE http://ports.ubuntu.com/
+* The Pi does not have a RTC (Real Time Clock) so every time is reloaded the time is set back to the build time, at least with Ubuntu 20.0.4. So it is mandatory to have NTP working even after the installation or the cluster will die after a reload as all the certificate will be invalid.

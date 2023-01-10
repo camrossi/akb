@@ -1,0 +1,67 @@
+- hosts: k8s_workers
+  gather_facts: false
+  roles:
+    - role: k8s_nodes
+      when: not sandbox_status
+    - role: workers
+
+- hosts: k8s_primary_master
+  gather_facts: False
+  tasks:
+  - name: Labels Nodes with Natted IP
+    shell: |
+      kubectl label node {{ item }} external-ip={{ hostvars[item].ansible_host }} --overwrite
+    loop: "{{groups['k8s_nodes']}}"
+    register: label_res
+    retries: 5
+    until: label_res is success
+    any_errors_fatal: true
+
+  - name: Labels Nodes with rack_id
+    shell: |
+      kubectl label node {{ item }} rack_id="{{ hostvars[item]['rack_id'] }}" --overwrite
+    loop: "{{groups['k8s_nodes']}}"
+    register: label_res
+    retries: 10
+    until: label_res is success
+    any_errors_fatal: true
+  
+  - name: Labels Nodes with local-storage 
+    shell: |
+      kubectl label node {{ item }} local-storage=yes --overwrite
+    loop: "{{groups['k8s_nodes']}}"
+    register: label_res
+    retries: 5
+    until: label_res is success
+    any_errors_fatal: true
+
+  - name: Copy kube-router manifests
+    template:
+      src: "roles/kube-router/templates/{{ item }}"
+      dest: /tmp/{{ item }}
+      force: yes
+    with_items:
+      - BGPPeers.yaml
+    when: cni_plugin == "Kube-Router"
+
+  - name: Annotate Node with BGP Peers
+    shell: 
+      while read -r line; do kubectl annotate node $line ; done < /tmp/BGPPeers.yaml
+    register: res
+    retries: 10
+    until: res is success
+    any_errors_fatal: true
+    when: cni_plugin == "Kube-Router"
+
+- hosts: k8s_workers
+  gather_facts: false
+  tasks:
+  - name: Restart Kube-Rotuer on the new nodes
+    shell: 
+      kubectl  delete pod -n kube-system  -l k8s-app=kube-router --field-selector spec.nodeName="{{ inventory_hostname }}"
+    register: res
+    delegate_to: "{{groups['k8s_primary_master'][0]}}"
+    retries: 10
+    until: res is success
+    any_errors_fatal: true
+    when: cni_plugin == "Kube-Router"

@@ -110,9 +110,8 @@ kind: Service
 metadata:
   name: vkaci
 spec:
-  type: NodePort
-  externalIPs:
-  - {{ visibility_ip }}
+  type: LoadBalancer
+  loadBalancerIP: {{ visibility_ip }}
   externalTrafficPolicy: Local
   selector:
     app: vkaci

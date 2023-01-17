@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bgp-config
+  namespace: kube-system
+data:
+  config.yaml: |
+    address-pools:
+      - name: default
+        protocol: bgp
+        addresses:
+          - {{ external_svc_subnet | ansible.utils.ipaddr('network') }}/{{ external_svc_subnet | ansible.utils.ipaddr('prefix') }}
+{% if external_svc_subnet_v6 %}
+          - {{ external_svc_subnet_v6 | ansible.utils.ipaddr('network') }}/{{ external_svc_subnet_v6 | ansible.utils.ipaddr('prefix') }}
+{% endif %}

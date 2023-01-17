@@ -32,6 +32,7 @@
     dest: /tmp/{{ item }}
     force: yes
   with_items:
+    - cilium-bgp-config-map.yaml
     - cilium-bgp-config.yaml
     - cilium-values.yaml
   tags:
@@ -39,7 +40,7 @@
 
 - name: helm install cilium 
   shell: | 
-    helm install cilium cilium/cilium --version 1.12.0-rc1 --namespace kube-system -f /tmp/cilium-values.yaml
+    helm install cilium cilium/cilium --version 1.13.0-rc4 --namespace kube-system -f /tmp/cilium-values.yaml
   register: label_res
   retries: 5
   until: label_res is success
@@ -58,7 +59,17 @@
   tags:
     - cilium
 
-- name: Apply Cilium Config Map
+- name: Apply Cilium BGP Config Map
+  shell: |
+    kubectl apply -f /tmp/cilium-bgp-config-map.yaml
+  register: label_res
+  retries: 10
+  until: label_res is success
+  any_errors_fatal: true
+  tags:
+    - cilium
+
+- name: Apply Cilium BGP Peering Policy
   shell: |
     kubectl apply -f /tmp/cilium-bgp-config.yaml
   register: label_res

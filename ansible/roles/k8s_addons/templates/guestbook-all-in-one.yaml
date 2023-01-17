@@ -21,10 +21,6 @@ spec:
       containers:
       - name: leader
         image: {{ images.redis }}
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
         ports:
         - containerPort: 6379
 ---
@@ -68,10 +64,6 @@ spec:
       containers:
       - name: follower
         image: {{ images.gb_redisslave }}
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
         ports:
         - containerPort: 6379
 ---
@@ -114,10 +106,6 @@ spec:
         env:
         - name: GET_HOSTS_FROM
           value: "dns"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
         ports:
         - containerPort: 80
 ---

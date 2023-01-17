@@ -646,6 +646,55 @@ jobs:
         run: | 
             curl -b cookie.txt -s http://localhost:5013/destroy?fabric_type=vxlan_evpn
 
+  nkt-cilium-v4:
+    needs: [cleanup_stale_vms]
+    # The type of runner that the job will run on
+    runs-on: stld
+    defaults:
+      run:
+        working-directory: cilium-v4/terraform
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          path: cilium-v4
+      - name: Install dependencies
+        run: |
+          pip3 install -r ../requirements.txt
+      - name: Copy Private Key
+        run: | 
+          cp /nfs-share/www/nkt/id_rsa ../ansible/roles/sandbox/files/id_rsa
+      - name: Start NKT
+        run: | 
+          gunicorn -w 4 -k gevent -b 0.0.0.0:5006 appflask:app -D ; sleep 5
+      - name: Run headless chrome to generate the config
+        run: | 
+          python3 ../testing/selenium/selenium_ui_testing_cilium_cluster_v4.py --headless && sleep 2
+      - name: Terraform plan
+        run: | 
+          curl -c cookie.txt -s http://10.67.185.120:5006/ -o /dev/null && curl -b cookie.txt -s http://10.67.185.120:5006/tf_plan
+      - name: Terraform apply
+        run: | 
+          curl -b cookie.txt -s http://10.67.185.120:5006/tf_apply
+      - name: Check if all the nodes are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready nodes --all --timeout=600s
+      - name: Check if all the pods are ready
+        run: | 
+          kubectl --kubeconfig=../ansible/roles/primary_master/files/admin.conf wait --for=condition=Ready pods --all --all-namespaces --timeout=600s
+
+      - name: Kill Terraform if workflow is cancelled manually
+        if: cancelled()
+        run: | 
+          killall terraform 
+          
+      - name: Terraform destroy and delete APIC user
+        if: always()
+        run: | 
+          curl -b cookie.txt -s  http://10.67.185.120:5006/destroy
+
   python_unit_tests:
       runs-on: ubuntu-latest
       steps:

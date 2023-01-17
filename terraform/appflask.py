@@ -1104,6 +1104,17 @@ def cluster_network():
                 cluster['pod_subnet_v6'] = ""
                 cluster['cluster_svc_subnet_v6'] = ""
                 cluster['external_svc_subnet_v6'] = ""
+            if cluster['cni_plugin'] == "Cilium":
+                logger.info('Cilium Detected, ensure no BGP password is set see https://github.com/cilium/cilium/issues/23052')
+                if fabric_type == "aci":
+                    l3out = json.loads(getdotenv('l3out'))
+                    l3out['bgp_password'] = ""
+                    setdotenv('l3out', json.dumps(l3out))
+                elif fabric_type == "vxlan_evpn":
+                    overlay = json.loads(getdotenv('overlay'))
+                    overlay['bgp_password'] = ""
+                    setdotenv('overlay', json.dumps(overlay))
+
             logger.info('save cluster variable')
             setdotenv('cluster', json.dumps(cluster))
             return redirect(f'/create?fabric_type={fabric_type}')

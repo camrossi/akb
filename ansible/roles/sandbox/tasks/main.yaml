@@ -29,15 +29,11 @@
   tags:
     - sandbox
 
-- name: Add ingress-nginx helm Repo
-  shell: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+- name: Add helm Repos
+  shell: helm repo add  "{{ item.key }}" "{{ item.value }}"
+  loop: "{{ lookup('ansible.builtin.dict', heml_charts) }} "
   environment: "{{ proxy_env }}"
-  tags:
-    - sandbox
-
-- name: Add Neo4J helm Repo
-  shell: helm repo add neo4j https://helm.neo4j.com/neo4j
-  environment: "{{ proxy_env }}"
+  ignore_errors: true
   tags:
     - sandbox
 
@@ -47,15 +43,11 @@
   tags:
     - sandbox
 
-- name: Download Ingress Chart
-  shell: helm pull ingress-nginx/ingress-nginx --version 4.0.17
+- name: Download Charts
+  shell: helm pull "{{ item.key }}" --version "{{ item.value }}"
+  loop: "{{ lookup('ansible.builtin.dict', heml_charts_versions) }} "
   environment: "{{ proxy_env }}"
-  tags:
-    - sandbox
-
-- name: Download Neo4j Chart
-  shell: helm pull  neo4j/neo4j-standalone --version 4.4.3  
-  environment: "{{ proxy_env }}"
+  ignore_errors: true
   tags:
     - sandbox
 

@@ -22,9 +22,9 @@ images:
   alpine-curl: quay.io/cilium/alpine-curl:v1.6.0
   cilium: quay.io/cilium/cilium:v1.13.0-rc4
   hubble-relay: quay.io/cilium/hubble-relay:v1.13.0-rc4
-  hubble-ui-backend: quay.io/cilium/hubble-ui-backend:v1.13.0-rc4
-  hubble-ui: quay.io/cilium/hubble-ui:v1.13.0-rc4
-  json-mock: quay.io/cilium/json-mock:v1.13.0-rc4
+  hubble-ui-backend: quay.io/cilium/hubble-ui-backend:v0.10.0
+  hubble-ui: quay.io/cilium/hubble-ui:v0.10.0
+  json-mock: quay.io/cilium/json-mock:v1.3.3
   operator-generic: quay.io/cilium/operator-generic:v1.13.0-rc4
 heml_charts:
   cilium: https://helm.cilium.io

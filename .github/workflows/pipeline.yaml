@@ -490,7 +490,7 @@ jobs:
         - name: Install dependencies
           run: |
             pip3 install -r ../requirements.txt
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
         - name: Copy Private Key
           run: | 
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa
@@ -540,7 +540,7 @@ jobs:
         - name: Install dependencies
           run: |
             pip3 install -r ../requirements.txt
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
         - name: Copy Private Key
           run: | 
             cp /home/shdu/id_rsa ../ansible/roles/sandbox/files/id_rsa

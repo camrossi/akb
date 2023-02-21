@@ -43,3 +43,22 @@
   any_errors_fatal: true
   tags:
     - kube-router
+
+### Kube Router needs the kube-proxy config map to start so I can't just skip it during cluster bring up
+### https://github.com/cloudnativelabs/kube-router/issues/859
+
+- name: Remove kube-proxy
+  shell: kubectl -n kube-system delete ds kube-proxy
+  ignore_errors: yes
+  tags:
+    - kube-router
+
+# This is needed to remove the iptables rules left over by kube-proxy
+- name: Clean up iptables
+  shell: iptables-save | grep -v KUBE | iptables-restore
+  ignore_errors: yes
+  delegate_to: "{{ item }}"
+  loop: "{{groups['k8s_nodes']}}"
+  register: clean_iptables
+  tags:
+    - kube-router

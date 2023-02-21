@@ -6,7 +6,7 @@ bootstrapTokens:
   token: {{ kubeadm_token }}
 nodeRegistration:
   criSocket: "unix:///var/run/crio/crio.sock"
-{% if cni_plugin != "Calico" %}
+{% if cni_plugin == "Cilium" %}
 skipPhases:
   - addon/kube-proxy
 {% endif %}

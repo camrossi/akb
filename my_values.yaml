@@ -1,0 +1,106 @@
+# Default values for vkaci.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+# VKACI APIC Variables
+# All of these will need to be set correctly
+apicIps: "10.67.185.102,10.67.185.41,10.67.185.42"
+apicCertName: "nkt_user_Xvpp3k"
+apicUsername: "nkt_user_Xvpp3k"
+vrfTenant: "calico1"
+vrfName: "vrf"
+# Get the APIC key data by encoding your key file as a base64 string
+# NOTE: It would have been nice to be able to pass in a filename instead so Helm can do it for us
+# but I found no way for Helm to access user files outside of the chart.
+apicKeyData: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlDWEFJQkFBS0JnUURKV3N1Mi9OOEJDb0ZkWDFDOUh3cW15QkFJcUE3TExoWEVnQjNXcmM3S245aGxKSHNyCklxMkdxWExWRTNQRkY5ZUZQcU4ybzRMbnlHWkRTNDYreEVvTWM3M2YvTDU0eDBDRTZoT1N0cW1mYmFEOE5ybVYKK21XcUFUeXlrU0o0anpVRWp6bVYyRzRyWmRNbXBvek9VNER0OUE4ZWtHLzRVZ3d4NnZ2aXUwNHhaUUlEQVFBQgpBb0dBRnNkVXdIQys4YWswbFZHUkdyUUdTblBiakg4bW5VbXJZTDExb3JHcThUVkFEOEVleGZSNFdRR1dZaEIvClNrNjJMUGEzRzFiSUdseUxaUldKSW4rbU9LckxMZnZtNEJLOW80YkJmTS9iZUNmbEFQajZhVHoxcmllck5hOU8KY2MvTUM5aGxRNDJJNUJYaU8zRlNSK1hqTU5HQmhzSVNnZkc4Z3ErUXkyUFRUa0VDUVFENkd0S0h5dlFHVVN2SgpyeEhyRDRZZS9qK21lZEc0MVhjRCtoTFcxei9Rd21uRXZYWUNpSUNWM0JURFM5Y1lGZlNSamtlZm5BRUg1akZDCnZhc2tndmxwQWtFQXpobk9jQ2dTcnFUMmYxQWxVTHl5WE9RSk9CVW1hUGJJRy9HMXE2WWlGWnE5Y1c0YmRRL08KV2N1RVp2VThTT3B1alpWNm41SktiWDJmanVxZmtkM2NuUUpBQWtOVjNsYXV5SlBaY3BTNzg4V0xNQ0thenRYUgpXUHZOZk9LNVl1cEZzSXpoeWg3d3Yyc2V4cnhjRDd4UzhPdlo3NnM2NkszUHNKT2JwSC8wMlhxNTZRSkFkY2cvCnRzN2Y1bGkxMmdvbVdSNk5YQktoeGlBb0pFSXNGL1FwVzJBRkNJMjNCL1RoMGlOblROL0cyY1A2WUwxQTByOEQKSmVCSGtvMEJPMzZRRko5UzdRSkJBTkRFZ01FRG5KZG43cEJNYzNOeFBuNmpNb0RQaUgrNEFKQjlJRXpBbjZrUwpUbnkyNDFhakFoV2VNMTJlUXhMWXd6Z3FkSm02aFMzRkZzUkRnbUR2cmlFPQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQ=="
+
+# Special VKACI Neo4j Variables
+n4jBrowserUrl: ""
+n4jUser: neo4j
+n4jPassword: ""
+
+image:
+  repository: quay.io/datacenter/vkaci
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "vkaci"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# vkaci currently doesn't support multiple pods in the same cluster yet. 
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Neo4j Chart Settings
+neo4j-standalone:
+  nameOverride: "vkaci-neo4j"
+  fullnameOverride: "vkaci-neo4j"
+  services:
+    neo4j:
+      # Disables the LoadBalancer service
+      enabled: false
+    admin:
+      # Disables the extra admin service
+      enabled: false
+  neo4j:
+    resources:
+      cpu: "1"
+      memory: "2Gi"
+    password: me-change
+  volumes:
+    data:
+      mode: defaultStorageClass
+  config:
+    dbms.default_database: neo4j
+    dbms.config.strict_validation: 'true'

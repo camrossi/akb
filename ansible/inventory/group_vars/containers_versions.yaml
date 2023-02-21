@@ -1,6 +1,6 @@
 images:
-  vkaci: quay.io/datacenter/vkaci:v1.0.1
-  vkaci_init: quay.io/datacenter/vkaci-init:v1.0.1
+  vkaci: quay.io/datacenter/vkaci:v1.0.2
+  vkaci_init: quay.io/datacenter/vkaci-init:v1.0.2
   kube_router: docker.io/cloudnativelabs/kube-router:v1.5.2
   neo4j: neo4j:4.4.3
   goldpinger: docker.io/bloomberg/goldpinger:v3.5.1

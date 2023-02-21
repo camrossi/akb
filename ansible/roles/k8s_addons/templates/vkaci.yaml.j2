@@ -86,7 +86,7 @@ spec:
            - name: aci-user-cert-volume
              mountPath: /usr/local/etc/aci-cert/
            - name: aci-meta
-             mountPath: "/root/.aci-meta"
+             mountPath: "/app/aci-meta"
        initContainers:
        - name: init-vkaci
          image: {{ images.vkaci_init }}
@@ -97,7 +97,7 @@ spec:
              value: "{{ apic_oob_ips }}"
          volumeMounts:
            - name: aci-meta
-             mountPath: "/root/.aci-meta"
+             mountPath: "/app/aci-meta
        volumes:
          - name: aci-user-cert-volume
            secret:

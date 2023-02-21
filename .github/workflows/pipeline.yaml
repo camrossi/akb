@@ -25,6 +25,7 @@ jobs:
       - name: Cleanup Stale VMs
         run: | 
             sh clean_stale_vms.sh
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
 
   cleanup_stale_ndfc_objects:
   # This job clean up all the VMs called gitaction-nkt found on the vcenters.

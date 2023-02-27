@@ -127,7 +127,7 @@ elem.send_keys("ACI/kube-router/vlan-103")
 elem = driver.find_element(By.ID,'vm_templates')
 elem.send_keys("nkt_template")
 elem = driver.find_element(By.ID,'vm_folder')
-elem.send_keys("kube-router")
+elem.send_keys("k8s-kube-router")
 elem = driver.find_element(By.ID,"submit")
 elem.click()
 

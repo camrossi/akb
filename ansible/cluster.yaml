@@ -18,14 +18,6 @@
   roles:
     - workers
 
-- hosts: k8s_primary_master
-  gather_facts: false
-  roles:
-    - role: calico
-      when: cni_plugin == "Calico"
-    - role: kube-router
-      when: cni_plugin == "Kube-Router"
-
 - hosts: k8s_masters
   gather_facts: false
   roles:
@@ -34,5 +26,11 @@
 - hosts: k8s_primary_master
   gather_facts: false
   roles:
+    - role: calico
+      when: cni_plugin == "Calico"
+    - role: cilium
+      when: cni_plugin == "Cilium"
+    - role: kube-router
+      when: cni_plugin == "Kube-Router"
     - k8s_addons
     - ingress-nginx

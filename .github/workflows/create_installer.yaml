@@ -24,6 +24,9 @@ jobs:
     runs-on: stld
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Add .local/bin to Path
+        run: | 
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v2
         

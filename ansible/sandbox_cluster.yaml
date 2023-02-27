@@ -39,6 +39,8 @@
   roles:
     - role: calico
       when: cni_plugin == "Calico"
+    - role: cilium
+      when: cni_plugin == "Cilium"
     - role: kube-router
       when: cni_plugin == "Kube-Router"
     - role: k8s_addons

@@ -1,0 +1,13 @@
+To deploy Cilium follow these steps:
+1) annotate the K8s nodes with the following annotations:
+    rack_id="<id>" This is the rack_id that you have allocated to your leaves. Nodes will peer with leaves with the same rack_id
+2) Add the Cilium Helm Chart:
+    helm repo add cilium https://helm.cilium.io/
+4) (Optional) Edit the cilium-values.yaml file and set the k8sServiceHost and the k8sServicePort to the Control Plan Virtual IP:Port used by your K8s Cluster. 
+    By default the VIP is  the cluster_subnet broadcast_address - 3 and the port is 8443.
+5) Install Cilium: 
+    helm install cilium cilium/cilium --version {{ heml_charts_versions['cilium/cilium'] }} --namespace kube-system -f cilium-values.yaml
+6) Apply Cilium BGP Config Map
+    kubectl apply -f cilium-bgp-config-map.yaml
+7) Apply Cilium BGP Peering Policy
+    kubectl apply -f cilium-bgp-config.yaml

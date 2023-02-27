@@ -5,12 +5,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import sys
-import random
 from time import sleep
+from selenium_utils import wait_for_clickable
 
-def wait_for_title(driver, title):
-    WebDriverWait(driver, 30).until(lambda x: title in x.title )
-    
 def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem = driver.find_element(By.NAME,"pod_id")
     elem.send_keys(pod_id)
@@ -27,7 +24,7 @@ def add_anchor_node(pod_id,rack_id,node_id,rtr_id,node_ipv4):
     elem.send_keys(node_ipv4)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
+    wait_for_clickable(driver,(By.ID,"add_node"))
 
 def add_calico_ndoe(hostname, ip, rack_id):
     elem = driver.find_element(By.NAME,"hostname")
@@ -41,27 +38,26 @@ def add_calico_ndoe(hostname, ip, rack_id):
     elem.send_keys(rack_id)
     elem = driver.find_element(By.ID,"add_node")
     elem.click()
-    sleep(1)
+    wait_for_clickable(driver,(By.ID,"add_node"))
+    
+def wait_for_title(driver, title):
+    WebDriverWait(driver, 30).until(lambda x: title in x.title )
 
 chrome_options = Options()
 if len(sys.argv)>=2:
     port= sys.argv[1]
     chrome_options.add_argument(sys.argv[1])
 driver = webdriver.Chrome(options=chrome_options)
+driver.implicitly_wait(10)
 
-run_id = "{:05d}".format(random.randint(1,10000))
-if len(sys.argv)>=3:
-    run_id = sys.argv[2]
-
-driver.get("http://10.67.185.120:5001/")
+driver.get("http://10.67.185.120:5006")
 assert "NKT" in driver.title
 elem = driver.find_element(By.NAME,"button")
 elem.click()
-
-assert "Apic Login" in driver.title
+wait_for_title(driver, "Apic Login")
 elem = driver.find_element(By.NAME,"fabric")
 elem.clear()
-elem.send_keys("10.67.185.106")
+elem.send_keys("fab2-apic1.cam.ciscolabs.com")
 elem = driver.find_element(By.NAME,"username")
 elem.clear()
 elem.send_keys("admin")
@@ -69,17 +65,15 @@ elem = driver.find_element(By.NAME,"password")
 elem.clear()
 elem.send_keys("123Cisco123")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
+wait_for_title(driver, "L3OUT")
 
-assert "L3OUT" in driver.title
 elem = driver.find_element(By.ID,'l3out_tenant')
-elem.send_keys("calico_dev_v4")
+elem.send_keys("Cilium")
 elem = driver.find_element(By.NAME,"ipv4_cluster_subnet")
 elem.clear()
-elem.send_keys("192.168.39.0/24")
+elem.send_keys("192.168.11.0/24")
 # WAIT FOR THE vrf_name_list TO BE POPULATED WITH AT LEAST 2 ELEMENTs (The first one is just the palce holder)
 # THAT SHOULD BE ALL IT TAKES TO HAVE THE REST OF THE PAGE READY...
 try:
@@ -88,26 +82,24 @@ except ValueError as e:
     print("Loading took too much time!")
 
 elem = driver.find_element(By.ID,'vrf_name')
-elem.send_keys("calico_dev_v4/vrf")
+elem.send_keys("Cilium/Cilium")
 elem = driver.find_element(By.ID,'contract')
-elem.send_keys("common/calico_dev")
+elem.send_keys("common/cilium_permit_all")
 elem = driver.find_element(By.ID,'physical_dom')
-elem.send_keys("Fab1")
+elem.send_keys("Fab2")
 
-add_anchor_node("1","1","101","1.1.1.101","192.168.39.1")
-add_anchor_node("1","1","102","1.1.1.102","192.168.39.3/24")
-
-current_url = driver.current_url
+add_anchor_node("1","1","201","1.1.1.101","192.168.11.101")
+add_anchor_node("1","1","202","1.1.1.102","192.168.11.102/24")
+add_anchor_node("1","2","203","1.1.1.103","192.168.11.103")
+add_anchor_node("1","2","204","1.1.1.104","192.168.11.104/24")
 
 elem = driver.find_element(By.ID,"submit")
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-
-assert "vCenter Login" in driver.title
+wait_for_title(driver, "vCenter Login" )
 elem = driver.find_element(By.NAME,"url")
-elem.send_keys("10.67.185.101")
+elem.send_keys("vc2.cam.ciscolabs.com")
 elem = driver.find_element(By.NAME,"username")
 elem.send_keys("administrator@vsphere.local")
 elem = driver.find_element(By.NAME,"pass")
@@ -115,12 +107,10 @@ elem.send_keys("123Cisco123!")
 elem = driver.find_element(By.ID,"template_checkbox")
 elem.click()
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "vCenter Details" in driver.title
+wait_for_title(driver, "vCenter Details")
 select = Select(driver.find_element(By.ID,'dc'))
 select.select_by_visible_text("STLD")
 
@@ -129,39 +119,35 @@ try:
     WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="vms_list"]/option[1]')))
 except ValueError as e:
     print("Loading took too much time!")
-#elem = driver.find_element(By.ID,'datastore')
-#elem.send_keys("ESXi3_SSD")
+
 select = Select(driver.find_element(By.ID,'cluster'))
-select.select_by_visible_text("Cluster1")
+select.select_by_visible_text("Cluster")
 elem = driver.find_element(By.ID,'port_group')
-elem.send_keys("ACI/calico_dev_v4/vlan-11")
+elem.send_keys("ACI/cilium_l3out/vlan-301")
 elem = driver.find_element(By.ID,'vm_templates')
 elem.send_keys("nkt_template")
 elem = driver.find_element(By.ID,'vm_folder')
-elem.send_keys("CalicoDev_v4")
+elem.send_keys("Cilium")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
+
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Calico Nodes" in driver.title
+wait_for_title(driver, "Calico Nodes")
 elem = driver.find_element(By.ID,'calico_nodes')
 elem.clear()
-add_calico_ndoe('nkt-master-{}-1'.format(run_id),'192.168.39.1/24', '1')
-add_calico_ndoe('nkt-master-{}-2'.format(run_id),'192.168.39.2/24', '1')
-add_calico_ndoe('nkt-master-{}-3'.format(run_id),'192.168.39.3/24', '1')
-add_calico_ndoe('nkt-worker-{}-1'.format(run_id),'192.168.39.4/24', '1')
-add_calico_ndoe('nkt-worker-{}-2'.format(run_id),'192.168.39.5/24', '1')
-add_calico_ndoe('nkt-worker-{}-3'.format(run_id),'192.168.39.6/24', '1')
+add_calico_ndoe('gitaction-nkt-master-1','192.168.11.1/24', '1')
+add_calico_ndoe('gitaction-nkt-master-2','192.168.11.2/24', '1')
+add_calico_ndoe('gitaction-nkt-master-3','192.168.11.3/24', '1')
+add_calico_ndoe('gitaction-nkt-worker-1','192.168.11.4/24', '1')
+add_calico_ndoe('gitaction-nkt-worker-2','192.168.11.5/24', '1')
+add_calico_ndoe('gitaction-nkt-worker-3','192.168.11.6/24', '1')
 
 
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
 
 #Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Cluster" in driver.title
+wait_for_title(driver, "Cluster")
 elem = driver.find_element(By.ID,'advanced')
 elem.click()
 elem = driver.find_element(By.ID,'timezone')
@@ -178,14 +164,14 @@ elem = driver.find_element(By.ID,'ubuntu_apt_mirror')
 elem.clear()
 elem.send_keys("ubuntu.mirror.digitalpacific.com.au/archive/")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
 elem.click()
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-#Wait for the page to be loaded
-WebDriverWait(driver, 15).until(EC.url_changes(current_url))
-assert "Cluster Network" in driver.title
+
+wait_for_title(driver, "Cluster Network")
+elem = driver.find_element(By.ID,'cni_plugin')
+elem.clear()
+elem.send_keys("Cilium")
 elem = driver.find_element(By.ID,"submit")
-current_url = driver.current_url
+
 elem.click()
 wait_for_title(driver, "Create")
 driver.quit()

@@ -91,13 +91,6 @@ resource "vsphere_virtual_machine" "vm" {
 
     }
   }
-    #vapp {
-    #properties = {
-    #  instance-id = each.value.hostname
-    #  public-keys = tls_private_key.ansible_key.public_key_openssh
-    #  password = "123Cisco123"
-    #}
-  #}
 }
 
 

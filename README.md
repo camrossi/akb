@@ -89,4 +89,4 @@ We have been testing NKT and VKACI on 3 Raspberry Pis nodes with Ubuntu 20.4. If
   * cgroup_memory=1
 * Check the maximum MTU supported by the Rpi ethernet interfaces, not all support jumbo MTU. use ` ip -d link list` and look for `maxmtu`
 * The APT Mirror MUST BE http://ports.ubuntu.com/
-* The Pi does not have a RTC (Real Time Clock) so every time is reloaded the time is set back to the build time, at least with Ubuntu 20.0.4. So it is mandatory to have NTP working even after the installation or the cluster will die after a reload as all the certificate will be invalid.
+* The Pi does not have a RTC (Real Time Clock) so every time is reloaded the time is set back to the build time, at least with Ubuntu 20.0.4. So it is mandatory to have NTP working even after the installation or the cluster will die after a reload as all the certificate will be invalid. To partially workaround this you can install `sudo apt install fake-hwclock` that Restore / save the current clock between reloads. 

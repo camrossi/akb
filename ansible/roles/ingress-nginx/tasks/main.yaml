@@ -32,7 +32,7 @@
     - ingress-nginx
 
 - name: helm install ingress-nginx 
-  shell: helm install -n kube-system ingress-nginx ingress-nginx-4.0.17.tgz  -f /tmp/ingress-nginx-values.yaml
+  shell: helm install -n kube-system ingress-nginx ingress-nginx-{{ heml_charts_versions['ingress-nginx/ingress-nginx'] }}.tgz  -f /tmp/ingress-nginx-values.yaml
   register: label_res
   retries: 5
   until: label_res is success

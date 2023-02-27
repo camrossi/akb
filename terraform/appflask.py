@@ -1084,7 +1084,6 @@ def cluster_network():
                 cluster['neo4j_ip'] = str(ipaddress.IPv4Interface(external_svc_subnet).ip + 3)
                 if fabric_type == "aci" and vc['bare_metal']:
                     add_l3out_vlan(req)
-
             else:
                 cluster = create_cluster_vars()
                 cluster['pod_subnet'] = req.get("ipv4_pod_sub")
@@ -1092,6 +1091,10 @@ def cluster_network():
                 cluster['cluster_svc_subnet'] = req.get("ipv4_svc_sub")
                 cluster['local_as'] = req.get("k8s_local_as")
                 cluster['cni_plugin'] = req.get("cni_plugin")
+                # Set the control plane VIP and PORT. This is needed for Cilium
+                l3out = json.loads(getdotenv('l3out'))
+                cluster['control_plane_vip'] = str(ipaddress.IPv4Network(l3out['ipv4_cluster_subnet'], strict=False).broadcast_address - 3)
+                cluster['vip_port'] = 8443
                 if fabric_type == "aci":
                     add_l3out_vlan(req)
             if ipv6_enabled: 
@@ -1104,6 +1107,17 @@ def cluster_network():
                 cluster['pod_subnet_v6'] = ""
                 cluster['cluster_svc_subnet_v6'] = ""
                 cluster['external_svc_subnet_v6'] = ""
+            if cluster['cni_plugin'] == "Cilium":
+                logger.info('Cilium Detected, ensure no BGP password is set see https://github.com/cilium/cilium/issues/23052')
+                if fabric_type == "aci":
+                    l3out = json.loads(getdotenv('l3out'))
+                    l3out['bgp_pass'] = ""
+                    setdotenv('l3out', json.dumps(l3out))
+                elif fabric_type == "vxlan_evpn":
+                    overlay = json.loads(getdotenv('overlay'))
+                    overlay['bgp_pass'] = ""
+                    setdotenv('overlay', json.dumps(overlay))
+
             logger.info('save cluster variable')
             setdotenv('cluster', json.dumps(cluster))
             return redirect(f'/create?fabric_type={fabric_type}')
@@ -1982,7 +1996,7 @@ def existing_cluster():
                 vkaci_ui = "http://" + ext_ip + ":30000"
                 # Do something with the file
             except IOError:
-                return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present", vm_deploy=deployed_cluster)
+                return render_template('/existing_cluster.html', text_area_title="Error", config="Config File Not Found but terraform.tfstate file is present")
             return render_template('/existing_cluster.html', text_area_title="Cluster Config:", config=current_config, vkaci_ui=vkaci_ui, vm_deploy=deployed_cluster)
         elif fabric_type == "vxlan_evpn":
             ndfc_tfvars = "./ndfc/cluster.tfvars"

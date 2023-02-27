@@ -1,0 +1,52 @@
+# CiliumBGPPeeringPolicy CRDs.
+bgpControlPlane:
+  enabled: true
+
+# -- Configure BGP
+bgp:
+  # -- Enable BGP support inside Cilium; embeds a new ConfigMap for BGP inside
+  # cilium-agent and cilium-operator
+  enabled: true
+  announce:
+    # -- Enable allocation and announcement of service LoadBalancer IPs
+    loadbalancerIP: true
+    # -- Enable announcement of node pod CIDR
+    podCIDR: true
+
+ipam:
+  mode: "cluster-pool"
+  operator:
+    clusterPoolIPv4PodCIDRList: ["{{ pod_subnet | ansible.utils.ipaddr('subnet') }}"]
+    clusterPoolIPv4MaskSize: 27
+ipv4:
+  enabled: true
+ipv6:
+  enabled: false
+loadBalancer:
+  algorithm: maglev
+operator:
+  replicas: 1
+# Disable the encapsulation, enable routing for the node subnets 
+# and turn off NAT for everything
+tunnel: disabled
+enable-endpoint-routes: true
+enableIPv6Masquerade: false
+enableIPv4Masquerade: false
+
+#Disable Kube Proxy
+kubeProxyReplacement: "strict"
+k8sServiceHost: {{ control_plane_vip }}
+k8sServicePort: {{ vip_port }}
+
+hubble:
+  # -- Enable Hubble (true by default).
+  enabled: true
+  relay:
+    # -- Enable Hubble Relay (requires hubble.enabled=true)
+    enabled: true
+  ui:
+    # -- Whether to enable the Hubble UI.
+    enabled: true
+    service:
+      # --- The type of service used for Hubble UI access, either ClusterIP or NodePort.
+      type: LoadBalancer

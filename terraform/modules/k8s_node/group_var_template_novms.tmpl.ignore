@@ -5,7 +5,8 @@ external_svc_subnet: ${k8s_cluster.external_svc_subnet}
 pod_subnet_v6: ${k8s_cluster.pod_subnet_v6}
 cluster_svc_subnet_v6: ${k8s_cluster.cluster_svc_subnet_v6}
 external_svc_subnet_v6: ${k8s_cluster.external_svc_subnet_v6}
-
+control_plane_vip: ${k8s_cluster.control_plane_vip}
+vip_port: ${k8s_cluster.vip_port}
 
 aci_as: ${as}
 k8s_cluster_as:  ${k8s_cluster.local_as}

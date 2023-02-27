@@ -20,3 +20,7 @@ To deploy Kube Routers follow these steps:
     kube-router.io/peer.passwords={{ bgp_pass | b64encode}},{{ bgp_pass | b64encode}}
     {% endif %}
 2) Apply the kuberouter-all-features.yaml file with the kubectl apply -f command.
+3) Remove kube-proxy by performing the following actions:
+  1) kubectl -n kube-system delete ds kube-proxy
+  2) kubectl -n kube-system delete cm kube-proxy
+  3) Clean up the iptables rules on all the nodes (execute this command as root): iptables-save | grep -v KUBE | iptables-restore

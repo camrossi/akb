@@ -7,10 +7,13 @@ metadata:
   name: pods-list
 rules:
 - apiGroups: [""]
-  resources: ["pods","services","nodes"]
-  verbs: ["list","get"]
+  resources: ["services", "nodes", "pods"]
+  verbs: ["list", "get"]
 - apiGroups: ["crd.projectcalico.org"]
   resources: ["bgpconfigurations"]
+  verbs: ["list","get"]
+- apiGroups: ["cilium.io"]
+  resources: ["ciliumbgppeeringpolicies"]
   verbs: ["list","get"]
 ---
 kind: ClusterRoleBinding
@@ -86,7 +89,7 @@ spec:
            - name: aci-user-cert-volume
              mountPath: /usr/local/etc/aci-cert/
            - name: aci-meta
-             mountPath: "/root/.aci-meta"
+             mountPath: "/app/aci-meta"
        initContainers:
        - name: init-vkaci
          image: {{ images.vkaci_init }}
@@ -97,7 +100,7 @@ spec:
              value: "{{ apic_oob_ips }}"
          volumeMounts:
            - name: aci-meta
-             mountPath: "/root/.aci-meta"
+             mountPath: "/app/aci-meta"
        volumes:
          - name: aci-user-cert-volume
            secret:
@@ -110,9 +113,8 @@ kind: Service
 metadata:
   name: vkaci
 spec:
-  type: NodePort
-  externalIPs:
-  - {{ visibility_ip }}
+  type: LoadBalancer
+  loadBalancerIP: {{ visibility_ip }}
   externalTrafficPolicy: Local
   selector:
     app: vkaci

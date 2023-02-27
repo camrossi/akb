@@ -162,7 +162,7 @@
     - k8s_addons
 
 - name: helm install Neo4J 
-  shell: helm install my-neo4j neo4j-standalone-4.4.3.tgz  -f /tmp/neo4j-values.yaml
+  shell: helm install my-neo4j neo4j-standalone-{{ heml_charts_versions['neo4j/neo4j-standalone'] }}.tgz  -f /tmp/neo4j-values.yaml
   register: label_res
   retries: 5
   until: label_res is success
@@ -214,7 +214,7 @@
     force: yes
   when: fabric_type is not defined or fabric_type == "aci"
   tags:
-    - k8s_addons1
+    - k8s_addons
 
 ####
 - name: Install vkaci

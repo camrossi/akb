@@ -1,7 +1,7 @@
 images:
-  vkaci: quay.io/datacenter/vkaci:v1.0.1
-  vkaci_init: quay.io/datacenter/vkaci-init:v1.0.1
-  kube_router: docker.io/cloudnativelabs/kube-router:v1.5.2
+  vkaci: quay.io/datacenter/vkaci:v1.1.0
+  vkaci_init: quay.io/datacenter/vkaci-init:v1.1.0
+  kube_router: docker.io/cloudnativelabs/kube-router:v1.5.3
   neo4j: neo4j:4.4.3
   goldpinger: docker.io/bloomberg/goldpinger:v3.5.1
   calico_cni: docker.io/calico/cni:v3.22.0
@@ -19,3 +19,18 @@ images:
   metrics_scraper: kubernetesui/metrics-scraper:v1.0.6
   nginx_certgen: k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1
   nginx_controller: k8s.gcr.io/ingress-nginx/controller:v1.1.1
+  alpine-curl: quay.io/cilium/alpine-curl:v1.6.0
+  cilium: quay.io/cilium/cilium:v1.13.0
+  hubble-relay: quay.io/cilium/hubble-relay:v1.13.0
+  hubble-ui-backend: quay.io/cilium/hubble-ui-backend:v0.10.0
+  hubble-ui: quay.io/cilium/hubble-ui:v0.10.0
+  json-mock: quay.io/cilium/json-mock:v1.3.3
+  operator-generic: quay.io/cilium/operator-generic:v1.13.0
+heml_charts:
+  cilium: https://helm.cilium.io
+  ingress-nginx: https://kubernetes.github.io/ingress-nginx
+  neo4j: https://helm.neo4j.com/neo4j
+heml_charts_versions:
+  cilium/cilium: 1.13.0
+  ingress-nginx/ingress-nginx: 4.0.17
+  neo4j/neo4j-standalone: 4.4.3

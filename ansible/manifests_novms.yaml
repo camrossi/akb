@@ -47,6 +47,20 @@
       tags:
         - cni_manifests
 
+    - name: Copy Cilium Manifests
+      template:
+        src: "roles/cilium/templates/{{ item }}"
+        dest: "../terraform/static/manifests/{{ item }}"
+        lstrip_blocks: yes
+      with_items:
+        - cilium-bgp-config-map.yaml
+        - cilium-bgp-config.yaml
+        - cilium-values.yaml
+        - Readme
+      when: cni_plugin == "Cilium"
+      tags:
+        - cni_manifests
+
     - name: Archive Manifests
       archive:
         path: "../terraform/static/manifests/*"

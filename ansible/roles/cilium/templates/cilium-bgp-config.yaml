@@ -1,0 +1,37 @@
+{#-
+ Create a set of rack IDs
+-#}
+{%- set rack_ids = [] -%}
+{%- for leaf in bgp_peers -%}
+{{ rack_ids.append( leaf.rack_id ) }}
+{%- endfor -%}
+
+{%- for rack_id in rack_ids|unique -%}
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeeringPolicy
+metadata:
+  name: rack-{{ rack_id }}
+  namespace: kube-system
+spec:
+ nodeSelector:
+   matchLabels:
+     rack_id: "{{ rack_id }}"
+ virtualRouters:
+ - localASN: {{ k8s_cluster_as }}
+   exportPodCIDR: true
+{#
+ Advertise all services by matching on a non existent label
+#}
+   serviceSelector:
+     matchExpressions:
+     - key: CiliumAdvertiseAllServices
+       operator: DoesNotExist
+   neighbors:
+{% for leaf in bgp_peers %}
+{% if leaf.rack_id | int == rack_id | int %}
+    - peerAddress: "{{ leaf.primary_ip }}/32"
+      peerASN: {{ aci_as }}
+{% endif %}
+{% endfor %}
+{% endfor %}

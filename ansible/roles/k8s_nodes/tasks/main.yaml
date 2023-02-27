@@ -212,8 +212,12 @@
   apt: 
     name: ca-certificates
     state: latest
+  retries: 10
+  register: cacert_res
+  until: cacert_res is success
+  any_errors_fatal: true
   tags:
-    - k8s_nodes    
+    - k8s_nodes
 
 - name: Make sure ntp is started, and is enabled on restart.
   service: name=ntp state=started enabled=yes
